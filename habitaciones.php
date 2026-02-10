@@ -1,0 +1,461 @@
+<?php
+require_once 'config/database.php';
+
+// Verificar sesión de usuario
+session_start();
+if (!isset($_SESSION['usuario'])) {
+    header('Location: login.php');
+    exit;
+}
+include 'includes/header.php';
+include 'includes/sidebar.php';
+?>
+
+<div class="main-content">
+    <div id="notification-container"></div>
+    
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1>Habitaciones</h1>
+                <p class="text-muted mb-0">Gestiona las habitaciones del hotel</p>
+            </div>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalHabitacion" onclick="abrirModalNuevo()">
+                <i class="fas fa-plus me-2"></i>Nueva Habitación
+            </button>
+        </div>
+    </div>
+
+    <!-- Grid de tarjetas en lugar de tabla -->
+    <div class="row g-4" id="habitacionesGrid">
+        <!-- Las tarjetas se cargarán dinámicamente aquí -->
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="modalHabitacion" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Nueva Habitación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formHabitacion" onsubmit="guardarHabitacion(event)">
+                <div class="modal-body">
+                    <input type="hidden" id="habitacion_id">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Número de Habitación *</label>
+                        <input type="text" class="form-control" id="numero" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Tipo *</label>
+                        <select class="form-select" id="tipo" required>
+                            <option value="">Seleccione...</option>
+                            <option value="simple">Simple</option>
+                            <option value="doble">Doble</option>
+                            <option value="suite">Suite</option>
+                            <option value="presidencial">Presidencial</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Piso *</label>
+                        <input type="number" class="form-control" id="piso" required min="1">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Precio por Noche *</label>
+                        <input type="number" class="form-control" id="precio_noche" required min="0" step="0.01">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Capacidad *</label>
+                        <input type="number" class="form-control" id="capacidad" required min="1">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Estado *</label>
+                        <select class="form-select" id="estado" required>
+                            <option value="disponible">Disponible</option>
+                            <option value="ocupada">Ocupada</option>
+                            <option value="mantenimiento">Mantenimiento</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        <textarea class="form-control" id="descripcion" rows="3"></textarea>
+                    </div>
+
+                    <!-- <div class="mb-3">
+                        <label class="form-label">Imagen de la Habitación</label>
+                        <div class="border rounded p-3 bg-light">
+                            <input type="file" class="form-control mb-2" id="imagen" accept="image/*" onchange="previewImageHabitacion(this)">
+                            <div class="d-flex gap-2 mb-2">
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('imagen').click()">
+                                    <i class="fas fa-upload me-1"></i> Subir Archivo
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="openCameraHabitacion()">
+                                    <i class="fas fa-camera me-1"></i> Cámara
+                                </button>
+                            </div>
+                            <div id="imagePreviewHabitacion" class="text-center"></div>
+                            <input type="hidden" id="imagen_url">
+                        </div>
+                    </div> -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    cargarHabitaciones();
+});
+
+function cargarHabitaciones() {
+    $.get('api/endpoints/habitaciones.php?estado_real=1', function(data) {
+        const grid = $('#habitacionesGrid');
+        grid.empty();
+        // Normalizar posible forma de respuesta: array o { records: [...] }
+        const habitacionesList = Array.isArray(data) ? data : (data.records || []);
+
+        habitacionesList.forEach(habitacion => {
+            const estadoClass = {
+                'disponible': 'success',
+                'ocupada': 'danger',
+                'mantenimiento': 'warning'
+            }[habitacion.estado];
+            
+            const estadoTexto = {
+                'disponible': 'Disponible',
+                'ocupada': 'Ocupada',
+                'mantenimiento': 'Mantenimiento'
+            }[habitacion.estado];
+
+            const tipoCapitalizado = habitacion.tipo ? (habitacion.tipo.charAt(0).toUpperCase() + habitacion.tipo.slice(1)) : '';
+            const precioValue = habitacion.precio ?? habitacion.precio_noche ?? 0;
+            
+            grid.append(`
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-box bg-primary bg-opacity-10 text-primary rounded p-2 me-3">
+                                        <i class="fas fa-bed fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="card-title mb-0">Hab. ${habitacion.numero}</h5>
+                                        <small class="text-muted">Piso ${habitacion.piso}</small>
+                                    </div>
+                                </div>
+                                <span class="badge bg-${estadoClass}">${estadoTexto}</span>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <p class="mb-2"><strong>Tipo:</strong> ${tipoCapitalizado}</p>
+                                <p class="mb-2"><strong>Precio:</strong> <span class="text-primary fs-5 fw-bold">$${parseFloat(precioValue).toLocaleString('es-CO')}</span></p>
+                                <p class="mb-2">
+                                    <strong>Capacidad:</strong> 
+                                    <i class="fas fa-user ms-2"></i> ${habitacion.capacidad}
+                                </p>
+                            </div>
+                            
+                            ${habitacion.descripcion ? `<p class="text-muted small">${habitacion.descripcion}</p>` : ''}
+                            
+                            <div class="d-flex gap-2 mt-3">
+                                <button class="btn btn-outline-primary btn-sm flex-fill" onclick="editarHabitacion(${habitacion.id})">
+                                    <i class="fas fa-edit me-1"></i> Editar
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm" onclick="eliminarHabitacion(${habitacion.id})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `);
+        });
+    });
+}
+
+function abrirModalNuevo() {
+    $('#modalTitle').text('Nueva Habitación');
+    $('#formHabitacion')[0].reset();
+    $('#habitacion_id').val('');
+}
+
+function previewImageHabitacion(input) {
+    const preview = document.getElementById('imagePreviewHabitacion');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            preview.innerHTML = `
+                <img src="${e.target.result}" alt="Vista previa" class="img-fluid rounded" style="max-height: 200px; max-width: 100%;">
+                <div class="mt-2">
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeImageHabitacion()">
+                        <i class="fas fa-times"></i> Quitar imagen
+                    </button>
+                </div>
+            `;
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function removeImageHabitacion() {
+    document.getElementById('imagen').value = '';
+    document.getElementById('imagePreviewHabitacion').innerHTML = '';
+    document.getElementById('imagen_url').value = '';
+}
+
+function openCameraHabitacion() {
+    // Verificar si estamos en HTTPS o localhost
+    const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    
+    if (!isSecure) {
+        showNotification('La cámara requiere HTTPS o localhost. Intenta usando 127.0.0.1 en lugar de localhost', 'error');
+        return;
+    }
+    
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        // Solicitar permisos con opciones específicas
+        const constraints = {
+            video: {
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+                facingMode: 'environment' // Cámara trasera en móviles
+            }
+        };
+        
+        navigator.mediaDevices.getUserMedia(constraints)
+            .then(function(stream) {
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                video.autoplay = true;
+                video.style.width = '100%';
+                video.style.maxHeight = '300px';
+                
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.8);
+                    z-index: 9999;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                `;
+                
+                const container = document.createElement('div');
+                container.style.cssText = `
+                    background: white;
+                    padding: 20px;
+                    border-radius: 8px;
+                    text-align: center;
+                    max-width: 90%;
+                `;
+                
+                const title = document.createElement('h5');
+                title.textContent = 'Tomar Foto de Habitación';
+                title.style.marginBottom = '15px';
+                
+                const videoContainer = document.createElement('div');
+                videoContainer.appendChild(video);
+                
+                const buttonContainer = document.createElement('div');
+                buttonContainer.style.marginTop = '15px';
+                
+                const captureBtn = document.createElement('button');
+                captureBtn.textContent = 'Capturar';
+                captureBtn.className = 'btn btn-primary me-2';
+                captureBtn.onclick = function() {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0);
+                    
+                    canvas.toBlob(function(blob) {
+                        const file = new File([blob], 'habitacion_photo.jpg', { type: 'image/jpeg' });
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(file);
+                        
+                        const fileInput = document.getElementById('imagen');
+                        fileInput.files = dataTransfer.files;
+                        
+                        previewImageHabitacion({ target: { files: [file] } });
+                        
+                        stream.getTracks().forEach(track => track.stop());
+                        document.body.removeChild(modal);
+                    }, 'image/jpeg', 0.8);
+                };
+                
+                const cancelBtn = document.createElement('button');
+                cancelBtn.textContent = 'Cancelar';
+                cancelBtn.className = 'btn btn-secondary';
+                cancelBtn.onclick = function() {
+                    stream.getTracks().forEach(track => track.stop());
+                    document.body.removeChild(modal);
+                };
+                
+                buttonContainer.appendChild(captureBtn);
+                buttonContainer.appendChild(cancelBtn);
+                
+                container.appendChild(title);
+                container.appendChild(videoContainer);
+                container.appendChild(buttonContainer);
+                modal.appendChild(container);
+                document.body.appendChild(modal);
+                
+                modal.onclick = function(e) {
+                    if (e.target === modal) {
+                        stream.getTracks().forEach(track => track.stop());
+                        document.body.removeChild(modal);
+                    }
+                };
+            })
+            .catch(function(err) {
+                console.error('Error accessing camera:', err);
+                let errorMessage = 'No se pudo acceder a la cámara';
+                
+                switch(err.name) {
+                    case 'NotAllowedError':
+                        errorMessage = 'Permiso de cámara denegado. Por favor permite el acceso a la cámara en tu navegador.';
+                        break;
+                    case 'NotFoundError':
+                        errorMessage = 'No se encontró ninguna cámara en el dispositivo.';
+                        break;
+                    case 'NotSupportedError':
+                        errorMessage = 'Tu navegador no soporta acceso a la cámara.';
+                        break;
+                    case 'NotReadableError':
+                        errorMessage = 'La cámara está siendo usada por otra aplicación.';
+                        break;
+                    case 'OverconstrainedError':
+                        errorMessage = 'Las restricciones de la cámara no son compatibles.';
+                        break;
+                    default:
+                        errorMessage = 'Error al acceder a la cámara: ' + err.message;
+                }
+                
+                showNotification(errorMessage, 'error');
+            });
+    } else {
+        showNotification('Tu navegador no soporta acceso a la cámara', 'error');
+    }
+}
+
+function showNotification(message, type) {
+    // Simple notification system
+    const alertClass = type === 'error' ? 'alert-danger' : 'alert-success';
+    const notification = $(`
+        <div class="alert ${alertClass} alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 1050;">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `);
+    
+    $('body').append(notification);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(function() {
+        notification.fadeOut(300, function() {
+            $(this).remove();
+        });
+    }, 3000);
+}
+
+function editarHabitacion(id) {
+    $.get(`api/endpoints/habitaciones.php?id=${id}`, function(habitacion) {
+        $('#modalTitle').text('Editar Habitación');
+        $('#habitacion_id').val(habitacion.id);
+        $('#numero').val(habitacion.numero);
+        $('#tipo').val(habitacion.tipo);
+        $('#piso').val(habitacion.piso);
+        // admitir ambos nombres de campo desde la API
+        $('#precio_noche').val(habitacion.precio ?? habitacion.precio_noche);
+        $('#capacidad').val(habitacion.capacidad);
+        $('#estado').val(habitacion.estado);
+        $('#descripcion').val(habitacion.descripcion);
+        $('#modalHabitacion').modal('show');
+    }).fail(function(xhr) {
+        showNotification('Error al cargar los datos de la habitación', 'error');
+    });
+}
+
+function guardarHabitacion(event) {
+    event.preventDefault();
+    
+    // Prevenir envíos múltiples
+    if ($(this).data('submitting')) {
+        return false;
+    }
+    
+    const id = $('#habitacion_id').val();
+    
+    const data = {
+        numero: $('#numero').val(),
+        tipo: $('#tipo').val(),
+        piso: $('#piso').val(),
+        precio_noche: $('#precio_noche').val(),
+        precio: $('#precio_noche').val(), // compatibilidad
+        capacidad: $('#capacidad').val(),
+        estado: $('#estado').val(),
+        descripcion: $('#descripcion').val()
+    };
+    
+    if (id) {
+        data.id = parseInt(id);
+    }
+    
+    $.ajax({
+        url: 'api/endpoints/habitaciones.php',
+        type: id ? 'PUT' : 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function(response) {
+            $('#modalHabitacion').modal('hide');
+            showNotification(response.message || 'Habitación guardada exitosamente', 'success');
+            cargarHabitaciones();
+        },
+        error: function(xhr) {
+            showNotification(xhr.responseJSON?.message || 'Error al guardar habitación', 'error');
+        }
+    });
+}
+
+function eliminarHabitacion(id) {
+    if (confirm('¿Está seguro de eliminar esta habitación?')) {
+        $.ajax({
+            url: 'api/endpoints/habitaciones.php?estado_real=1',
+            type: 'DELETE',
+            contentType: 'application/json',
+            data: JSON.stringify({ id: id }),
+            success: function(response) {
+                showNotification(response.message || 'Habitación eliminada', 'success');
+                cargarHabitaciones();
+            },
+            error: function(xhr) {
+                showNotification(xhr.responseJSON?.message || 'Error al eliminar', 'error');
+            }
+        });
+    }
+}
+</script>
+
+<?php include 'includes/footer.php'; ?>
