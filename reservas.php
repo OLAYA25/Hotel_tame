@@ -87,6 +87,37 @@ include 'includes/sidebar.php';
         </div>
     </div>
 
+    <!-- Habitaciones Ocupadas Actualmente -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card bg-warning bg-opacity-10 border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Habitaciones Ocupadas Actualmente</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover" id="habitacionesOcupadasTable">
+                            <thead>
+                                <tr>
+                                    <th>Habitación</th>
+                                    <th>Tipo</th>
+                                    <th>Cliente</th>
+                                    <th>Entrada</th>
+                                    <th>Salida</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="habitacionesOcupadasList">
+                                <!-- Las habitaciones ocupadas se cargarán aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Lista de tarjetas para reservas -->
     <div class="row">
         <div class="col-12">
@@ -121,38 +152,6 @@ include 'includes/sidebar.php';
             </div>
         </div>
     </div>
-
-    <!-- Habitaciones Ocupadas -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card bg-warning bg-opacity-10 border-warning">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Habitaciones Ocupadas Actualmente</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm table-hover" id="habitacionesOcupadasTable">
-                            <thead>
-                                <tr>
-                                    <th>Habitación</th>
-                                    <th>Tipo</th>
-                                    <th>Cliente</th>
-                                    <th>Entrada</th>
-                                    <th>Salida</th>
-                                    <th>Estado</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="habitacionesOcupadasList">
-                                <!-- Las habitaciones ocupadas se cargarán aquí -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- Modal -->
 <div class="modal fade" id="modalReserva" tabindex="-1">
