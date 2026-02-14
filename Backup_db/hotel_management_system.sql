@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: localhost
--- Tiempo de generación: 10-02-2026 a las 22:38:29
+-- Tiempo de generación: 14-02-2026 a las 17:46:46
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -62,7 +62,9 @@ INSERT INTO `clientes` (`id`, `nombre`, `apellido`, `email`, `telefono`, `docume
 (11, 'Juanito', 'Rodriguez', 'juanito@gmail.com', '312345867', '10985672', 'Cedula', 'Calle 16', 'Tame', 'Colombia', '2025-01-01', '2026-01-14 16:29:05', '2026-01-23 22:38:22', NULL),
 (12, 'juan', 'cardenas', 'jcardenas.@gmail.com', '320234234234', '342342342', 'Cedula', '123123', 'TAME', 'colombia', '1979-01-28', '2026-01-28 22:06:15', '2026-01-28 22:06:15', NULL),
 (13, 'pepito', 'PEREZ', 'pei95@hotel.com', '31023454345', '2342342', 'Cedula', '234324', 'TAME', 'COLOMBIA', '2005-09-28', '2026-01-28 22:49:23', '2026-01-28 22:53:55', '2026-01-28 22:53:55'),
-(14, 'TESEO', 'PASEO', 'PASEO@hotel.com', '2434234234', '1243214234', 'DNI', 'WREFSEDF', 'TAME', 'COLOMBIA', '1994-12-12', '2026-01-29 00:18:10', '2026-01-29 00:21:54', NULL);
+(14, 'TESEO', 'PASEO', 'PASEO@hotel.com', '2434234234', '1243214234', 'DNI', 'WREFSEDF', 'TAME', 'COLOMBIA', '1994-12-12', '2026-01-29 00:18:10', '2026-01-29 00:21:54', NULL),
+(15, 'dell', 'APP', 'DELL@hotel.com', '123123123', '43324234', NULL, 'DGSFGFDG', 'TAME', 'COLOMBIA', NULL, '2026-02-11 22:30:54', '2026-02-11 22:30:54', NULL),
+(17, 'pipx', 'pithon', 'pipx@hotel.com', '124214234', '143234234', NULL, '23423542345', 'TAME', 'colombia', NULL, '2026-02-11 22:35:44', '2026-02-11 22:35:44', NULL);
 
 -- --------------------------------------------------------
 
@@ -212,11 +214,11 @@ INSERT INTO `habitaciones` (`id`, `numero`, `tipo`, `precio_noche`, `capacidad`,
 (2, '102', 'doble', 250000.00, 2, 'mantenimiento', 1, 'Habitación doble con dos camas, baño privado, TV y minibar', '[\"WiFi\", \"TV\", \"Minibar\", \"Aire acondicionado\"]', '', '2025-11-18 15:24:33', '2026-01-28 22:32:34', NULL),
 (3, '', 'simple', 0.00, 1, 'disponible', 1, '', '[\"WiFi\", \"TV\", \"Minibar\", \"Jacuzzi\", \"Balcón\"]', NULL, '2025-11-18 15:24:33', '2025-12-29 23:50:53', '2025-12-26 14:53:19'),
 (4, '301', 'presidencial', 800000.00, 6, 'disponible', 3, 'Suite presidencial con 2 habitaciones, sala, comedor, cocina y terraza', '[\"WiFi\", \"TV\", \"Minibar\", \"Cocina\", \"Terraza\", \"Jacuzzi\"]', NULL, '2025-11-18 15:24:33', '2026-01-29 22:05:20', NULL),
-(5, '103', 'doble', 150000.00, 3, 'disponible', 1, 'Habitación simple económica', '[\"WiFi\", \"TV\"]', '', '2025-11-18 15:24:33', '2026-01-29 00:08:39', NULL),
+(5, '103', 'doble', 150000.00, 3, 'disponible', 1, 'Habitación simple económica', '[\"WiFi\", \"TV\"]', '', '2025-11-18 15:24:33', '2026-02-12 23:26:27', NULL),
 (6, '104', 'doble', 250000.00, 2, 'disponible', 1, 'Habitación disponible nuevamente', '[\"WiFi\", \"TV\", \"Aire acondicionado\"]', '', '2025-11-18 15:24:33', '2026-01-28 22:28:09', '2026-01-28 22:28:09'),
 (7, '202', 'suite', 250000.00, 4, 'disponible', 2, 'Suite elegante con cama king, sala pequeña, minibar, jacuzzi y vista a la ciudad.', NULL, NULL, '2025-11-18 21:44:58', '2026-01-30 20:50:28', NULL),
 (8, '101', 'simple', 50000.00, 2, 'disponible', 1, 'Habitación de prueba', NULL, NULL, '2025-12-26 19:12:16', '2026-01-29 22:43:04', '2026-01-29 22:42:51'),
-(9, '105', 'simple', 100000.00, 2, 'disponible', 1, '', NULL, NULL, '2025-12-26 19:13:13', '2026-01-29 23:25:05', NULL),
+(9, '105', 'simple', 100000.00, 2, 'disponible', 1, '', NULL, NULL, '2025-12-26 19:13:13', '2026-02-14 15:31:02', NULL),
 (10, '110', 'doble', 50000.00, 4, 'disponible', 2, 'PRUEBAAAA', NULL, '', '2026-01-14 16:46:14', '2026-01-30 20:22:03', NULL),
 (13, '107', 'doble', 250000.00, 2, 'disponible', 1, 'nueva', NULL, '', '2026-01-28 21:09:27', '2026-01-30 20:20:58', NULL),
 (14, '305', 'simple', 50000.00, 1, 'disponible', 1, 'agua caliente ', NULL, '', '2026-01-28 21:32:24', '2026-01-28 22:27:11', '2026-01-28 22:27:11'),
@@ -318,8 +320,27 @@ INSERT INTO `pedidos_productos` (`id`, `habitacion_id`, `cliente_id`, `usuario_i
 (3, 1, NULL, 1, 'entregado', 15000.00, 15000.00, '', '2025-12-26 21:22:59', '2025-12-27 03:23:12', '2025-12-26 21:22:59', '2025-12-26 21:23:12', NULL),
 (4, 1, NULL, 1, 'entregado', 33000.00, 33000.00, '', '2025-12-26 23:38:52', '2025-12-27 05:39:06', '2025-12-26 23:38:52', '2025-12-26 23:39:06', NULL),
 (5, 1, NULL, 1, 'cancelado', 50000.00, 50000.00, '', '2025-12-27 00:22:59', NULL, '2025-12-27 00:22:59', '2025-12-27 16:28:02', NULL),
-(6, 7, 6, 1, 'pendiente', 6000.00, 6000.00, 'vvc cv bcv', '2026-01-20 16:15:05', NULL, '2026-01-20 16:15:05', '2026-01-20 16:15:05', NULL),
-(7, 6, 1, 1, 'pendiente', 11000.00, 11000.00, 'wefwefrw', '2026-01-28 22:17:05', NULL, '2026-01-28 22:17:05', '2026-01-28 22:17:05', NULL);
+(6, 7, 6, 1, 'entregado', 6000.00, 6000.00, 'vvc cv bcv', '2026-01-20 16:15:05', '2026-02-13 05:24:36', '2026-01-20 16:15:05', '2026-02-12 23:24:36', NULL),
+(7, 6, 1, 1, 'cancelado', 11000.00, 11000.00, 'wefwefrw', '2026-01-28 22:17:05', NULL, '2026-01-28 22:17:05', '2026-02-12 23:24:24', NULL),
+(8, 5, 8, 1, 'cancelado', 27000.00, 27000.00, '', '2026-02-12 23:10:36', NULL, '2026-02-12 23:10:36', '2026-02-12 23:13:55', NULL),
+(9, 5, 8, 1, 'entregado', 8000.00, 8000.00, '', '2026-02-12 23:26:10', '2026-02-13 05:26:19', '2026-02-12 23:26:10', '2026-02-12 23:26:19', NULL),
+(10, 9, 14, 1, 'pendiente', 5000.00, 5000.00, '', '2026-02-12 23:26:52', NULL, '2026-02-12 23:26:52', '2026-02-12 23:26:52', NULL),
+(11, 5, 17, 1, 'pendiente', 24000.00, 24000.00, '', '2026-02-13 21:24:00', NULL, '2026-02-13 21:24:00', '2026-02-13 21:24:00', NULL),
+(12, 5, 17, 1, 'pendiente', 40000.00, 40000.00, '', '2026-02-13 21:33:16', NULL, '2026-02-13 21:33:16', '2026-02-13 21:33:16', '2026-02-13 21:33:16'),
+(13, 5, 17, 1, 'pendiente', 35000.00, 35000.00, '', '2026-02-13 21:43:02', NULL, '2026-02-13 21:43:02', '2026-02-13 21:43:02', NULL),
+(14, 5, NULL, 1, 'pendiente', 45000.00, 45000.00, '', '2026-02-13 22:27:27', NULL, '2026-02-13 22:27:27', '2026-02-13 22:27:27', NULL),
+(15, 5, NULL, 1, 'pendiente', 49000.00, 49000.00, '', '2026-02-13 23:15:27', NULL, '2026-02-13 23:15:27', '2026-02-13 23:15:27', NULL),
+(16, 5, NULL, 1, 'pendiente', 24000.00, 24000.00, '', '2026-02-13 23:19:51', NULL, '2026-02-13 23:19:51', '2026-02-13 23:19:51', NULL),
+(17, 10, NULL, 1, 'pendiente', 20000.00, 20000.00, '', '2026-02-13 23:27:15', NULL, '2026-02-13 23:27:15', '2026-02-13 23:27:15', NULL),
+(18, 5, NULL, 1, 'pendiente', 27000.00, 27000.00, '', '2026-02-13 23:30:38', NULL, '2026-02-13 23:30:38', '2026-02-13 23:30:38', NULL),
+(19, 5, NULL, 1, 'pendiente', 4000.00, 4000.00, '', '2026-02-13 23:33:22', NULL, '2026-02-13 23:33:22', '2026-02-13 23:33:22', NULL),
+(20, 5, NULL, 1, 'pendiente', 62000.00, 62000.00, '', '2026-02-13 23:34:11', NULL, '2026-02-13 23:34:11', '2026-02-13 23:34:11', NULL),
+(21, 5, NULL, 1, 'pendiente', 17000.00, 17000.00, '', '2026-02-13 23:50:50', NULL, '2026-02-13 23:50:50', '2026-02-13 23:50:50', NULL),
+(22, 5, NULL, 1, 'pendiente', 13000.00, 13000.00, '', '2026-02-13 23:51:38', NULL, '2026-02-13 23:51:38', '2026-02-13 23:51:38', NULL),
+(23, 5, NULL, 1, 'pendiente', 20000.00, 20000.00, '', '2026-02-14 01:25:39', NULL, '2026-02-14 01:25:39', '2026-02-14 01:25:39', NULL),
+(24, 9, NULL, 1, 'entregado', 17000.00, 17000.00, '', '2026-02-14 15:32:28', '2026-02-14 21:51:03', '2026-02-14 15:32:28', '2026-02-14 15:51:03', NULL),
+(25, 9, NULL, 1, 'entregado', 119000.00, 119000.00, '', '2026-02-14 15:51:52', '2026-02-14 21:55:07', '2026-02-14 15:51:52', '2026-02-14 15:55:07', NULL),
+(26, 5, NULL, 1, 'pendiente', 12000.00, 12000.00, '', '2026-02-14 16:44:16', NULL, '2026-02-14 16:44:16', '2026-02-14 16:44:16', NULL);
 
 -- --------------------------------------------------------
 
@@ -331,6 +352,7 @@ CREATE TABLE `pedido_productos_detalles` (
   `id` int(11) NOT NULL,
   `pedido_id` int(11) NOT NULL,
   `producto_id` int(11) NOT NULL,
+  `cliente_id` int(11) DEFAULT NULL,
   `cantidad` int(11) NOT NULL DEFAULT 1,
   `precio_unitario` decimal(10,2) NOT NULL,
   `subtotal` decimal(10,2) NOT NULL,
@@ -341,18 +363,57 @@ CREATE TABLE `pedido_productos_detalles` (
 -- Volcado de datos para la tabla `pedido_productos_detalles`
 --
 
-INSERT INTO `pedido_productos_detalles` (`id`, `pedido_id`, `producto_id`, `cantidad`, `precio_unitario`, `subtotal`, `created_at`) VALUES
-(1, 1, 1, 1, 25000.00, 25000.00, '2025-12-26 19:45:21'),
-(2, 2, 3, 1, 18000.00, 18000.00, '2025-12-26 19:46:23'),
-(3, 2, 7, 1, 12000.00, 12000.00, '2025-12-26 19:46:23'),
-(4, 3, 4, 1, 3000.00, 3000.00, '2025-12-26 21:22:59'),
-(5, 3, 4, 4, 3000.00, 12000.00, '2025-12-26 21:22:59'),
-(6, 4, 3, 1, 18000.00, 18000.00, '2025-12-26 23:38:52'),
-(7, 4, 18, 3, 5000.00, 15000.00, '2025-12-26 23:38:52'),
-(8, 5, 5, 10, 5000.00, 50000.00, '2025-12-27 00:22:59'),
-(9, 6, 11, 1, 6000.00, 6000.00, '2026-01-20 16:15:05'),
-(10, 7, 29, 1, 4000.00, 4000.00, '2026-01-28 22:17:05'),
-(11, 7, 8, 1, 7000.00, 7000.00, '2026-01-28 22:17:05');
+INSERT INTO `pedido_productos_detalles` (`id`, `pedido_id`, `producto_id`, `cliente_id`, `cantidad`, `precio_unitario`, `subtotal`, `created_at`) VALUES
+(1, 1, 1, NULL, 1, 25000.00, 25000.00, '2025-12-26 19:45:21'),
+(2, 2, 3, NULL, 1, 18000.00, 18000.00, '2025-12-26 19:46:23'),
+(3, 2, 7, NULL, 1, 12000.00, 12000.00, '2025-12-26 19:46:23'),
+(4, 3, 4, NULL, 1, 3000.00, 3000.00, '2025-12-26 21:22:59'),
+(5, 3, 4, NULL, 4, 3000.00, 12000.00, '2025-12-26 21:22:59'),
+(6, 4, 3, NULL, 1, 18000.00, 18000.00, '2025-12-26 23:38:52'),
+(7, 4, 18, NULL, 3, 5000.00, 15000.00, '2025-12-26 23:38:52'),
+(8, 5, 5, NULL, 10, 5000.00, 50000.00, '2025-12-27 00:22:59'),
+(9, 6, 11, NULL, 1, 6000.00, 6000.00, '2026-01-20 16:15:05'),
+(10, 7, 29, NULL, 1, 4000.00, 4000.00, '2026-01-28 22:17:05'),
+(11, 7, 8, NULL, 1, 7000.00, 7000.00, '2026-01-28 22:17:05'),
+(12, 8, 5, NULL, 3, 5000.00, 15000.00, '2026-02-12 23:10:36'),
+(13, 8, 7, NULL, 1, 12000.00, 12000.00, '2026-02-12 23:10:36'),
+(14, 9, 6, NULL, 1, 8000.00, 8000.00, '2026-02-12 23:26:10'),
+(15, 10, 5, NULL, 1, 5000.00, 5000.00, '2026-02-12 23:26:52'),
+(16, 11, 7, NULL, 2, 12000.00, 24000.00, '2026-02-13 21:24:00'),
+(17, 13, 18, NULL, 7, 5000.00, 35000.00, '2026-02-13 21:43:02'),
+(18, 14, 18, 17, 1, 5000.00, 5000.00, '2026-02-13 22:27:27'),
+(19, 14, 18, 17, 3, 5000.00, 15000.00, '2026-02-13 22:27:27'),
+(20, 14, 9, 17, 1, 15000.00, 15000.00, '2026-02-13 22:27:27'),
+(21, 14, 19, 17, 1, 5000.00, 5000.00, '2026-02-13 22:27:27'),
+(22, 14, 19, 17, 1, 5000.00, 5000.00, '2026-02-13 22:27:27'),
+(23, 15, 9, 17, 2, 15000.00, 30000.00, '2026-02-13 23:15:27'),
+(24, 15, 11, 17, 1, 6000.00, 6000.00, '2026-02-13 23:15:27'),
+(25, 15, 19, 17, 1, 5000.00, 5000.00, '2026-02-13 23:15:27'),
+(26, 15, 13, 17, 2, 4000.00, 8000.00, '2026-02-13 23:15:27'),
+(27, 16, 8, 17, 1, 7000.00, 7000.00, '2026-02-13 23:19:51'),
+(28, 16, 19, 17, 1, 5000.00, 5000.00, '2026-02-13 23:19:51'),
+(29, 16, 7, 17, 1, 12000.00, 12000.00, '2026-02-13 23:19:51'),
+(30, 17, 7, 17, 1, 12000.00, 12000.00, '2026-02-13 23:27:15'),
+(31, 17, 10, 17, 1, 8000.00, 8000.00, '2026-02-13 23:27:15'),
+(32, 18, 7, 17, 1, 12000.00, 12000.00, '2026-02-13 23:30:38'),
+(33, 18, 9, 17, 1, 15000.00, 15000.00, '2026-02-13 23:30:38'),
+(34, 19, 13, 17, 1, 4000.00, 4000.00, '2026-02-13 23:33:22'),
+(35, 20, 6, 17, 1, 8000.00, 8000.00, '2026-02-13 23:34:11'),
+(36, 20, 21, 17, 1, 23000.00, 23000.00, '2026-02-13 23:34:11'),
+(37, 20, 8, 17, 2, 7000.00, 14000.00, '2026-02-13 23:34:11'),
+(38, 20, 7, 17, 1, 12000.00, 12000.00, '2026-02-13 23:34:11'),
+(39, 20, 18, 17, 1, 5000.00, 5000.00, '2026-02-13 23:34:11'),
+(40, 21, 5, 17, 1, 5000.00, 5000.00, '2026-02-13 23:50:50'),
+(41, 21, 7, 17, 1, 12000.00, 12000.00, '2026-02-13 23:50:50'),
+(42, 22, 5, 17, 1, 5000.00, 5000.00, '2026-02-13 23:51:38'),
+(43, 22, 10, 17, 1, 8000.00, 8000.00, '2026-02-13 23:51:38'),
+(44, 23, 9, 17, 1, 15000.00, 15000.00, '2026-02-14 01:25:39'),
+(45, 23, 18, 15, 1, 5000.00, 5000.00, '2026-02-14 01:25:39'),
+(46, 24, 7, 3, 1, 12000.00, 12000.00, '2026-02-14 15:32:28'),
+(47, 24, 18, 10, 1, 5000.00, 5000.00, '2026-02-14 15:32:28'),
+(48, 25, 2, 3, 2, 22000.00, 44000.00, '2026-02-14 15:51:52'),
+(49, 25, 1, 10, 3, 25000.00, 75000.00, '2026-02-14 15:51:52'),
+(50, 26, 7, 17, 1, 12000.00, 12000.00, '2026-02-14 16:44:16');
 
 -- --------------------------------------------------------
 
@@ -454,23 +515,23 @@ CREATE TABLE `productos` (
 --
 
 INSERT INTO `productos` (`id`, `nombre`, `descripcion`, `categoria`, `precio`, `imagen_url`, `stock`, `activo`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 'Hamburguesa Clásica', 'Hamburguesa de carne con lechuga, tomate, cebolla y salsa especial', 'comida', 25000.00, 'assets/images/products/hamburguesa.jpg', 49, 1, '2025-12-26 19:37:37', '2025-12-26 19:45:21', NULL),
-(2, 'Pizza Personal', 'Pizza pepperoni tamaño personal', 'comida', 22000.00, 'assets/images/products/pizza.jpg', 30, 1, '2025-12-26 19:37:37', '2025-12-26 19:37:37', NULL),
-(3, 'Ensalada César', 'Ensalada fresca con pollo, crutones y aderezo césar', 'comida', 18000.00, 'assets/images/products/ensalada.jpg', 23, 1, '2025-12-26 19:37:37', '2025-12-26 23:38:52', NULL),
+(1, 'Hamburguesa Clásica', 'Hamburguesa de carne con lechuga, tomate, cebolla y salsa especial', 'comida', 25000.00, 'assets/images/products/hamburguesa.jpg', 46, 1, '2025-12-26 19:37:37', '2026-02-14 15:51:52', NULL),
+(2, 'Pizza Personal', 'Pizza pepperoni tamaño personal', 'comida', 22000.00, 'assets/images/products/pizza.jpg', 28, 1, '2025-12-26 19:37:37', '2026-02-14 15:51:52', NULL),
+(3, 'Ensalada César', 'Ensalada fresca con pollo, crutones y aderezo césar', 'comida', 18000.00, 'assets/images/products/ensalada.jpg', 23, 1, '2025-12-26 19:37:37', '2026-02-12 23:07:25', '2026-02-12 23:07:25'),
 (4, 'Agua Mineral 500ml', 'Agua mineral natural', 'bebida', 3000.00, 'assets/images/products/agua.jpg', 95, 1, '2025-12-26 19:37:37', '2025-12-26 21:22:59', NULL),
-(5, 'Refresco Cola 600ml', 'Bebida gaseosa cola', 'bebida', 5000.00, 'assets/images/products/cola.jpg', 70, 1, '2025-12-26 19:37:37', '2025-12-27 00:22:59', NULL),
-(6, 'Cerveza Nacional 330ml', 'Cerveza nacional botella', 'bebida', 8000.00, 'assets/images/products/cerveza.jpg', 60, 1, '2025-12-26 19:37:37', '2025-12-26 19:37:37', NULL),
-(7, 'Papas Fritas', 'Porción de papas fritas con ketchup', 'snack', 12000.00, 'assets/images/products/papas.jpg', 39, 1, '2025-12-26 19:37:37', '2025-12-26 19:46:23', NULL),
-(8, 'Chocolate Bar', 'Barra de chocolate con leche', 'snack', 7000.00, 'assets/images/products/chocolate.jpg', 69, 1, '2025-12-26 19:37:37', '2026-01-28 22:17:05', NULL),
-(9, 'Jabón de Manos', 'Jabón líquido antibacterial', 'higiene', 15000.00, 'assets/images/products/jabon.jpg', 50, 1, '2025-12-26 19:37:37', '2025-12-26 19:37:37', NULL),
-(10, 'Toallas Papel', 'Paquete de toallas de papel', 'higiene', 8000.00, 'assets/images/products/toallas.jpg', 40, 1, '2025-12-26 19:37:37', '2025-12-26 19:37:37', NULL),
-(11, 'Alfanjor', 'Galletas con dulce de leche', 'snack', 6000.00, '', 3, 1, '2025-12-26 19:48:32', '2026-01-20 16:15:05', NULL),
+(5, 'Refresco Cola 600ml', 'Bebida gaseosa cola', 'bebida', 5000.00, 'assets/images/products/cola.jpg', 64, 1, '2025-12-26 19:37:37', '2026-02-13 23:51:38', NULL),
+(6, 'Cerveza Nacional 330ml', 'Cerveza nacional botella', 'bebida', 8000.00, 'assets/images/products/cerveza.jpg', 58, 1, '2025-12-26 19:37:37', '2026-02-13 23:34:11', NULL),
+(7, 'Papas Fritas', 'Porción de papas fritas con ketchup', 'snack', 12000.00, 'assets/images/products/papas.jpg', 29, 1, '2025-12-26 19:37:37', '2026-02-14 16:44:16', NULL),
+(8, 'Chocolate Bar', 'Barra de chocolate con leche', 'snack', 7000.00, 'assets/images/products/chocolate.jpg', 66, 1, '2025-12-26 19:37:37', '2026-02-13 23:34:11', NULL),
+(9, 'Jabón de Manos', 'Jabón líquido antibacterial', 'higiene', 15000.00, 'assets/images/products/jabon.jpg', 45, 1, '2025-12-26 19:37:37', '2026-02-14 01:25:39', NULL),
+(10, 'Toallas Papel', 'Paquete de toallas de papel', 'higiene', 8000.00, 'assets/images/products/toallas.jpg', 38, 1, '2025-12-26 19:37:37', '2026-02-13 23:51:38', NULL),
+(11, 'Alfanjor', 'Galletas con dulce de leche', 'snack', 6000.00, '', 2, 1, '2025-12-26 19:48:32', '2026-02-13 23:15:27', NULL),
 (12, 'Soap', 'jabón', 'higiene', 4000.00, '', 3, 1, '2025-12-26 22:04:22', '2025-12-26 23:08:12', '2025-12-26 23:08:12'),
-(13, 'Soap', 'jabón', 'higiene', 4000.00, '', 3, 1, '2025-12-26 22:04:40', '2025-12-26 22:04:40', NULL),
-(18, 'jabón', 'jabón', 'higiene', 5000.00, 'assets/images/products/producto_1766787972_7189.webp', 1, 1, '2025-12-26 22:26:12', '2025-12-26 23:38:52', NULL),
-(19, 'jabónPlus', 'jabón', 'higiene', 5000.00, 'assets/images/products/producto_1766787972_7189.webp', 4, 1, '2025-12-26 22:26:55', '2025-12-26 22:26:55', NULL),
+(13, 'Soap', 'jabón', 'higiene', 4000.00, '', 0, 1, '2025-12-26 22:04:40', '2026-02-13 23:33:22', NULL),
+(18, 'jabón', 'jabón', 'higiene', 5000.00, 'assets/images/products/producto_1766787972_7189.webp', 6, 1, '2025-12-26 22:26:12', '2026-02-14 15:32:28', NULL),
+(19, 'jabónPlus', 'jabón', 'higiene', 5000.00, 'assets/images/products/producto_1766787972_7189.webp', 0, 1, '2025-12-26 22:26:55', '2026-02-13 23:19:51', NULL),
 (20, 'jabónPlus', 'SANDWICH', 'higiene', 5000.00, 'assets/images/products/producto_1766787972_7189.webp', 4, 1, '2025-12-26 22:57:23', '2025-12-26 23:07:59', '2025-12-26 23:07:59'),
-(21, 'PERRITO CALIENTE', 'CON QUESO, CHORIZO Y DEMÀS', 'comida', 23000.00, 'assets/images/products/producto_1766790017_1117.webp', 10, 1, '2025-12-26 23:00:17', '2025-12-26 23:00:17', NULL),
+(21, 'PERRITO CALIENTE', 'CON QUESO, CHORIZO Y DEMÀS', 'comida', 23000.00, 'assets/images/products/producto_1766790017_1117.webp', 9, 1, '2025-12-26 23:00:17', '2026-02-13 23:34:11', NULL),
 (29, 'CERVEZA AGUILA', '', 'bebida', 4000.00, '', 39, 1, '2026-01-14 16:42:54', '2026-01-28 22:17:05', NULL);
 
 -- --------------------------------------------------------
@@ -560,7 +621,13 @@ INSERT INTO `reservas` (`id`, `cliente_id`, `habitacion_id`, `usuario_id`, `fech
 (55, 8, 1, NULL, '2026-01-29', '2026-01-31', 1, 'cancelada', 150000.00, 2, 100000.00, 'efectivo', 'kjhjhjk', '2026-01-29 23:31:59', '2026-01-30 20:33:59', NULL),
 (56, 4, 13, NULL, '2026-01-30', '2026-01-31', 1, 'completada', 250000.00, 1, 250000.00, 'efectivo', 'Venia con un acompañante', '2026-01-30 20:20:45', '2026-02-02 23:07:40', NULL),
 (57, 14, 10, NULL, '2026-01-30', '2026-01-31', 1, 'completada', 50000.00, 1, 50000.00, 'tarjeta', 'Venia solo', '2026-01-30 20:21:46', '2026-02-02 23:07:40', NULL),
-(58, 14, 7, NULL, '2026-01-30', '2026-01-31', 3, 'completada', 250000.00, 1, 100000.00, 'efectivo', 'fghfgh', '2026-01-30 20:49:44', '2026-02-02 23:07:40', NULL);
+(58, 14, 7, NULL, '2026-01-30', '2026-01-31', 3, 'completada', 250000.00, 1, 100000.00, 'efectivo', 'fghfgh', '2026-01-30 20:49:44', '2026-02-02 23:07:40', NULL),
+(59, 12, 9, NULL, '2026-02-10', '2026-02-12', NULL, 'cancelada', 100000.00, 2, 200000.00, 'efectivo', '', '2026-02-10 23:47:53', '2026-02-10 23:49:44', NULL),
+(60, 14, 5, NULL, '2026-02-11', '2026-02-13', 3, 'cancelada', 150000.00, 2, 300000.00, 'efectivo', 'anotacion de ejemplo\n\nACOMPANANTES:\n[{\"persona_id\":12,\"nombre\":\"juan\",\"apellido\":\"cardenas\",\"tipo_documento\":\"CC\",\"numero_documento\":\"342342342\",\"fecha_nacimiento\":null,\"parentesco\":\"\",\"email\":\"jcardenas.@gmail.com\",\"telefono\":\"320234234234\"},{\"persona_id\":11,\"nombre\":\"Juanito\",\"apellido\":\"Rodriguez\",\"tipo_documento\":\"CC\",\"numero_documento\":\"10985672\",\"fecha_nacimiento\":null,\"parentesco\":\"\",\"email\":\"juanito@gmail.com\",\"telefono\":\"312345867\"}]', '2026-02-11 16:05:48', '2026-02-12 21:41:50', NULL),
+(61, 8, 5, NULL, '2026-02-11', '2026-02-13', 3, 'confirmada', 150000.00, 2, 150000.00, 'efectivo', 'ACOMPANANTES:\n[{\"persona_id\":\"15\",\"nombre\":\"dell\",\"apellido\":\"APP\",\"tipo_documento\":\"Cedula\",\"numero_documento\":\"43324234\",\"fecha_nacimiento\":\"1993-12-12\",\"parentesco\":\"\",\"email\":\"DELL@hotel.com\",\"telefono\":\"123123123\"},{\"persona_id\":4,\"nombre\":\"Pedro\",\"apellido\":\"Mart\\u00ednez\",\"tipo_documento\":\"CC\",\"numero_documento\":\"5544332211\",\"fecha_nacimiento\":null,\"parentesco\":\"\",\"email\":\"pedro.martinez@email.com\",\"telefono\":\"3201239876\"}]', '2026-02-11 22:33:50', '2026-02-12 23:26:27', '2026-02-12 23:26:27'),
+(62, 17, 10, NULL, '2026-02-13', '2026-02-15', 2, 'confirmada', 50000.00, 2, 200000.00, 'efectivo', 'ACOMPANANTES:\n[{\"persona_id\":12,\"nombre\":\"juan\",\"apellido\":\"cardenas\",\"tipo_documento\":\"CC\",\"numero_documento\":\"342342342\",\"fecha_nacimiento\":null,\"parentesco\":\"\",\"email\":\"jcardenas.@gmail.com\",\"telefono\":\"320234234234\"}]', '2026-02-13 21:11:25', '2026-02-13 21:12:32', NULL),
+(63, 17, 5, NULL, '2026-02-13', '2026-02-14', 2, 'confirmada', 150000.00, 1, 150000.00, 'efectivo', 'ACOMPANANTES:\n[{\"persona_id\": 18, \"nombre\": \"dell\", \"apellido\": \"APP\", \"tipo_documento\": \"CC\", \"numero_documento\": \"12345678\", \"fecha_nacimiento\": \"1990-01-01\", \"parentesco\": \"amigo\", \"email\": \"dell@app.com\", \"telefono\": \"123456789\", \"es_menor\": false}]\n\nObservaciones adicionales del cliente', '2026-02-13 21:18:49', '2026-02-13 21:18:49', NULL),
+(64, 10, 9, NULL, '2026-02-14', '2026-02-15', 2, 'confirmada', 100000.00, 1, 100000.00, 'efectivo', 'ACOMPANANTES:\n[{\"persona_id\":3,\"nombre\":\"Ana\",\"apellido\":\"L\\u00f3pez\",\"tipo_documento\":\"CC\",\"numero_documento\":\"153051152\",\"fecha_nacimiento\":null,\"parentesco\":\"\",\"email\":\"ana.lopez@email.com\",\"telefono\":\"3159876543\"}]', '2026-02-14 15:30:48', '2026-02-14 15:31:59', NULL);
 
 -- --------------------------------------------------------
 
@@ -1028,7 +1095,7 @@ ALTER TABLE `usuarios_roles`
 -- AUTO_INCREMENT de la tabla `clientes`
 --
 ALTER TABLE `clientes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT de la tabla `cuentas_contables`
@@ -1070,13 +1137,13 @@ ALTER TABLE `pagos`
 -- AUTO_INCREMENT de la tabla `pedidos_productos`
 --
 ALTER TABLE `pedidos_productos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT de la tabla `pedido_productos_detalles`
 --
 ALTER TABLE `pedido_productos_detalles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
 
 --
 -- AUTO_INCREMENT de la tabla `permisos`
@@ -1094,7 +1161,7 @@ ALTER TABLE `productos`
 -- AUTO_INCREMENT de la tabla `reservas`
 --
 ALTER TABLE `reservas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
 
 --
 -- AUTO_INCREMENT de la tabla `reservas_eventos`

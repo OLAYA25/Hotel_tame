@@ -401,21 +401,58 @@ function cargarProductos() {
     $.get('api/endpoints/productos.php', function(data) {
         productos = Array.isArray(data) ? data : (data.records || []);
         
-        // Actualizar selects de productos
+        // Actualizar selects de productos con Select2
         $('.producto-select').each(function() {
             const select = $(this);
             const currentValue = select.val();
-            select.empty().append('<option value="">Seleccione producto...</option>');
+            
+            // Inicializar Select2 si no está inicializado
+            if (!select.hasClass('select2-hidden-accessible')) {
+                select.select2({
+                    placeholder: 'Seleccione un producto...',
+                    allowClear: true,
+                    width: '100%',
+                    dropdownParent: '#modalPedido .modal-body',
+                    minimumInputLength: 0,
+                    language: {
+                        noResults: function() {
+                            return 'No se encontraron productos';
+                        },
+                        searching: function() {
+                            return 'Buscando...';
+                        },
+                        inputTooShort: function() {
+                            return 'Ingrese 0 o más caracteres';
+                        }
+                    }
+                });
+            }
+            
+            // Actualizar opciones
+            select.empty().append('<option value="">Seleccione un producto...</option>');
             
             productos.forEach(producto => {
                 if (producto.activo && producto.stock > 0) {
-                    select.append(`<option value="${producto.id}" data-precio="${producto.precio}" data-stock="${producto.stock}">${producto.nombre} - $${parseFloat(producto.precio).toLocaleString('es-CO')} (Stock: ${producto.stock})</option>`);
+                    const option = new Option(
+                        `${producto.nombre} - $${parseFloat(producto.precio).toLocaleString('es-CO')} (Stock: ${producto.stock})`,
+                        producto.id,
+                        false,
+                        false
+                    );
+                    // Agregar datos personalizados
+                    $(option).data('precio', producto.precio);
+                    $(option).data('stock', producto.stock);
+                    select.append(option);
                 }
             });
             
+            // Restaurar valor anterior si existe
             if (currentValue) {
                 select.val(currentValue);
             }
+            
+            // Disparar evento change para actualizar Select2
+            select.trigger('change');
         });
     });
 }
@@ -423,6 +460,26 @@ function cargarProductos() {
 function cargarHabitaciones() {
     const select = $('#habitacion_id');
     select.empty().append('<option value="">Cargando...</option>');
+    
+    // Inicializar Select2 para el campo de habitación
+    select.select2({
+        placeholder: 'Seleccione una habitación...',
+        allowClear: true,
+        width: '100%',
+        dropdownParent: '#modalPedido .modal-body',
+        minimumInputLength: 0, // Mostrar todos los resultados al abrir
+        language: {
+            noResults: function() {
+                return 'No se encontraron habitaciones';
+            },
+            searching: function() {
+                return 'Buscando...';
+            },
+            inputTooShort: function() {
+                return 'Ingrese 0 o más caracteres';
+            }
+        }
+    });
     
     // Obtener fecha actual para validar reservas activas
     const hoy = new Date().toISOString().split('T')[0];
@@ -452,21 +509,20 @@ function cargarHabitaciones() {
         $.get('api/endpoints/habitaciones.php', function(habitacionesData) {
             const habitaciones = Array.isArray(habitacionesData) ? habitacionesData : (habitacionesData.records || []);
             
-            select.empty().append('<option value="">Seleccione...</option>');
+            // Filtrar solo las habitaciones que tienen reservas activas
+            const habitacionesActivas = habitaciones.filter(h => habitacionesConReservas.has(h.id));
             
-            let habitacionesEncontradas = 0;
-            habitaciones.forEach(habitacion => {
-                if (habitacionesConReservas.has(habitacion.id)) {
-                    select.append(`<option value="${habitacion.id}">${habitacion.numero} - ${habitacion.tipo}</option>`);
-                    habitacionesEncontradas++;
-                }
+            select.empty().append('<option value="">Seleccione una habitación...</option>');
+            
+            habitacionesActivas.forEach(habitacion => {
+                const option = new Option(`${habitacion.numero} - ${habitacion.tipo}`, habitacion.id, false, false);
+                select.append(option);
             });
             
-            if (habitacionesEncontradas === 0) {
-                select.empty().append('<option value="">No se encontraron habitaciones ocupadas</option>');
-            }
+            // Disparar el evento change para actualizar Select2
+            select.trigger('change');
             
-            console.log(`Habitaciones ocupadas encontradas: ${habitacionesEncontradas}`);
+            console.log('Habitaciones ocupadas encontradas:', habitacionesActivas.length);
             console.log('Habitaciones con reservas activas:', Array.from(habitacionesConReservas));
             console.log('Reservas activas:', reservasActivas.length);
             
@@ -771,9 +827,25 @@ function eliminarProducto(button) {
 
 function actualizarPrecio(select) {
     const $select = $(select);
-    const option = $select.find('option:selected');
-    const precio = option.data('precio') || 0;
-    const stock = option.data('stock') || 0;
+    
+    // Para Select2, obtener la opción seleccionada de manera diferente
+    let precio = 0;
+    let stock = 0;
+    
+    if ($select.hasClass('select2-hidden-accessible')) {
+        // Es un Select2, obtener datos de la opción seleccionada
+        const selectedOption = $select.find('option:selected');
+        if (selectedOption.length > 0) {
+            precio = selectedOption.data('precio') || 0;
+            stock = selectedOption.data('stock') || 0;
+        }
+    } else {
+        // Es un select normal
+        const option = $select.find('option:selected');
+        precio = option.data('precio') || 0;
+        stock = option.data('stock') || 0;
+    }
+    
     const precioInput = $select.closest('.producto-item').find('.precio-input');
     const cantidadInput = $select.closest('.producto-item').find('.cantidad-input');
     
@@ -783,7 +855,7 @@ function actualizarPrecio(select) {
     
     // Validar stock
     const cantidad = parseInt(cantidadInput.val()) || 0;
-    if (cantidad > stock) {
+    if (cantidad > stock && stock > 0) {
         cantidadInput.val(stock);
         showNotification(`Solo hay ${stock} unidades disponibles`, 'warning');
     }
@@ -1122,5 +1194,47 @@ function handleSearch(event) {
     }, 500);
 }
 </script>
+
+<style>
+/* Estilos para Select2 en el modal de pedidos */
+#modalPedido .select2-container {
+    width: 100% !important;
+}
+
+#modalPedido .select2-container--open .select2-dropdown {
+    z-index: 1055;
+}
+
+#modalPedido .select2-search--dropdown .select2-search__field {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+}
+
+#modalPedido .select2-results__option {
+    padding: 8px;
+}
+
+#modalPedido .select2-results__option--highlighted {
+    background-color: #0d6efd;
+    color: white;
+}
+
+#modalPedido .select2-selection {
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    min-height: 38px;
+}
+
+#modalPedido .select2-selection__rendered {
+    padding: 8px 12px;
+    line-height: 1.5;
+}
+
+#modalPedido .select2-selection__placeholder {
+    color: #6c757d;
+}
+</style>
 
 <?php include 'includes/footer.php'; ?>
