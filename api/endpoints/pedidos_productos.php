@@ -17,7 +17,51 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 switch($method) {
     case 'GET':
-        if(isset($_GET['id'])) {
+        if(isset($_GET['reserva_id'])) {
+            // Buscar pedidos por reserva_id
+            $reserva_id = $_GET['reserva_id'];
+            $stmt = $pedido->getByReservaId($reserva_id);
+            
+            $pedidos_arr = array();
+            while($row = $stmt->fetch()) {
+                // Obtener detalles para cada pedido
+                $detalles_stmt = $pedido->getDetalles($row['id']);
+                $detalles_arr = array();
+                while($detalle_row = $detalles_stmt->fetch()) {
+                    $detalles_arr[] = array(
+                        "producto_id" => $detalle_row['producto_id'],
+                        "producto_nombre" => $detalle_row['producto_nombre'],
+                        "categoria" => $detalle_row['categoria'],
+                        "cantidad" => $detalle_row['cantidad'],
+                        "precio_unitario" => $detalle_row['precio_unitario'],
+                        "subtotal" => $detalle_row['subtotal'],
+                        "cliente_id" => $detalle_row['cliente_id'],
+                        "cliente_nombre" => $detalle_row['cliente_nombre'],
+                        "cliente_apellido" => $detalle_row['cliente_apellido']
+                    );
+                }
+                
+                $pedidos_arr[] = array(
+                    "id" => $row['id'],
+                    "habitacion_id" => $row['habitacion_id'],
+                    "habitacion_numero" => $row['habitacion_numero'],
+                    "cliente_id" => $row['cliente_id'],
+                    "cliente_nombre" => $row['cliente_nombre'],
+                    "usuario_id" => $row['usuario_id'],
+                    "usuario_nombre" => $row['usuario_nombre'],
+                    "estado" => $row['estado'],
+                    "subtotal" => $row['subtotal'],
+                    "total" => $row['total'],
+                    "notas" => $row['notas'],
+                    "fecha_pedido" => $row['fecha_pedido'],
+                    "fecha_entrega" => $row['fecha_entrega'],
+                    "detalles" => $detalles_arr
+                );
+            }
+            
+            http_response_code(200);
+            echo json_encode($pedidos_arr);
+        } elseif(isset($_GET['id'])) {
             $pedido->id = $_GET['id'];
             if($pedido->getById()) {
                 // Obtener detalles del pedido
@@ -30,7 +74,10 @@ switch($method) {
                         "categoria" => $row['categoria'],
                         "cantidad" => $row['cantidad'],
                         "precio_unitario" => $row['precio_unitario'],
-                        "subtotal" => $row['subtotal']
+                        "subtotal" => $row['subtotal'],
+                        "cliente_id" => $row['cliente_id'],
+                        "cliente_nombre" => $row['cliente_nombre'],
+                        "cliente_apellido" => $row['cliente_apellido']
                     );
                 }
                 
@@ -57,12 +104,35 @@ switch($method) {
                 echo json_encode(array("message" => "Pedido no encontrado."));
             }
         } else {
-            $stmt = $pedido->getAll();
+            // Parámetros de paginación
+            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+            $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+            $offset = ($page - 1) * $limit;
+            
+            // Parámetros de filtro
+            $estado = isset($_GET['estado']) ? $_GET['estado'] : '';
+            $fecha = isset($_GET['fecha']) ? $_GET['fecha'] : '';
+            $busqueda = isset($_GET['busqueda']) ? trim($_GET['busqueda']) : '';
+            
+            $stmt = $pedido->getAllWithPagination($limit, $offset, $estado, $fecha, $busqueda);
             $num = $stmt->rowCount();
+            
+            // Obtener total para paginación
+            $total_stmt = $pedido->getTotalCount($estado, $fecha, $busqueda);
+            $total_row = $total_stmt->fetch();
+            $total = $total_row['total'];
             
             if($num > 0) {
                 $pedidos_arr = array();
                 $pedidos_arr["records"] = array();
+                $pedidos_arr["pagination"] = array(
+                    "page" => $page,
+                    "limit" => $limit,
+                    "total" => (int)$total,
+                    "pages" => ceil($total / $limit),
+                    "has_next" => ($page * $limit) < $total,
+                    "has_prev" => $page > 1
+                );
                 
                 while ($row = $stmt->fetch()) {
                     $pedido_item = array(
@@ -87,7 +157,17 @@ switch($method) {
                 echo json_encode($pedidos_arr);
             } else {
                 http_response_code(200);
-                echo json_encode(array("records" => array()));
+                echo json_encode(array(
+                    "records" => array(),
+                    "pagination" => array(
+                        "page" => $page,
+                        "limit" => $limit,
+                        "total" => 0,
+                        "pages" => 0,
+                        "has_next" => false,
+                        "has_prev" => false
+                    )
+                ));
             }
         }
         break;
@@ -118,6 +198,12 @@ switch($method) {
                     $detalles_validos = false;
                     break;
                 }
+                
+                // Validar que cada detalle tenga un cliente_id si se especifica
+                if(isset($detalle->cliente_id)) {
+                    error_log("Detalle $index tiene cliente_id: {$detalle->cliente_id}");
+                }
+                
                 $subtotal += $detalle->cantidad * $detalle->precio_unitario;
             }
             
@@ -144,8 +230,12 @@ switch($method) {
                         error_log("Stock suficiente, descontando...");
                         // Descontar stock
                         $producto->updateStock(-$detalle->cantidad);
-                        // Agregar detalle
-                        if(!$pedido->agregarDetalle($pedido->id, $detalle->producto_id, $detalle->cantidad, $detalle->precio_unitario)) {
+                        
+                        // Obtener cliente_id para este detalle
+                        $cliente_id_detalle = isset($detalle->cliente_id) ? $detalle->cliente_id : null;
+                        
+                        // Agregar detalle con cliente individual
+                        if(!$pedido->agregarDetalle($pedido->id, $detalle->producto_id, $detalle->cantidad, $detalle->precio_unitario, $cliente_id_detalle)) {
                             error_log("Error al agregar detalle $index");
                             $todo_bien = false;
                             break;
@@ -166,8 +256,17 @@ switch($method) {
                     // Rollback: eliminar pedido y devolver stock
                     $pedido->id = $pedido->id;
                     $pedido->delete();
+                    
+                    // Obtener información del producto con stock insuficiente para mensaje específico
+                    $producto->id = $detalle->producto_id;
+                    if($producto->getById()) {
+                        $mensaje_error = "No hay stock suficiente para '{$producto->nombre}'. Stock disponible: {$producto->stock}, Solicitado: {$detalle->cantidad}";
+                    } else {
+                        $mensaje_error = "No hay stock suficiente para algunos productos.";
+                    }
+                    
                     http_response_code(400);
-                    echo json_encode(array("message" => "No hay stock suficiente para algunos productos."));
+                    echo json_encode(array("message" => $mensaje_error));
                 }
             } else {
                 error_log("Error al crear pedido principal");

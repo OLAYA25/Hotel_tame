@@ -36,6 +36,21 @@ switch($method) {
 
         $doc = $data->numero_documento ?? $data->documento ?? null;
         
+        // Validar que el documento no esté duplicado
+        $check_query = "SELECT id FROM clientes WHERE documento = ? AND deleted_at IS NULL";
+        $check_stmt = $db->prepare($check_query);
+        $check_stmt->bindParam(1, $doc);
+        $check_stmt->execute();
+        
+        if($check_stmt->rowCount() > 0) {
+            http_response_code(409);
+            echo json_encode(array(
+                "message" => "Ya existe un cliente con este documento.",
+                "error" => "duplicate_document"
+            ));
+            exit;
+        }
+        
         try {
             $query = "INSERT INTO clientes (nombre, apellido, tipo_documento, documento, email, telefono, fecha_nacimiento, ciudad, pais, direccion) 
                       VALUES (:nombre, :apellido, :tipo_documento, :documento, :email, :telefono, :fecha_nacimiento, :ciudad, :pais, :direccion)";
@@ -92,6 +107,22 @@ switch($method) {
         }
 
         $doc = $data->numero_documento ?? $data->documento ?? null;
+        
+        // Validar que el documento no esté duplicado (excluyendo el cliente actual)
+        $check_query = "SELECT id FROM clientes WHERE documento = ? AND id != ? AND deleted_at IS NULL";
+        $check_stmt = $db->prepare($check_query);
+        $check_stmt->bindParam(1, $doc);
+        $check_stmt->bindParam(2, $data->id);
+        $check_stmt->execute();
+        
+        if($check_stmt->rowCount() > 0) {
+            http_response_code(409);
+            echo json_encode(array(
+                "message" => "Ya existe otro cliente con este documento.",
+                "error" => "duplicate_document"
+            ));
+            exit;
+        }
         
         try {
             $query = "UPDATE clientes 

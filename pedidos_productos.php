@@ -46,7 +46,7 @@ include 'includes/sidebar.php';
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Búsqueda</label>
-                    <input type="text" class="form-control" id="busqueda" placeholder="Buscar por habitación o cliente..." onkeyup="cargarPedidos()">
+                    <input type="text" class="form-control" id="busqueda" placeholder="Buscar por habitación o cliente..." onkeyup="handleSearch(event)">
                 </div>
             </div>
         </div>
@@ -56,6 +56,13 @@ include 'includes/sidebar.php';
     <div class="row" id="pedidosGrid">
         <!-- Los pedidos se cargarán dinámicamente aquí -->
     </div>
+    
+    <!-- Paginación -->
+    <nav aria-label="Paginación de pedidos" class="mt-4" id="paginationContainer">
+        <div class="d-flex justify-content-center">
+            <!-- La paginación se cargará dinámicamente aquí -->
+        </div>
+    </nav>
 </div>
 
 <!-- Modal Nuevo Pedido -->
@@ -71,19 +78,13 @@ include 'includes/sidebar.php';
                     <input type="hidden" id="pedido_id">
                     
                     <div class="row">
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-6 mb-3">
                             <label class="form-label">Habitación *</label>
                             <select class="form-select" id="habitacion_id" required onchange="cargarClienteHabitacion()">
                                 <option value="">Seleccione...</option>
                             </select>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Cliente *</label>
-                            <select class="form-select" id="cliente_id" required>
-                                <option value="">Seleccione habitación primero...</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-6 mb-3">
                             <label class="form-label">Notas</label>
                             <textarea class="form-control" id="notas" rows="1"></textarea>
                         </div>
@@ -100,18 +101,23 @@ include 'includes/sidebar.php';
                     
                     <div id="productosContainer">
                         <div class="row mb-2 producto-item">
-                            <div class="col-md-5">
+                            <div class="col-md-3">
                                 <select class="form-select producto-select" required onchange="actualizarPrecio(this)">
                                     <option value="">Seleccione producto...</option>
                                 </select>
                             </div>
+                            <div class="col-md-3">
+                                <select class="form-select cliente-select" required>
+                                    <option value="">Seleccione cliente...</option>
+                                </select>
+                            </div>
                             <div class="col-md-2">
-                                <input type="number" class="form-control cantidad-input" placeholder="Cant." min="1" value="1" required onchange="calcularSubtotal(this)">
+                                <input type="number" class="form-control cantidad-input" placeholder="Cant." min="1" value="1" required oninput="calcularSubtotal(this)">
                             </div>
                             <div class="col-md-2">
                                 <input type="number" class="form-control precio-input" placeholder="Precio" readonly>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-1">
                                 <input type="number" class="form-control subtotal-input" placeholder="Subtotal" readonly>
                             </div>
                             <div class="col-md-1">
@@ -165,10 +171,20 @@ include 'includes/sidebar.php';
 
 <script>
 let productos = [];
+let reservaActual = null; // Variable global para almacenar la reserva actual
 
 $(document).ready(function() {
     cargarProductos();
     cargarClientesActivos();
+    
+    // Event listeners adicionales para cálculo en tiempo real
+    $(document).on('input', '.cantidad-input', function() {
+        calcularSubtotal(this);
+    });
+    
+    $(document).on('change', '.cantidad-input', function() {
+        calcularSubtotal(this);
+    });
 });
 
 function cargarClientesActivos() {
@@ -194,34 +210,51 @@ function cargarClientesActivos() {
         });
         
         // Agregar opciones al select
-        Object.values(clientesUnicos).forEach(function(cliente) {
-            const textoOpcion = `${cliente.nombre} ${cliente.apellido} - Hab: ${cliente.habitacion}`;
-            select.append(`<option value="${cliente.id}">${textoOpcion}</option>`);
+        Object.values(clientesUnicos).forEach(cliente => {
+            select.append(`<option value="${cliente.id}">${cliente.nombre} ${cliente.apellido} - ${cliente.habitacion}</option>`);
         });
     });
 }
 
-function cargarPedidos() {
-    const estado = $('#filtroEstado').val();
-    const fecha = $('#filtroFecha').val();
-    const busqueda = $('#busqueda').val();
+// Variables globales para paginación
+let currentPage = 1;
+let searchTimeout;
+let currentFilters = {
+    estado: '',
+    fecha: '',
+    busqueda: ''
+};
+
+$(document).ready(function() {
+    cargarPedidos();
+});
+
+function cargarPedidos(page = 1) {
+    currentPage = page;
     
-    let url = 'api/endpoints/pedidos_productos.php';
+    // Actualizar filtros actuales
+    currentFilters.estado = $('#filtroEstado').val();
+    currentFilters.fecha = $('#filtroFecha').val();
+    currentFilters.busqueda = $('#busqueda').val();
+    
+    let url = `api/endpoints/pedidos_productos.php?page=${page}&limit=10`;
     const params = [];
     
-    if (estado) params.push(`estado=${estado}`);
-    if (fecha) params.push(`fecha=${fecha}`);
-    if (busqueda) params.push(`busqueda=${busqueda}`);
+    if (currentFilters.estado) params.push(`estado=${currentFilters.estado}`);
+    if (currentFilters.fecha) params.push(`fecha=${currentFilters.fecha}`);
+    if (currentFilters.busqueda) params.push(`busqueda=${currentFilters.busqueda}`);
     
     if (params.length > 0) {
-        url += '?' + params.join('&');
+        url += '&' + params.join('&');
     }
     
     $.get(url, function(data) {
         const grid = $('#pedidosGrid');
+        const paginationContainer = $('#paginationContainer');
         grid.empty();
         
         const pedidosList = Array.isArray(data) ? data : (data.records || []);
+        const pagination = data.pagination || {};
         
         if (pedidosList.length === 0) {
             grid.append(`
@@ -232,6 +265,7 @@ function cargarPedidos() {
                     </div>
                 </div>
             `);
+            paginationContainer.empty();
             return;
         }
 
@@ -300,7 +334,67 @@ function cargarPedidos() {
                 </div>
             `);
         });
+        
+        // Renderizar paginación
+        renderPagination(pagination);
     });
+}
+
+function renderPagination(pagination) {
+    const container = $('#paginationContainer');
+    
+    if (!pagination || pagination.pages <= 1) {
+        container.empty();
+        return;
+    }
+    
+    let html = '<ul class="pagination justify-content-center">';
+    
+    // Botón anterior
+    if (pagination.has_prev) {
+        html += `<li class="page-item">
+                    <a class="page-link" href="#" onclick="cargarPedidos(${pagination.page - 1}); return false;">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                 </li>`;
+    } else {
+        html += `<li class="page-item disabled">
+                    <span class="page-link">
+                        <i class="fas fa-chevron-left"></i>
+                    </span>
+                 </li>`;
+    }
+    
+    // Páginas
+    for (let i = 1; i <= pagination.pages; i++) {
+        if (i === pagination.page) {
+            html += `<li class="page-item active">
+                        <span class="page-link">${i}</span>
+                     </li>`;
+        } else {
+            html += `<li class="page-item">
+                        <a class="page-link" href="#" onclick="cargarPedidos(${i}); return false;">${i}</a>
+                     </li>`;
+        }
+    }
+    
+    // Botón siguiente
+    if (pagination.has_next) {
+        html += `<li class="page-item">
+                    <a class="page-link" href="#" onclick="cargarPedidos(${pagination.page + 1}); return false;">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                 </li>`;
+    } else {
+        html += `<li class="page-item disabled">
+                    <span class="page-link">
+                        <i class="fas fa-chevron-right"></i>
+                    </span>
+                 </li>`;
+    }
+    
+    html += '</ul>';
+    container.html(html);
 }
 
 function cargarProductos() {
@@ -389,89 +483,168 @@ function cargarHabitaciones() {
 
 function cargarClienteHabitacion() {
     const habitacionId = $('#habitacion_id').val();
-    const clienteSelect = $('#cliente_id');
     
     if (!habitacionId) {
-        clienteSelect.empty().append('<option value="">Seleccione habitación primero...</option>');
+        // Limpiar todos los selects de cliente de los productos
+        $('.cliente-select').each(function() {
+            $(this).empty().append('<option value="">Seleccione habitación primero...</option>');
+        });
         return;
     }
     
-    clienteSelect.empty().append('<option value="">Cargando...</option>');
+    // Guardar las selecciones actuales de clientes antes de actualizar
+    const seleccionesActuales = [];
+    $('.cliente-select').each(function() {
+        const valorActual = $(this).val();
+        if (valorActual) {
+            seleccionesActuales.push(valorActual);
+        }
+    });
     
-    // Buscar reserva activa para esta habitación
+    // Mostrar loading en todos los selects
+    $('.cliente-select').each(function() {
+        $(this).empty().append('<option value="">Cargando...</option>');
+    });
+    
+    // Buscar reserva activa para esta habitación (solo confirmadas, no canceladas)
     $.get(`api/endpoints/reservas.php?habitacion_id=${habitacionId}&estado=confirmada&limit=1`, function(reservaData) {
+        console.log('Reservas encontradas para habitación', habitacionId, ':', reservaData); // Debug
+        
         const reservas = Array.isArray(reservaData) ? reservaData : (reservaData.records || []);
         
         if (reservas.length > 0) {
             const reserva = reservas[0];
-            clienteSelect.empty().append('<option value="">Seleccione cliente...</option>');
+            console.log('Reserva seleccionada:', reserva); // Debug
             
-            // Agregar cliente principal
-            clienteSelect.append(`<option value="cliente_${reserva.cliente_id}">${reserva.cliente_nombre} (Principal)</option>`);
+            // Almacenar la reserva en variable global
+            reservaActual = reserva;
             
-            // Intentar cargar acompañantes desde observaciones
-            if (reserva.observaciones) {
-                try {
-                    const match = reserva.observaciones.match(/ACOMPANANTES:\n([\s\S]*?)(?=\n\n|\n$|$)/);
-                    if (match && match[1]) {
-                        const acompanantes = JSON.parse(match[1]);
-                        acompanantes.forEach((acompanante, index) => {
-                            const nombreCompleto = `${acompanante.nombre} ${acompanante.apellido}`;
-                            clienteSelect.append(`<option value="acompanante_${index}">${nombreCompleto} (Acompañante)</option>`);
-                        });
-                        console.log('Acompañantes cargados:', acompanantes.length);
+            // Actualizar todos los selects de cliente de los productos
+            $('.cliente-select').each(function(index) {
+                const select = $(this);
+                select.empty().append('<option value="">Seleccione cliente...</option>');
+                
+                // Agregar cliente principal
+                select.append(`<option value="cliente_${reserva.cliente_id}">${reserva.cliente_nombre} ${reserva.cliente_apellido || ''} (Principal)</option>`);
+                
+                // Intentar cargar acompañantes desde observaciones (usando el mismo patrón que reservas.php)
+                if (reserva.observaciones) {
+                    console.log('Observaciones de la reserva:', reserva.observaciones); // Debug
+                    try {
+                        // Buscar el JSON de acompañantes en las observaciones (mismo patrón que reservas.php)
+                        const obsText = reserva.observaciones;
+                        const acompanantesMatch = obsText.match(/ACOMPANANTES:\n([\s\S]*?)(?=\n\n|\n$|$)/);
+                        
+                        console.log('Match de acompañantes:', acompanantesMatch); // Debug
+                        
+                        if (acompanantesMatch && acompanantesMatch[1]) {
+                            const acompanantesJSON = acompanantesMatch[1];
+                            const acompanantes = JSON.parse(acompanantesJSON);
+                            
+                            console.log('Acompañantes parseados:', acompanantes); // Debug
+                            
+                            acompanantes.forEach((acompanante, index) => {
+                                const nombreCompleto = `${acompanante.nombre} ${acompanante.apellido}`;
+                                select.append(`<option value="acompanante_${index}">${nombreCompleto} (Acompañante)</option>`);
+                            });
+                            console.log('Acompañantes cargados:', acompanantes.length);
+                        } else {
+                            console.log('No se encontró JSON de acompañantes en las observaciones');
+                        }
+                    } catch (e) {
+                        console.log('Error al parsear acompañantes:', e);
                     }
-                } catch (e) {
-                    console.log('Error al parsear acompañantes:', e);
+                } else {
+                    console.log('La reserva no tiene observaciones');
                 }
-            }
+                
+                // Guardar información de la reserva para uso posterior
+                select.data('reserva', reserva);
+                
+                // Restaurar la selección anterior si existe y es válida
+                if (seleccionesActuales[index]) {
+                    const valorAnterior = seleccionesActuales[index];
+                    // Verificar si el valor anterior todavía existe en las opciones
+                    if (select.find(`option[value="${valorAnterior}"]`).length > 0) {
+                        select.val(valorAnterior);
+                        console.log('Restaurada selección anterior:', valorAnterior);
+                    }
+                }
+            });
             
-            // Guardar información de la reserva para uso posterior
-            clienteSelect.data('reserva', reserva);
             console.log('Clientes cargados para habitación:', habitacionId);
             
         } else {
-            // Buscar última reserva de esta habitación
+            // Buscar última reserva de esta habitación (incluyendo canceladas para mostrar historial)
             $.get(`api/endpoints/reservas.php?habitacion_id=${habitacionId}&limit=1`, function(historialData) {
                 const historial = Array.isArray(historialData) ? historialData : (historialData.records || []);
                 
-                clienteSelect.empty().append('<option value="">Seleccione cliente...</option>');
-                
-                if (historial.length > 0) {
-                    const ultimaReserva = historial[0];
-                    clienteSelect.append(`<option value="cliente_${ultimaReserva.cliente_id}">${ultimaReserva.cliente_nombre} (Principal - Última reserva)</option>`);
+                $('.cliente-select').each(function(index) {
+                    const select = $(this);
+                    select.empty().append('<option value="">Seleccione cliente...</option>');
                     
-                    // Intentar cargar acompañantes desde observaciones
-                    if (ultimaReserva.observaciones) {
-                        try {
-                            const match = ultimaReserva.observaciones.match(/ACOMPANANTES:\n([\s\S]*?)(?=\n\n|\n$|$)/);
-                            if (match && match[1]) {
-                                const acompanantes = JSON.parse(match[1]);
-                                acompanantes.forEach((acompanante, index) => {
-                                    const nombreCompleto = `${acompanante.nombre} ${acompanante.apellido}`;
-                                    clienteSelect.append(`<option value="acompanante_${index}">${nombreCompleto} (Acompañante)</option>`);
-                                });
+                    if (historial.length > 0) {
+                        const ultimaReserva = historial[0];
+                        const estadoTexto = ultimaReserva.estado === 'cancelada' ? '(Cancelada)' : '(Última reserva)';
+                        select.append(`<option value="cliente_${ultimaReserva.cliente_id}">${ultimaReserva.cliente_nombre} ${ultimaReserva.cliente_apellido || ''} (Principal - ${estadoTexto})</option>`);
+                        
+                        // Almacenar la reserva en variable global
+                        reservaActual = ultimaReserva;
+                        
+                        // Intentar cargar acompañantes desde observaciones
+                        if (ultimaReserva.observaciones) {
+                            console.log('Observaciones de última reserva:', ultimaReserva.observaciones); // Debug
+                            try {
+                                const obsText = ultimaReserva.observaciones;
+                                const acompanantesMatch = obsText.match(/ACOMPANANTES:\n([\s\S]*?)(?=\n\n|\n$|$)/);
+                                
+                                console.log('Match de acompañantes (historial):', acompanantesMatch); // Debug
+                                
+                                if (acompanantesMatch && acompanantesMatch[1]) {
+                                    const acompanantesJSON = acompanantesMatch[1];
+                                    const acompanantes = JSON.parse(acompanantesJSON);
+                                    
+                                    console.log('Acompañantes parseados (historial):', acompanantes); // Debug
+                                    
+                                    acompanantes.forEach((acompanante, index) => {
+                                        const nombreCompleto = `${acompanante.nombre} ${acompanante.apellido}`;
+                                        select.append(`<option value="acompanante_${index}">${nombreCompleto} (Acompañante)</option>`);
+                                    });
+                                } else {
+                                    console.log('No se encontró JSON de acompañantes en observaciones del historial');
+                                }
+                            } catch (e) {
+                                console.log('Error al parsear acompañantes (historial):', e);
                             }
-                        } catch (e) {
-                            console.log('Error al parsear acompañantes:', e);
+                        } else {
+                            console.log('La última reserva no tiene observaciones');
                         }
+                        
+                        // Guardar información de la reserva
+                        select.data('reserva', ultimaReserva);
+                        
+                        // Restaurar la selección anterior si existe y es válida
+                        if (seleccionesActuales[index]) {
+                            const valorAnterior = seleccionesActuales[index];
+                            if (select.find(`option[value="${valorAnterior}"]`).length > 0) {
+                                select.val(valorAnterior);
+                                console.log('Restaurada selección anterior (historial):', valorAnterior);
+                            }
+                        }
+                    } else {
+                        select.empty().append('<option value="">No hay reservas para esta habitación</option>');
                     }
-                    
-                    clienteSelect.data('reserva', ultimaReserva);
-                    console.log('Cliente cargado desde historial:', ultimaReserva.cliente_nombre);
-                    
-                } else {
-                    clienteSelect.empty().append('<option value="">Sin clientes encontrados</option>');
-                    console.log('No se encontró cliente para esta habitación');
-                }
+                });
             }).fail(function() {
-                clienteSelect.empty().append('<option value="">Error al cargar clientes</option>');
-                console.error('Error al cargar historial de reservas');
+                $('.cliente-select').each(function() {
+                    $(this).empty().append('<option value="">Error al cargar historial</option>');
+                });
             });
         }
     }).fail(function() {
-        clienteSelect.empty().append('<option value="">Error al cargar clientes</option>');
-        console.error('Error al cargar reserva activa');
+        $('.cliente-select').each(function() {
+            $(this).empty().append('<option value="">Error al cargar reserva activa</option>');
+        });
     });
 }
 
@@ -480,27 +653,29 @@ function abrirModalNuevo() {
     $('#formPedido')[0].reset();
     $('#pedido_id').val('');
     
-    // Resetear el select de cliente
-    $('#cliente_id').empty().append('<option value="">Seleccione habitación primero...</option>');
-    
     // Cargar habitaciones disponibles
     cargarHabitaciones();
     
     // Reset productos container
     $('#productosContainer').html(`
         <div class="row mb-2 producto-item">
-            <div class="col-md-5">
+            <div class="col-md-3">
                 <select class="form-select producto-select" required onchange="actualizarPrecio(this)">
                     <option value="">Seleccione producto...</option>
                 </select>
             </div>
+            <div class="col-md-3">
+                <select class="form-select cliente-select" required>
+                    <option value="">Seleccione habitación primero...</option>
+                </select>
+            </div>
             <div class="col-md-2">
-                <input type="number" class="form-control cantidad-input" placeholder="Cant." min="1" value="1" required onchange="calcularSubtotal(this)">
+                <input type="number" class="form-control cantidad-input" placeholder="Cant." min="1" value="1" required oninput="calcularSubtotal(this)">
             </div>
             <div class="col-md-2">
                 <input type="number" class="form-control precio-input" placeholder="Precio" readonly>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-1">
                 <input type="number" class="form-control subtotal-input" placeholder="Subtotal" readonly>
             </div>
             <div class="col-md-1">
@@ -518,18 +693,23 @@ function abrirModalNuevo() {
 function agregarProducto() {
     const productoHtml = `
         <div class="row mb-2 producto-item">
-            <div class="col-md-5">
+            <div class="col-md-3">
                 <select class="form-select producto-select" required onchange="actualizarPrecio(this)">
                     <option value="">Seleccione producto...</option>
                 </select>
             </div>
+            <div class="col-md-3">
+                <select class="form-select cliente-select" required>
+                    <option value="">Seleccione habitación primero...</option>
+                </select>
+            </div>
             <div class="col-md-2">
-                <input type="number" class="form-control cantidad-input" placeholder="Cant." min="1" value="1" required onchange="calcularSubtotal(this)">
+                <input type="number" class="form-control cantidad-input" placeholder="Cant." min="1" value="1" required oninput="calcularSubtotal(this)">
             </div>
             <div class="col-md-2">
                 <input type="number" class="form-control precio-input" placeholder="Precio" readonly>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-1">
                 <input type="number" class="form-control subtotal-input" placeholder="Subtotal" readonly>
             </div>
             <div class="col-md-1">
@@ -542,6 +722,46 @@ function agregarProducto() {
     
     $('#productosContainer').append(productoHtml);
     cargarProductos();
+    
+    // Si ya hay una habitación seleccionada, cargar los clientes para el nuevo producto
+    const habitacionId = $('#habitacion_id').val();
+    if (habitacionId) {
+        console.log('Cargando clientes para nuevo producto, habitación:', habitacionId);
+        
+        // Guardar las selecciones actuales antes de cargar
+        const seleccionesActuales = [];
+        $('.cliente-select').each(function() {
+            const valorActual = $(this).val();
+            if (valorActual) {
+                seleccionesActuales.push(valorActual);
+            }
+        });
+        
+        cargarClienteHabitacion();
+        
+        // Después de cargar los clientes, establecer el cliente por defecto para el nuevo producto
+        setTimeout(() => {
+            const nuevoSelect = $('.cliente-select').last();
+            
+            // Si hay un solo cliente (solo el principal sin acompañantes), seleccionarlo por defecto
+            const opciones = nuevoSelect.find('option');
+            if (opciones.length === 2) { // Solo "Seleccione cliente..." y una opción de cliente
+                const clienteOption = opciones.eq(1); // La segunda opción
+                if (clienteOption.val() && clienteOption.val().startsWith('cliente_')) {
+                    nuevoSelect.val(clienteOption.val());
+                    console.log('Cliente por defecto seleccionado:', clienteOption.val());
+                }
+            }
+            // Si hay múltiples clientes pero todos los productos anteriores usan el mismo, usar ese
+            else if (seleccionesActuales.length > 0 && seleccionesActuales.every(val => val === seleccionesActuales[0])) {
+                const clienteComun = seleccionesActuales[0];
+                if (nuevoSelect.find(`option[value="${clienteComun}"]`).length > 0) {
+                    nuevoSelect.val(clienteComun);
+                    console.log('Cliente común seleccionado por defecto:', clienteComun);
+                }
+            }
+        }, 100);
+    }
 }
 
 function eliminarProducto(button) {
@@ -557,6 +777,8 @@ function actualizarPrecio(select) {
     const precioInput = $select.closest('.producto-item').find('.precio-input');
     const cantidadInput = $select.closest('.producto-item').find('.cantidad-input');
     
+    console.log('Actualizando precio:', { precio, stock }); // Debug
+    
     precioInput.val(precio);
     
     // Validar stock
@@ -566,14 +788,22 @@ function actualizarPrecio(select) {
         showNotification(`Solo hay ${stock} unidades disponibles`, 'warning');
     }
     
-    calcularSubtotal(cantidadInput);
+    // Forzar el cálculo del subtotal
+    setTimeout(() => {
+        calcularSubtotal(cantidadInput[0]);
+    }, 10);
 }
 
 function calcularSubtotal(input) {
     const row = $(input).closest('.producto-item');
-    const cantidad = parseInt(input.val()) || 0;
+    const cantidad = parseInt($(input).val()) || 0;
     const precio = parseFloat(row.find('.precio-input').val()) || 0;
     const subtotal = cantidad * precio;
+    
+    // Solo debug si hay cambios significativos
+    if (cantidad > 0 && precio > 0) {
+        console.log('Calculando subtotal:', { cantidad, precio, subtotal });
+    }
     
     row.find('.subtotal-input').val(subtotal);
     calcularTotal();
@@ -591,27 +821,11 @@ function guardarPedido(e) {
     e.preventDefault();
     
     const habitacionId = $('#habitacion_id').val();
-    let clienteId = $('#cliente_id').val() || null;
     const notas = $('#notas').val();
     
-    // Extraer solo el número del cliente_id (viene como "cliente_4" o "acompanante_0")
-    if (clienteId && clienteId.startsWith('cliente_')) {
-        clienteId = parseInt(clienteId.replace('cliente_', ''));
-    } else if (clienteId && clienteId.startsWith('acompanante_')) {
-        // Para acompañantes, usamos el cliente_id de la reserva
-        const reserva = $('#cliente_id').data('reserva');
-        if (reserva) {
-            clienteId = reserva.cliente_id;
-        } else {
-            clienteId = null; // Si no hay reserva, no guardamos cliente_id
-        }
-    } else {
-        clienteId = null;
-    }
+    console.log('Guardando pedido:', { habitacionId, notas });
     
-    console.log('Guardando pedido:', { habitacionId, clienteId, notas });
-    
-    // Recolectar productos
+    // Recolectar productos con sus clientes individuales
     const detalles = [];
     let valido = true;
     
@@ -619,19 +833,122 @@ function guardarPedido(e) {
         const productoId = $(this).find('.producto-select').val();
         const cantidad = parseInt($(this).find('.cantidad-input').val()) || 0;
         const precio = parseFloat($(this).find('.precio-input').val()) || 0;
+        let clienteProductoId = $(this).find('.cliente-select').val();
         
-        console.log('Producto encontrado:', { productoId, cantidad, precio });
+        console.log('Producto encontrado:', { productoId, cantidad, precio, clienteProductoId });
         
-        if (!productoId || cantidad <= 0 || precio <= 0) {
+        if (!productoId || cantidad <= 0 || precio <= 0 || !clienteProductoId) {
             valido = false;
-            console.log('Producto inválido:', { productoId, cantidad, precio });
+            console.log('Producto inválido:', { productoId, cantidad, precio, clienteProductoId });
             return false;
+        }
+        
+        // Extraer solo el número del cliente_id (viene como "cliente_4" o "acompanante_0")
+        let clienteIdFinal = null;
+        if (clienteProductoId.startsWith('cliente_')) {
+            clienteIdFinal = parseInt(clienteProductoId.replace('cliente_', ''));
+        } else if (clienteProductoId.startsWith('acompanante_')) {
+            // Para acompañantes, necesitamos obtener el cliente_id correspondiente
+            const acompananteIndex = parseInt(clienteProductoId.replace('acompanante_', ''));
+            
+            if (reservaActual && reservaActual.observaciones) {
+                try {
+                    // Parsear los acompañantes desde las observaciones
+                    const obsText = reservaActual.observaciones;
+                    const acompanantesMatch = obsText.match(/ACOMPANANTES:\n([\s\S]*?)(?=\n\n|\n$|$)/);
+                    
+                    if (acompanantesMatch && acompanantesMatch[1]) {
+                        const acompanantes = JSON.parse(acompanantesMatch[1]);
+                        
+                        if (acompanantes[acompananteIndex]) {
+                            const acompanante = acompanantes[acompananteIndex];
+                            const nombreAcompanante = acompanante.nombre;
+                            const apellidoAcompanante = acompanante.apellido;
+                            
+                            // Buscar el cliente_id correspondiente en la base de datos
+                            console.log('Buscando cliente para:', nombreAcompanante, apellidoAcompanante);
+                            $.ajax({
+                                url: `api/endpoints/clientes.php?search=${encodeURIComponent(nombreAcompanante)}`,
+                                type: 'GET',
+                                async: false, // Síncrono para obtener el dato antes de continuar
+                                success: function(clienteData) {
+                                    console.log('Respuesta de búsqueda de cliente:', clienteData);
+                                    const clientes = Array.isArray(clienteData) ? clienteData : (clienteData.records || []);
+                                    console.log('Clientes encontrados:', clientes.length, clientes);
+                                    
+                                    // Filtrar por apellido si hay múltiples resultados
+                                    let clienteEncontrado = null;
+                                    if (clientes.length > 0) {
+                                        if (clientes.length === 1) {
+                                            clienteEncontrado = clientes[0];
+                                        } else {
+                                            // Buscar el que coincide con el apellido
+                                            clienteEncontrado = clientes.find(c => 
+                                                c.apellido && c.apellido.toLowerCase() === apellidoAcompanante.toLowerCase()
+                                            );
+                                            if (!clienteEncontrado) {
+                                                clienteEncontrado = clientes[0]; // Fallback al primero
+                                            }
+                                        }
+                                        
+                                        clienteIdFinal = clienteEncontrado.id;
+                                        console.log('Cliente de acompañante encontrado:', clienteIdFinal, 'para:', nombreAcompanante, apellidoAcompanante);
+                                    } else {
+                                        console.log('Cliente no encontrado para acompañante:', nombreAcompanante, apellidoAcompanante);
+                                        // Si no existe, crearlo
+                                        console.log('Intentando crear cliente para:', nombreAcompanante, apellidoAcompanante);
+                                        $.ajax({
+                                            url: 'api/endpoints/clientes_final.php',
+                                            type: 'POST',
+                                            contentType: 'application/json',
+                                            data: JSON.stringify({
+                                                nombre: nombreAcompanante,
+                                                apellido: apellidoAcompanante,
+                                                tipo_documento: acompanante.tipo_documento,
+                                                numero_documento: acompanante.numero_documento,
+                                                email: acompanante.email,
+                                                telefono: acompanante.telefono
+                                            }),
+                                            async: false,
+                                            success: function(response) {
+                                                clienteIdFinal = response.cliente_id;
+                                                console.log('Cliente creado para acompañante:', clienteIdFinal);
+                                            },
+                                            error: function(xhr) {
+                                                console.log('Error al crear cliente para acompañante:', xhr.responseJSON);
+                                                clienteIdFinal = reservaActual.cliente_id; // Fallback
+                                            }
+                                        });
+                                    }
+                                },
+                                error: function(xhr) {
+                                    console.log('Error al buscar cliente para acompañante:', xhr.responseJSON);
+                                    clienteIdFinal = reservaActual.cliente_id; // Fallback
+                                }
+                            });
+                        } else {
+                            console.log('Índice de acompañante no encontrado:', acompananteIndex);
+                            clienteIdFinal = reservaActual.cliente_id; // Fallback al cliente principal
+                        }
+                    } else {
+                        console.log('No se encontraron acompañantes en observaciones');
+                        clienteIdFinal = reservaActual.cliente_id; // Fallback al cliente principal
+                    }
+                } catch (e) {
+                    console.log('Error al parsear acompañantes:', e);
+                    clienteIdFinal = reservaActual.cliente_id; // Fallback al cliente principal
+                }
+            } else {
+                clienteIdFinal = reservaActual ? reservaActual.cliente_id : null;
+                console.log('No hay reserva global para acompañante, usando fallback');
+            }
         }
         
         detalles.push({
             producto_id: parseInt(productoId),
             cantidad: cantidad,
-            precio_unitario: precio
+            precio_unitario: precio,
+            cliente_id: clienteIdFinal // Cada producto tiene su propio cliente
         });
     });
     
@@ -639,13 +956,13 @@ function guardarPedido(e) {
     console.log('Válido:', valido, 'Length:', detalles.length);
     
     if (!valido || detalles.length === 0) {
-        showNotification('Por favor, complete todos los productos correctamente', 'error');
+        showNotification('Por favor, complete todos los productos y seleccione cliente para cada uno', 'error');
         return;
     }
     
     const data = {
         habitacion_id: parseInt(habitacionId),
-        cliente_id: clienteId,
+        cliente_id: null, // No hay cliente único para el pedido, cada producto tiene el suyo
         usuario_id: <?php echo $_SESSION['usuario']['id']; ?>,
         notas: notas,
         detalles: detalles
@@ -688,7 +1005,8 @@ function verPedido(id) {
             <div class="row mb-3">
                 <div class="col-md-4">
                     <strong>Habitación:</strong> ${pedido.habitacion_numero}<br>
-                    <strong>Cliente:</strong> ${pedido.cliente_nombre || 'No especificado'}
+                    <strong>Cliente(s):</strong> 
+                    <span id="clientesResumen">Cargando...</span>
                 </div>
                 <div class="col-md-8">
                     <strong>Notas:</strong> ${pedido.notas || 'Sin notas'}
@@ -702,6 +1020,7 @@ function verPedido(id) {
                         <tr>
                             <th>Producto</th>
                             <th>Categoría</th>
+                            <th>Cliente</th>
                             <th>Cantidad</th>
                             <th>Precio Unitario</th>
                             <th>Subtotal</th>
@@ -710,11 +1029,42 @@ function verPedido(id) {
                     <tbody>
         `;
         
+        // Procesar clientes únicos para el resumen
+        const clientesUnicos = new Map();
         pedido.detalles.forEach(detalle => {
+            if (detalle.cliente_id) {
+                const clienteKey = detalle.cliente_id;
+                if (!clientesUnicos.has(clienteKey)) {
+                    clientesUnicos.set(clienteKey, {
+                        id: detalle.cliente_id,
+                        nombre: detalle.cliente_nombre || 'Cliente ' + detalle.cliente_id,
+                        apellido: detalle.cliente_apellido || ''
+                    });
+                }
+            }
+        });
+        
+        // Mostrar resumen de clientes
+        let clientesResumenHtml = '';
+        if (clientesUnicos.size > 0) {
+            const clientesArray = Array.from(clientesUnicos.values());
+            clientesResumenHtml = clientesArray.map(cliente => 
+                `${cliente.nombre} ${cliente.apellido || ''}`
+            ).join(', ');
+        } else {
+            clientesResumenHtml = 'No especificado';
+        }
+        
+        pedido.detalles.forEach(detalle => {
+            const clienteNombre = detalle.cliente_nombre ? 
+                `${detalle.cliente_nombre} ${detalle.cliente_apellido || ''}` : 
+                'No especificado';
+            
             detallesHtml += `
                 <tr>
                     <td>${detalle.producto_nombre}</td>
                     <td>${detalle.categoria}</td>
+                    <td>${clienteNombre}</td>
                     <td>${detalle.cantidad}</td>
                     <td>$${parseFloat(detalle.precio_unitario).toLocaleString('es-CO')}</td>
                     <td>$${parseFloat(detalle.subtotal).toLocaleString('es-CO')}</td>
@@ -722,11 +1072,16 @@ function verPedido(id) {
             `;
         });
         
+        // Actualizar el resumen de clientes después de procesar
+        setTimeout(() => {
+            $('#clientesResumen').html(clientesResumenHtml);
+        }, 10);
+        
         detallesHtml += `
                     </tbody>
                     <tfoot>
                         <tr>
-                            <th colspan="4">Total:</th>
+                            <th colspan="5">Total:</th>
                             <th>$${parseFloat(pedido.total).toLocaleString('es-CO')}</th>
                         </tr>
                     </tfoot>
@@ -753,6 +1108,18 @@ function actualizarEstado(id, nuevoEstado) {
             showNotification(xhr.responseJSON?.message || 'Error al actualizar estado', 'error');
         }
     });
+}
+
+function handleSearch(event) {
+    // Limpiar timeout anterior
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+    }
+    
+    // Esperar 500ms después de que el usuario deje de escribir
+    searchTimeout = setTimeout(() => {
+        cargarPedidos(1); // Volver a la primera página al buscar
+    }, 500);
 }
 </script>
 

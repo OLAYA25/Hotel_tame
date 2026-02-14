@@ -40,12 +40,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
         <a href="clientes.php" class="nav-link text-white <?php echo $current_page == 'clientes.php' ? 'active' : ''; ?>">
             <i class="fas fa-user-tie"></i> Clientes
         </a>
-        <!-- <a href="productos.php" class="nav-link text-white <?php echo $current_page == 'productos.php' ? 'active' : ''; ?>">
+        <a href="productos.php" class="nav-link text-white <?php echo $current_page == 'productos.php' ? 'active' : ''; ?>">
             <i class="fas fa-box"></i> Productos
-        </a> -->
-        <!-- <a href="pedidos_productos.php" class="nav-link text-white <?php echo $current_page == 'pedidos_productos.php' ? 'active' : ''; ?>">
+        </a>
+        <a href="pedidos_productos.php" class="nav-link text-white <?php echo $current_page == 'pedidos_productos.php' ? 'active' : ''; ?>">
             <i class="fas fa-shopping-cart"></i> Pedidos
-        </a> -->
+        </a>
         <a href="reservas.php" class="nav-link text-white <?php echo $current_page == 'reservas.php' ? 'active' : ''; ?>">
             <i class="fas fa-calendar-check"></i> Reservas
         </a>

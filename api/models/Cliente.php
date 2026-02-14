@@ -258,6 +258,64 @@ class Cliente {
         }
     }
 
+    // Obtener clientes con paginación y búsqueda
+    public function getAllWithPagination($limit = 12, $offset = 0, $search = '') {
+        // Consulta básica sin campos opcionales para evitar errores
+        $query = "SELECT c.id, c.nombre, c.apellido, c.email, c.telefono, c.tipo_documento, c.documento, c.fecha_nacimiento, c.ciudad, c.pais, c.direccion, c.created_at
+                  FROM " . $this->table_name . " c
+                  WHERE c.deleted_at IS NULL";
+        
+        // Agregar condición de búsqueda si existe
+        if (!empty($search)) {
+            $query .= " AND (c.nombre LIKE ? OR c.apellido LIKE ? OR c.email LIKE ? OR c.documento LIKE ?)";
+        }
+        
+        $query .= " ORDER BY c.created_at DESC 
+                   LIMIT ? OFFSET ?";
+        
+        $stmt = $this->conn->prepare($query);
+        
+        if (!empty($search)) {
+            $searchParam = "%{$search}%";
+            $stmt->bindParam(1, $searchParam);
+            $stmt->bindParam(2, $searchParam);
+            $stmt->bindParam(3, $searchParam);
+            $stmt->bindParam(4, $searchParam);
+            $stmt->bindParam(5, $limit, PDO::PARAM_INT);
+            $stmt->bindParam(6, $offset, PDO::PARAM_INT);
+        } else {
+            $stmt->bindParam(1, $limit, PDO::PARAM_INT);
+            $stmt->bindParam(2, $offset, PDO::PARAM_INT);
+        }
+        
+        $stmt->execute();
+        return $stmt;
+    }
+
+    // Obtener conteo total para paginación
+    public function getTotalCount($search = '') {
+        $query = "SELECT COUNT(*) as total 
+                  FROM " . $this->table_name . " 
+                  WHERE deleted_at IS NULL";
+        
+        if (!empty($search)) {
+            $query .= " AND (nombre LIKE ? OR apellido LIKE ? OR email LIKE ? OR documento LIKE ?)";
+        }
+        
+        $stmt = $this->conn->prepare($query);
+        
+        if (!empty($search)) {
+            $searchParam = "%{$search}%";
+            $stmt->bindParam(1, $searchParam);
+            $stmt->bindParam(2, $searchParam);
+            $stmt->bindParam(3, $searchParam);
+            $stmt->bindParam(4, $searchParam);
+        }
+        
+        $stmt->execute();
+        return $stmt;
+    }
+
     // Buscar cliente por documento
     public function getByDocumento() {
         $query = "SELECT * FROM " . $this->table_name . " 

@@ -103,7 +103,7 @@ class Reserva {
     }
 
     // Obtener todas las reservas con información de cliente y habitación
-    public function getAll($fecha_inicio = null, $fecha_fin = null, $estado = null, $cliente_id = null) {
+    public function getAll($fecha_inicio = null, $fecha_fin = null, $estado = null, $cliente_id = null, $habitacion_id = null, $limit = null) {
         $query = "SELECT r.*, 
                     r.precio_total AS total,
                     r.num_noches AS noches,
@@ -140,7 +140,17 @@ class Reserva {
             $params[':cliente_id'] = $cliente_id;
         }
         
+        if ($habitacion_id) {
+            $query .= " AND r.habitacion_id = :habitacion_id";
+            $params[':habitacion_id'] = $habitacion_id;
+        }
+        
         $query .= " ORDER BY r.created_at DESC";
+        
+        if ($limit) {
+            $query .= " LIMIT :limit";
+            $params[':limit'] = $limit;
+        }
         
         $stmt = $this->conn->prepare($query);
         

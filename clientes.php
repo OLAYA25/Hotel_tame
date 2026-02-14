@@ -26,10 +26,30 @@ include 'includes/sidebar.php';
         </div>
     </div>
 
+    <!-- Barra de búsqueda y paginación -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" class="form-control" id="searchInput" placeholder="Buscar por nombre, email, documento..." onkeyup="handleSearch(event)">
+            </div>
+        </div>
+        <div class="col-md-6 text-end">
+            <small class="text-muted" id="totalCountInfo">Cargando...</small>
+        </div>
+    </div>
+
     <!-- Grid de tarjetas para clientes -->
     <div class="row g-4" id="clientesGrid">
         <!-- Las tarjetas se cargarán dinámicamente aquí -->
     </div>
+    
+    <!-- Paginación -->
+    <nav aria-label="Paginación de clientes" class="mt-4" id="paginationContainer">
+        <!-- La paginación se cargará dinámicamente aquí -->
+    </nav>
 </div>
 
 <!-- Modal -->
@@ -152,18 +172,32 @@ include 'includes/sidebar.php';
 </div>
 
 <script>
+// Variables globales para paginación
+let currentPage = 1;
+let searchTimeout;
+let currentSearch = '';
+
 $(document).ready(function() {
     cargarClientes();
 });
 
-function cargarClientes() {
-    $.get('api/endpoints/clientes.php', function(data) {
+function cargarClientes(page = 1, search = '') {
+    currentPage = page;
+    currentSearch = search;
+    
+    const url = `api/endpoints/clientes.php?page=${page}&limit=12${search ? '&search=' + encodeURIComponent(search) : ''}`;
+    
+    $.get(url, function(data) {
         const grid = $('#clientesGrid');
+        const paginationContainer = $('#paginationContainer');
+        const totalCountInfo = $('#totalCountInfo');
+        
         grid.empty();
-
+        
         // La API puede devolver { records: [...] } o directamente un array
         const clientesList = Array.isArray(data) ? data : (data.records || []);
-
+        const pagination = data.pagination || {};
+        
         clientesList.forEach(cliente => {
             grid.append(`
                 <div class="col-md-6 col-lg-4">
@@ -210,7 +244,86 @@ function cargarClientes() {
                 </div>
             `);
         });
+        
+        // Actualizar información de paginación
+        if (pagination.total !== undefined) {
+            totalCountInfo.text(`Mostrando ${clientesList.length} de ${pagination.total} clientes`);
+            renderPagination(pagination);
+        } else {
+            totalCountInfo.text(`${clientesList.length} clientes`);
+            paginationContainer.empty();
+        }
     });
+}
+
+function renderPagination(pagination) {
+    const container = $('#paginationContainer');
+    
+    if (!pagination || pagination.pages <= 1) {
+        container.empty();
+        return;
+    }
+    
+    let html = '<ul class="pagination justify-content-center">';
+    
+    // Botón anterior
+    if (pagination.has_prev) {
+        html += `<li class="page-item">
+                    <a class="page-link" href="#" onclick="cargarClientes(${pagination.page - 1}, '${currentSearch}'); return false;">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                 </li>`;
+    } else {
+        html += `<li class="page-item disabled">
+                    <span class="page-link">
+                        <i class="fas fa-chevron-left"></i>
+                    </span>
+                 </li>`;
+    }
+    
+    // Páginas
+    for (let i = 1; i <= pagination.pages; i++) {
+        if (i === pagination.page) {
+            html += `<li class="page-item active">
+                        <span class="page-link">${i}</span>
+                     </li>`;
+        } else {
+            html += `<li class="page-item">
+                        <a class="page-link" href="#" onclick="cargarClientes(${i}, '${currentSearch}'); return false;">${i}</a>
+                     </li>`;
+        }
+    }
+    
+    // Botón siguiente
+    if (pagination.has_next) {
+        html += `<li class="page-item">
+                    <a class="page-link" href="#" onclick="cargarClientes(${pagination.page + 1}, '${currentSearch}'); return false;">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                 </li>`;
+    } else {
+        html += `<li class="page-item disabled">
+                    <span class="page-link">
+                        <i class="fas fa-chevron-right"></i>
+                    </span>
+                 </li>`;
+    }
+    
+    html += '</ul>';
+    container.html(html);
+}
+
+function handleSearch(event) {
+    // Limpiar timeout anterior
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+    }
+    
+    // Esperar 500ms después de que el usuario deje de escribir
+    searchTimeout = setTimeout(() => {
+        const searchTerm = $('#searchInput').val().trim();
+        cargarClientes(1, searchTerm);
+    }, 500);
 }
 
 function abrirModalNuevo() {
@@ -284,7 +397,13 @@ function guardarCliente(e) {
             let msg = 'Error al guardar';
             try {
                 const json = JSON.parse(xhr.responseText);
-                msg = json.message || json.error || xhr.responseText;
+                
+                // Manejar específicamente el error de documento duplicado
+                if (xhr.status === 409 && json.error === 'duplicate_document') {
+                    msg = 'Ya existe un cliente con este documento. Por favor, verifique los datos.';
+                } else {
+                    msg = json.message || json.error || xhr.responseText;
+                }
             } catch (e) {
                 msg = xhr.responseText || msg;
             }

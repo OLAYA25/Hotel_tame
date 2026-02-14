@@ -61,6 +61,98 @@ class PedidoProducto {
         return $stmt;
     }
 
+    // Obtener pedidos con paginación y filtros
+    public function getAllWithPagination($limit = 10, $offset = 0, $estado = '', $fecha = '', $busqueda = '') {
+        $query = "SELECT p.*, h.numero as habitacion_numero, 
+                         CONCAT(c.nombre, ' ', c.apellido) as cliente_nombre,
+                         CONCAT(u.nombre, ' ', u.apellido) as usuario_nombre
+                  FROM " . $this->table_name . " p
+                  LEFT JOIN habitaciones h ON p.habitacion_id = h.id
+                  LEFT JOIN clientes c ON p.cliente_id = c.id
+                  LEFT JOIN usuarios u ON p.usuario_id = u.id
+                  WHERE p.deleted_at IS NULL";
+        
+        $params = array();
+        
+        // Agregar filtros
+        if (!empty($estado)) {
+            $query .= " AND p.estado = ?";
+            $params[] = $estado;
+        }
+        
+        if (!empty($fecha)) {
+            $query .= " AND DATE(p.fecha_pedido) = ?";
+            $params[] = $fecha;
+        }
+        
+        if (!empty($busqueda)) {
+            $query .= " AND (h.numero LIKE ? OR CONCAT(c.nombre, ' ', c.apellido) LIKE ? OR c.nombre LIKE ? OR c.apellido LIKE ?)";
+            $searchParam = "%{$busqueda}%";
+            $params[] = $searchParam;
+            $params[] = $searchParam;
+            $params[] = $searchParam;
+            $params[] = $searchParam;
+        }
+        
+        $query .= " ORDER BY p.fecha_pedido DESC 
+                   LIMIT ? OFFSET ?";
+        
+        $params[] = $limit;
+        $params[] = $offset;
+        
+        $stmt = $this->conn->prepare($query);
+        
+        // Bind parameters
+        foreach ($params as $i => $param) {
+            $stmt->bindValue($i + 1, $param);
+        }
+        
+        $stmt->execute();
+        return $stmt;
+    }
+
+    // Obtener conteo total para paginación
+    public function getTotalCount($estado = '', $fecha = '', $busqueda = '') {
+        $query = "SELECT COUNT(*) as total 
+                  FROM " . $this->table_name . " p
+                  LEFT JOIN habitaciones h ON p.habitacion_id = h.id
+                  LEFT JOIN clientes c ON p.cliente_id = c.id
+                  LEFT JOIN usuarios u ON p.usuario_id = u.id
+                  WHERE p.deleted_at IS NULL";
+        
+        $params = array();
+        
+        // Agregar filtros
+        if (!empty($estado)) {
+            $query .= " AND p.estado = ?";
+            $params[] = $estado;
+        }
+        
+        if (!empty($fecha)) {
+            $query .= " AND DATE(p.fecha_pedido) = ?";
+            $params[] = $fecha;
+        }
+        
+        if (!empty($busqueda)) {
+            $query .= " AND (h.numero LIKE ? OR CONCAT(c.nombre, ' ', c.apellido) LIKE ? OR c.nombre LIKE ? OR c.apellido LIKE ?)";
+            $searchParam = "%{$busqueda}%";
+            $params[] = $searchParam;
+            $params[] = $searchParam;
+            $params[] = $searchParam;
+            $params[] = $searchParam;
+        }
+        
+        $stmt = $this->conn->prepare($query);
+        
+        // Bind parameters
+        foreach ($params as $i => $param) {
+            $stmt->bindValue($i + 1, $param);
+        }
+        
+        $stmt->execute();
+        return $stmt;
+    }
+
     // Obtener pedido por ID
     public function getById() {
         $query = "SELECT p.*, h.numero as habitacion_numero, 
@@ -131,10 +223,10 @@ class PedidoProducto {
     }
 
     // Agregar detalle al pedido
-    public function agregarDetalle($pedido_id, $producto_id, $cantidad, $precio_unitario) {
+    public function agregarDetalle($pedido_id, $producto_id, $cantidad, $precio_unitario, $cliente_id = null) {
         $query = "INSERT INTO pedido_productos_detalles 
-                  (pedido_id, producto_id, cantidad, precio_unitario, subtotal) 
-                  VALUES (:pedido_id, :producto_id, :cantidad, :precio_unitario, :subtotal)";
+                  (pedido_id, producto_id, cliente_id, cantidad, precio_unitario, subtotal) 
+                  VALUES (:pedido_id, :producto_id, :cliente_id, :cantidad, :precio_unitario, :subtotal)";
         
         $stmt = $this->conn->prepare($query);
         
@@ -142,6 +234,7 @@ class PedidoProducto {
         
         $stmt->bindParam(":pedido_id", $pedido_id);
         $stmt->bindParam(":producto_id", $producto_id);
+        $stmt->bindParam(":cliente_id", $cliente_id);
         $stmt->bindParam(":cantidad", $cantidad);
         $stmt->bindParam(":precio_unitario", $precio_unitario);
         $stmt->bindParam(":subtotal", $subtotal);
@@ -151,15 +244,37 @@ class PedidoProducto {
 
     // Obtener detalles de un pedido
     public function getDetalles($pedido_id) {
-        $query = "SELECT d.*, p.nombre as producto_nombre, p.categoria
+        $query = "SELECT d.*, p.nombre as producto_nombre, p.categoria,
+                         c.nombre as cliente_nombre, c.apellido as cliente_apellido
                   FROM pedido_productos_detalles d
                   JOIN productos p ON d.producto_id = p.id
+                  LEFT JOIN clientes c ON d.cliente_id = c.id
                   WHERE d.pedido_id = ?
-                  ORDER BY p.nombre";
+                  ORDER BY d.created_at";
         
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(1, $pedido_id);
         $stmt->execute();
+        
+        return $stmt;
+    }
+    
+    // Obtener pedidos por reserva_id (buscando por habitacion_id)
+    public function getByReservaId($habitacion_id) {
+        $query = "SELECT pp.*, h.numero as habitacion_numero, 
+                         c.nombre as cliente_nombre, c.apellido as cliente_apellido,
+                         u.nombre as usuario_nombre
+                  FROM pedidos_productos pp
+                  LEFT JOIN habitaciones h ON pp.habitacion_id = h.id
+                  LEFT JOIN clientes c ON pp.cliente_id = c.id
+                  LEFT JOIN usuarios u ON pp.usuario_id = u.id
+                  WHERE pp.habitacion_id = ?
+                  ORDER BY pp.fecha_pedido DESC";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(1, $habitacion_id);
+        $stmt->execute();
+        
         return $stmt;
     }
 }

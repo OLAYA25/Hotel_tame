@@ -51,12 +51,33 @@ switch($method) {
             }
         } else {
             try {
-                $stmt = $cliente->getAll();
+                // Parámetros de paginación
+                $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+                $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 12; // 12 clientes por página (3 filas de 4 columnas)
+                $offset = ($page - 1) * $limit;
+                
+                // Parámetros de búsqueda
+                $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+                
+                $stmt = $cliente->getAllWithPagination($limit, $offset, $search);
                 $num = $stmt->rowCount();
+                
+                // Obtener total para paginación
+                $total_stmt = $cliente->getTotalCount($search);
+                $total_row = $total_stmt->fetch();
+                $total = $total_row['total'];
                 
                 if($num > 0) {
                     $clientes_arr = array();
                     $clientes_arr["records"] = array();
+                    $clientes_arr["pagination"] = array(
+                        "page" => $page,
+                        "limit" => $limit,
+                        "total" => (int)$total,
+                        "pages" => ceil($total / $limit),
+                        "has_next" => ($page * $limit) < $total,
+                        "has_prev" => $page > 1
+                    );
                     
                     while ($row = $stmt->fetch()) {
                         $cliente_item = array(
@@ -82,7 +103,17 @@ switch($method) {
                     echo json_encode($clientes_arr);
                 } else {
                     http_response_code(200);
-                    echo json_encode(array("records" => array()));
+                    echo json_encode(array(
+                        "records" => array(),
+                        "pagination" => array(
+                            "page" => $page,
+                            "limit" => $limit,
+                            "total" => 0,
+                            "pages" => 0,
+                            "has_next" => false,
+                            "has_prev" => false
+                        )
+                    ));
                 }
             } catch (Exception $e) {
                 http_response_code(500);

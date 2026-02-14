@@ -100,7 +100,12 @@ switch($method) {
                 echo json_encode(array("records" => array()));
             }
         } else {
-            $stmt = $reserva->getAll();
+            // Manejar filtros
+            $estado = isset($_GET['estado']) ? $_GET['estado'] : null;
+            $habitacion_id = isset($_GET['habitacion_id']) ? $_GET['habitacion_id'] : null;
+            $limit = isset($_GET['limit']) ? intval($_GET['limit']) : null;
+            
+            $stmt = $reserva->getAll(null, null, $estado, null, $habitacion_id, $limit);
             $num = $stmt->rowCount();
             
             if($num > 0) {
@@ -125,6 +130,7 @@ switch($method) {
                         "noches" => $row['noches'],
                         "num_huespedes" => $row['num_huespedes'],
                         "numero_huespedes" => $row['num_huespedes'],
+                        "observaciones" => $row['notas'], // Mapear notas a observaciones
                         "created_at" => $row['created_at']
                     );
                     array_push($reservas_arr["records"], $reserva_item);
@@ -217,24 +223,33 @@ switch($method) {
                                 }
                             } else {
                                 // La tabla no existe, guardar acompañantes como JSON en observaciones
+                                // pero solo si hay acompañantes y no hay JSON ya existente
                                 error_log("Tabla acompanantes no existe, guardando como JSON en observaciones");
                                 
                                 $observaciones = $data->observaciones ?? '';
-                                // eliminar bloque previo ACOMPANANTES si existe
-                                $observaciones = preg_replace("/\\n\\n?ACOMPANANTES:\\n[\\s\\S]*$/", "", $observaciones);
-                                $observaciones = trim($observaciones);
+                                $tiene_json_acompanantes = strpos($observaciones, 'ACOMPANANTES:') !== false;
                                 
-                                // Solo guardar si hay acompañantes
-                                if (!empty($data->acompanantes) && count($data->acompanantes) > 0) {
+                                // Solo guardar si hay acompañantes y no hay JSON ya existente
+                                if (!empty($data->acompanantes) && count($data->acompanantes) > 0 && !$tiene_json_acompanantes) {
+                                    // eliminar bloque previo ACOMPANANTES si existe (por si acaso)
+                                    $observaciones = preg_replace("/\\n\\n?ACOMPANANTES:\\n[\\s\\S]*$/", "", $observaciones);
+                                    $observaciones = trim($observaciones);
+                                    
                                     $acompanantes_json = json_encode($data->acompanantes);
                                     if (!empty($observaciones)) {
                                         $observaciones .= "\n\n";
                                     }
                                     $observaciones .= "ACOMPANANTES:\n" . $acompanantes_json;
+                                    
+                                    $update_stmt = $db->prepare("UPDATE reservas SET notas = ? WHERE id = ?");
+                                    $update_stmt->execute([$observaciones, $reserva_id]);
+                                    
+                                    error_log("Acompañantes guardados en observaciones de reserva $reserva_id");
+                                } elseif ($tiene_json_acompanantes) {
+                                    error_log("Ya existe JSON de acompañantes en observaciones, no se duplica");
+                                } else {
+                                    error_log("No hay acompañantes para guardar en observaciones");
                                 }
-                                
-                                $update_stmt = $db->prepare("UPDATE reservas SET notas = ? WHERE id = ?");
-                                $update_stmt->execute([$observaciones, $reserva_id]);
                             }
                         } catch (Exception $e) {
                             error_log("Error al procesar acompañantes: " . $e->getMessage());
@@ -378,23 +393,53 @@ switch($method) {
                                     }
                                 }
                             } else {
-                                // fallback: guardar JSON en observaciones
-                                $observaciones = $data->observaciones ?? '';
-                                // eliminar bloque previo ACOMPANANTES si existe
-                                $observaciones = preg_replace("/\\n\\n?ACOMPANANTES:\\n[\\s\\S]*$/", "", $observaciones);
-                                $observaciones = trim($observaciones);
+                                // fallback: guardar JSON en observaciones pero solo si hay acompañantes
+                                error_log("Tabla acompanantes no existe, guardando acompañantes en observaciones (PUT)");
                                 
-                                // Solo guardar si hay acompañantes
+                                $observaciones = $data->observaciones ?? '';
+                                $tiene_json_acompanantes = strpos($observaciones, 'ACOMPANANTES:') !== false;
+                                
+                                // Solo guardar si hay acompañantes y los datos han cambiado
                                 if (!empty($data->acompanantes) && count($data->acompanantes) > 0) {
-                                    $acompanantes_json = json_encode($data->acompanantes);
-                                    if (!empty($observaciones)) {
-                                        $observaciones .= "\n\n";
+                                    // Obtener JSON actual si existe
+                                    $json_actual = '';
+                                    if ($tiene_json_acompanantes) {
+                                        preg_match("/ACOMPANANTES:\s*(\[.*?\])/s", $observaciones, $matches);
+                                        $json_actual = $matches[1] ?? '';
                                     }
-                                    $observaciones .= "ACOMPANANTES:\n" . $acompanantes_json;
-                                }
+                                    
+                                    $json_nuevo = json_encode($data->acompanantes);
+                                    
+                                    // Solo actualizar si el JSON ha cambiado
+                                    if ($json_actual !== $json_nuevo) {
+                                        // eliminar bloque previo ACOMPANANTES si existe
+                                        $observaciones = preg_replace("/\\n\\n?ACOMPANANTES:\\n[\\s\\S]*$/", "", $observaciones);
+                                        $observaciones = trim($observaciones);
+                                        
+                                        if (!empty($observaciones)) {
+                                            $observaciones .= "\n\n";
+                                        }
+                                        $observaciones .= "ACOMPANANTES:\n" . $json_nuevo;
 
-                                $update_stmt = $db->prepare("UPDATE reservas SET notas = ? WHERE id = ?");
-                                $update_stmt->execute([$observaciones, $reserva->id]);
+                                        $update_stmt = $db->prepare("UPDATE reservas SET notas = ? WHERE id = ?");
+                                        $update_stmt->execute([$observaciones, $reserva->id]);
+                                        
+                                        error_log("Acompañantes actualizados en observaciones de reserva $reserva->id (cambios detectados)");
+                                    } else {
+                                        error_log("Acompañantes sin cambios, no se actualiza observaciones de reserva $reserva->id");
+                                    }
+                                } else {
+                                    // Si no hay acompañantes, limpiar JSON existente
+                                    if ($tiene_json_acompanantes) {
+                                        $observaciones = preg_replace("/\\n\\n?ACOMPANANTES:\\n[\\s\\S]*$/", "", $observaciones);
+                                        $observaciones = trim($observaciones);
+                                        
+                                        $update_stmt = $db->prepare("UPDATE reservas SET notas = ? WHERE id = ?");
+                                        $update_stmt->execute([$observaciones, $reserva->id]);
+                                        
+                                        error_log("JSON de acompañantes eliminado de observaciones de reserva $reserva->id");
+                                    }
+                                }
                             }
                         } catch (Exception $e) {
                             error_log("Error al procesar acompañantes en PUT: " . $e->getMessage());

@@ -137,9 +137,10 @@ include 'includes/sidebar.php';
                                     <th>Habitación</th>
                                     <th>Tipo</th>
                                     <th>Cliente</th>
-                                    <th>Check-in</th>
-                                    <th>Check-out</th>
+                                    <th>Entrada</th>
+                                    <th>Salida</th>
                                     <th>Estado</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="habitacionesOcupadasList">
@@ -218,27 +219,39 @@ include 'includes/sidebar.php';
                     <hr>
                     
                     <!-- Sección de Acompañantes -->
-                    <!-- <div class="mb-3">
+                    <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="mb-0">Acompañantes de la Reserva</h6>
+                            <h6 class="mb-0">
+                                <i class="fas fa-users me-2"></i>Acompañantes de la Reserva
+                                <span class="badge bg-secondary ms-2" id="contadorAcompanantes">0</span>
+                            </h6>
                             <div class="btn-group">
                                 <button type="button" class="btn btn-sm btn-outline-primary" onclick="agregarAcompananteReserva()">
                                     <i class="fas fa-plus me-1"></i>Agregar Acompañante
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-info" onclick="cargarAcompanantesPendientes()">
-                                    <i class="fas fa-download me-1"></i>Cargar del Cliente
+                                <button type="button" class="btn btn-sm btn-outline-info" onclick="abrirModalBusquedaPersonas()">
+                                    <i class="fas fa-search me-1"></i>Buscar Persona
                                 </button>
                             </div>
                         </div>
-                        <div id="acompanantesReservaContainer" class="border rounded p-3 bg-light">
+                        
+                        <!-- Información de capacidad -->
+                        <div class="alert alert-info py-2 mb-3" id="capacidadAlert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <span id="textoCapacidad">Seleccione una habitación para ver la capacidad</span>
+                        </div>
+                        
+                        <!-- Lista de acompañantes -->
+                        <div id="acompanantesReservaContainer" class="border rounded p-3 bg-light" style="max-height: 300px; overflow-y: auto;">
                             <p class="text-muted mb-0 text-center">No hay acompañantes registrados</p>
                         </div>
+                        
                         <div class="small text-muted mt-2">
-                            <i class="fas fa-info-circle"></i> 
-                            Los acompañantes adicionales al cliente principal se sumarán al total de huéspedes.
+                            <i class="fas fa-lightbulb"></i> 
+                            Los acompañantes son personas registradas como clientes. Puede buscar personas existentes o crear nuevas.
                             La capacidad máxima de la habitación no debe ser excedida.
                         </div>
-                    </div> -->
+                    </div>
 
                     <div class="mb-3">
                         <label class="form-label">Estado *</label>
@@ -269,6 +282,35 @@ include 'includes/sidebar.php';
                     <button type="submit" class="btn btn-primary">Guardar</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Historial de Pedidos -->
+<div class="modal fade" id="modalHistorialPedidos" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-shopping-cart me-2"></i>
+                    Historial de Pedidos
+                    <small class="text-muted ms-2" id="infoReserva"></small>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="historialPedidosContent">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-2">Cargando historial de pedidos...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
         </div>
     </div>
 </div>
@@ -392,6 +434,59 @@ include 'includes/sidebar.php';
     </div>
 </div>
 
+<!-- Modal Búsqueda de Personas -->
+<div class="modal fade" id="modalBusquedaPersonas" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-search me-2"></i>
+                    Buscar Persona para Acompañante
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Buscar Persona para Acompañante</label>
+                    <select class="form-control" id="busquedaPersonaSelect" style="width: 100%;">
+                        <option value="">Buscar por nombre, apellido o documento...</option>
+                    </select>
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Comience a escribir para buscar personas existentes en el sistema
+                    </small>
+                </div>
+                
+                <div id="infoPersonaSeleccionada" class="mt-3" style="display: none;">
+                    <div class="alert alert-info">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong id="nombrePersonaSeleccionada"></strong>
+                                <div class="small text-muted" id="detallesPersonaSeleccionada"></div>
+                            </div>
+                            <button type="button" class="btn btn-success btn-sm" onclick="confirmarPersonaSeleccionada()">
+                                <i class="fas fa-plus me-1"></i>Agregar como Acompañante
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="text-center">
+                    <button type="button" class="btn btn-outline-primary" onclick="crearNuevaPersonaAcompanante()">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Crear Nueva Persona
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 let habitaciones = [];
 let reservas = [];
@@ -405,6 +500,12 @@ let totalPaginas = 0;
 // Variables de filtros
 let todasLasReservas = [];
 let reservasFiltradas = [];
+
+// Variables para acompañantes
+let acompanantesTemporales = [];
+let capacidadMaximaHabitacion = 0;
+let habitacionSeleccionada = null;
+let modoAcompanante = false; // Para saber si el modal cliente se usa para acompañante
 
 function verificarActualizacionesAutomaticas() {
     // Refrescar la página
@@ -701,7 +802,7 @@ function cargarHabitacionesOcupadas() {
         });
         
         if (reservasActivas.length === 0) {
-            tbody.append('<tr><td colspan="6" class="text-center text-muted">No hay habitaciones ocupadas actualmente</td></tr>');
+            tbody.append('<tr><td colspan="7" class="text-center text-muted">No hay habitaciones ocupadas actualmente</td></tr>');
             return;
         }
         
@@ -718,6 +819,11 @@ function cargarHabitacionesOcupadas() {
                     <td>${fechaEntrada}</td>
                     <td>${fechaSalida}</td>
                     <td><span class="badge bg-${estadoBadge}">${reserva.estado}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="verHistorialPedidos(${reserva.habitacion_id}, '${reserva.habitacion_numero}', '${reserva.cliente_nombre} ${reserva.cliente_apellido || ''}')" title="Ver historial de pedidos">
+                            <i class="fas fa-shopping-cart"></i>
+                        </button>
+                    </td>
                 </tr>
             `);
         });
@@ -916,6 +1022,70 @@ function cargarHabitaciones() {
     });
 }
 
+function actualizarCapacidadMaxima() {
+    const habitacionId = $('#habitacion_id').val();
+    
+    if (!habitacionId) {
+        capacidadMaximaHabitacion = 0;
+        habitacionSeleccionada = null;
+        actualizarCapacidadInfo();
+        $('#capacidadInfo').hide();
+        $('#capacidadWarning').hide();
+        return;
+    }
+    
+    const habitacion = habitaciones.find(h => h.id == habitacionId);
+    
+    // Fallback: también permitir leer capacidad desde el option seleccionado
+    const capFromHab = habitacion?.capacidad ?? habitacion?.capacidad_maxima ?? habitacion?.max_huespedes ?? null;
+    const capFromOption = $('#habitacion_id option:selected').data('capacidad');
+    const capacidad = parseInt(capFromHab ?? capFromOption);
+
+    if (!isNaN(capacidad) && capacidad > 0) {
+        // Actualizar variables globales
+        capacidadMaximaHabitacion = capacidad;
+        habitacionSeleccionada = habitacion;
+        
+        // Actualizar UI de capacidad
+        $('#capacidadMaxima').text(capacidad);
+        $('#capacidadInfo').show();
+        
+        // Actualizar el máximo del campo de huéspedes
+        $('#numero_huespedes').attr('max', capacidad);
+        
+        // Validar si los acompañantes actuales exceden la capacidad
+        if (acompanantesTemporales.length > capacidad - 1) {
+            showNotification('La cantidad de acompañantes excede la capacidad máxima de la habitación', 'warning');
+            // Remover acompañantes excedentes
+            const maxPermitidos = capacidad - 1;
+            if (maxPermitidos >= 0) {
+                acompanantesTemporales = acompanantesTemporales.slice(0, maxPermitidos);
+                actualizarListaAcompanantes();
+            }
+        }
+        
+        // Validar si el valor actual excede la capacidad
+        const valorActual = parseInt($('#numero_huespedes').val());
+        
+        // Solo ajustar si el valor actual es mayor a la capacidad
+        if (!isNaN(valorActual) && valorActual > 0 && valorActual > capacidad) {
+            $('#numero_huespedes').val(capacidad);
+            $('#capacidadWarning').show();
+        } else {
+            $('#capacidadWarning').hide();
+        }
+        
+        // Actualizar información de acompañantes
+        actualizarCapacidadInfo();
+    } else {
+        capacidadMaximaHabitacion = 0;
+        habitacionSeleccionada = null;
+        $('#capacidadInfo').hide();
+        $('#capacidadWarning').hide();
+        actualizarCapacidadInfo();
+    }
+}
+
 // Rellena el select de habitaciones con la lista ya filtrada por el backend
 function populateHabitacionesSelect(habitacionesList) {
     console.log('=== INICIALIZANDO SELECT2 HABITACIÓN ===');
@@ -1094,45 +1264,6 @@ function calcularPrecio() {
     }
 }
 
-function actualizarCapacidadMaxima() {
-    const habitacionId = $('#habitacion_id').val();
-    
-    if (habitacionId) {
-        const habitacion = habitaciones.find(h => h.id == habitacionId);
-        
-        // Fallback: también permitir leer capacidad desde el option seleccionado
-        const capFromHab = habitacion?.capacidad ?? habitacion?.capacidad_maxima ?? habitacion?.max_huespedes ?? null;
-        const capFromOption = $('#habitacion_id option:selected').data('capacidad');
-        const capacidad = parseInt(capFromHab ?? capFromOption);
-
-        if (!isNaN(capacidad) && capacidad > 0) {
-            $('#capacidadMaxima').text(capacidad);
-            $('#capacidadInfo').show();
-            
-            // Actualizar el máximo del campo de huéspedes
-            $('#numero_huespedes').attr('max', capacidad);
-            
-            // Validar si el valor actual excede la capacidad
-            const valorActual = parseInt($('#numero_huespedes').val());
-            
-            // Solo ajustar si el valor actual es mayor a la capacidad
-            // No modificar si ya tiene un valor válido (como 3)
-            if (!isNaN(valorActual) && valorActual > 0 && valorActual > capacidad) {
-                $('#numero_huespedes').val(capacidad);
-                $('#capacidadWarning').show();
-            } else {
-                $('#capacidadWarning').hide();
-            }
-        } else {
-            $('#capacidadInfo').hide();
-            $('#capacidadWarning').hide();
-        }
-    } else {
-        $('#capacidadInfo').hide();
-        $('#capacidadWarning').hide();
-    }
-}
-
 function validarCapacidad() {
     const habitacionId = $('#habitacion_id').val();
     const numeroHuespedes = parseInt($('#numero_huespedes').val());
@@ -1171,8 +1302,10 @@ function abrirModalNuevo() {
     $('#modalTitle').text('Nueva Reserva');
     $('#formReserva')[0].reset();
     $('#reserva_id').val('');
-    // Resetear acompañantes del formulario
-    resetAcompanantesReservaForm();
+    
+    // Limpiar acompañantes temporales
+    limpiarAcompanantesTemporales();
+    
     const today = new Date().toISOString().split('T')[0];
     $('#fecha_entrada').val(today); // Establecer fecha actual por defecto
     $('#fecha_entrada').attr('min', today);
@@ -1184,10 +1317,6 @@ function abrirModalNuevo() {
     // Limpiar información de capacidad
     $('#capacidadInfo').hide();
     $('#capacidadWarning').hide();
-    // Limpiar acompañantes del formulario
-    if (typeof resetAcompanantesReservaForm === 'function') {
-        resetAcompanantesReservaForm();
-    }
     
     // Destruir Select2 existente antes de inicializar
     try {
@@ -1220,7 +1349,20 @@ function editarReserva(id) {
         $('#precio_total').val(reserva.total ?? reserva.precio_total ?? 0);
         $('#estado').val(reserva.estado);
         $('#metodo_pago').val(reserva.metodo_pago ?? 'efectivo');
-        $('#observaciones').val(reserva.observaciones);
+        // Separar observaciones del usuario del JSON de acompañantes
+        let observacionesUsuario = reserva.observaciones || '';
+        if (observacionesUsuario) {
+            // Separar el JSON de acompañantes del resto de observaciones
+            const acompanantesMatch = observacionesUsuario.match(/(.*?)(ACOMPANANTES:\s*\[.*?\])/s);
+            if (acompanantesMatch) {
+                // Mantener solo las observaciones de usuario (sin JSON)
+                observacionesUsuario = acompanantesMatch[1].trim();
+            } else {
+                // Si no hay JSON, limpiar cualquier residuo
+                observacionesUsuario = observacionesUsuario.replace(/ACOMPANANTES:\s*\[.*?\]/gs, '').trim();
+            }
+        }
+        $('#observaciones').val(observacionesUsuario);
         
         // Guardar el valor correcto para establecerlo después de que todo cargue
         const valorHuespedesCorrecto = reserva.numero_huespedes ?? reserva.num_huespedes ?? 1;
@@ -1249,12 +1391,10 @@ function editarReserva(id) {
                 actualizarCapacidadMaxima();
             }, 100);
             
-            // Reset y cargar acompañantes reales (cuando el modal ya esté visible)
-            if (typeof resetAcompanantesReservaForm === 'function') {
-                setTimeout(() => {
-                    resetAcompanantesReservaForm(reserva.id);
-                }, 500);
-            }
+            // Cargar acompañantes existentes de la reserva
+            setTimeout(() => {
+                cargarAcompanantesReserva(reserva.id);
+            }, 500);
         }).fail(function(xhr, status, error) {
             console.error('Error cargando habitaciones:', xhr.responseText);
             showNotification('Error al cargar habitaciones disponibles', 'error');
@@ -1444,6 +1584,20 @@ function guardarReserva(e) {
     // Obtener acompañantes del formulario
     const acompanantes = obtenerAcompanantesReserva();
 
+    // Preservar JSON de acompañantes existente en las observaciones
+    let observacionesLimpias = $('#observaciones').val() || '';
+    if (observacionesLimpias) {
+        // Separar el JSON de acompañantes del resto de observaciones
+        const acompanantesMatch = observacionesLimpias.match(/(.*?)(ACOMPANANTES:\s*\[.*?\])/s);
+        if (acompanantesMatch) {
+            // Mantener solo las observaciones de usuario (sin JSON)
+            observacionesLimpias = acompanantesMatch[1].trim();
+        } else {
+            // Si no hay JSON, limpiar cualquier residuo
+            observacionesLimpias = observacionesLimpias.replace(/ACOMPANANTES:\s*\[.*?\]/gs, '').trim();
+        }
+    }
+
     const data = {
         cliente_id: clienteId,
         habitacion_id: habitacionId,
@@ -1453,7 +1607,7 @@ function guardarReserva(e) {
         total: total,
         estado: $('#estado').val() || 'pendiente',
         metodo_pago: $('#metodo_pago').val() || 'efectivo',
-        observaciones: $('#observaciones').val(),
+        observaciones: observacionesLimpias,
         noches: noches,
         acompanantes: acompanantes // Agregar acompañantes al envío
     };
@@ -1521,12 +1675,26 @@ function eliminarReserva(id) {
 
 // Funciones para el modal de cliente
 function abrirModalCliente() {
-    $('#modalCliente').modal('show');
+    // Restablecer modo acompañante
+    modoAcompanante = false;
+    $('#modalTitle').text('Nuevo Cliente');
     $('#formCliente')[0].reset();
+    $('#cliente_form_id').val('');
+    
+    // Restaurar texto del botón
+    $('button[form="formCliente"]').html('Guardar Cliente');
+    
+    $('#modalCliente').modal('show');
 }
 
 function guardarCliente(e) {
     e.preventDefault();
+    
+    // Verificar si estamos en modo acompañante
+    if (modoAcompanante) {
+        guardarComoAcompanante();
+        return;
+    }
     
     // Obtener acompañantes del formulario
     const acompanantes = obtenerAcompanantes();
@@ -1567,6 +1735,75 @@ function guardarCliente(e) {
         },
         error: function(xhr) {
             showNotification(xhr.responseJSON?.message || 'Error al crear cliente', 'error');
+        }
+    });
+}
+
+function guardarComoAcompanante() {
+    // Validar capacidad antes de agregar
+    const totalActual = 1 + acompanantesTemporales.length;
+    if (totalActual >= capacidadMaximaHabitacion) {
+        showNotification('Ha alcanzado la capacidad máxima de la habitación', 'warning');
+        return;
+    }
+    
+    // Crear cliente usando el endpoint funcional
+    const data = {
+        nombre: $('#nombre').val(),
+        apellido: $('#apellido').val(),
+        documento: $('#numero_documento').val(), // clientes_final usa 'documento'
+        email: $('#email').val(),
+        telefono: $('#telefono').val(),
+        direccion: $('#direccion').val() || '',
+        ciudad: $('#ciudad').val() || '',
+        pais: $('#pais').val() || ''
+    };
+    
+    $.ajax({
+        url: 'api/endpoints/clientes_final.php',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function(response) {
+            // Agregar como acompañante
+            const acompanante = {
+                index: Date.now(),
+                persona_id: response.id,
+                nombre: data.nombre,
+                apellido: data.apellido,
+                tipo_documento: $('#tipo_documento').val(), // Valor del formulario
+                numero_documento: data.documento, // Usar el documento que se guardó
+                fecha_nacimiento: $('#fecha_nacimiento').val(),
+                parentesco: '',
+                email: data.email,
+                telefono: data.telefono,
+                es_menor: calcularEdad($('#fecha_nacimiento').val()) < 18
+            };
+            
+            acompanantesTemporales.push(acompanante);
+            
+            // Actualizar interfaz
+            actualizarListaAcompanantes();
+            actualizarCapacidadInfo();
+            
+            // Restablecer modo y cerrar modal
+            modoAcompanante = false;
+            $('#modalCliente').modal('hide');
+            
+            // Restaurar texto del botón
+            $('button[form="formCliente"]').html('<i class="fas fa-save me-2"></i>Guardar Cliente');
+            
+            showNotification('Acompañante creado y agregado correctamente', 'success');
+        },
+        error: function(xhr) {
+            console.error('Error creando acompañante:', xhr.responseText);
+            const response = JSON.parse(xhr.responseText);
+            
+            if (xhr.status === 409 && response.error === 'duplicate_document') {
+                showNotification('Ya existe una persona con este documento. Busca la persona existente en lugar de crear una nueva.', 'warning');
+            } else {
+                showNotification('Error al crear acompañante: ' + (response.message || 'Error desconocido'), 'error');
+            }
         }
     });
 }
@@ -2100,6 +2337,677 @@ function limpiarFiltros() {
     paginaActual = 1;
     cargarReservas();
 }
+
+// =============================================
+// FUNCIONES PARA GESTIÓN DE ACOMPAÑANTES
+// =============================================
+
+function agregarAcompananteReserva() {
+    // Validar que haya una habitación seleccionada
+    if (!habitacionSeleccionada) {
+        showNotification('Seleccione primero una habitación', 'warning');
+        return;
+    }
+    
+    // Validar capacidad disponible
+    const totalActual = 1 + acompanantesTemporales.length; // 1 = cliente principal
+    if (totalActual >= capacidadMaximaHabitacion) {
+        showNotification('Ha alcanzado la capacidad máxima de la habitación', 'warning');
+        return;
+    }
+    
+    // Abrir modal de búsqueda
+    abrirModalBusquedaPersonas();
+}
+
+function abrirModalBusquedaPersonas() {
+    // Limpiar selección anterior
+    $('#busquedaPersonaSelect').val('').trigger('change');
+    $('#infoPersonaSeleccionada').hide();
+    $('#modalBusquedaPersonas').modal('show');
+    
+    // Cargar personas e inicializar Select2
+    cargarPersonasParaSelect2();
+}
+
+function cargarPersonasParaSelect2() {
+    const select = $('#busquedaPersonaSelect');
+    
+    if (select.length === 0) {
+        console.error('No se encontró el elemento #busquedaPersonaSelect');
+        return;
+    }
+    
+    // Cargar personas desde el endpoint de clientes (que es el que funciona)
+    $.get('api/endpoints/clientes_final.php', function(data) {
+        console.log('Personas recibidas:', data);
+        
+        select.empty().append('<option value="">Buscar por nombre, apellido o documento...</option>');
+        const personasList = Array.isArray(data) ? data : (data.results || data.records || []);
+        console.log('Personas procesadas:', personasList.length);
+        
+        // Guardar referencia global para usar en templates de Select2
+        window.personasDataList = personasList;
+        
+        // Agregar todas las personas al select
+        personasList.forEach(persona => {
+            const nombreCompleto = `${persona.nombre || ''} ${persona.apellido || ''}`.trim();
+            const documento = persona.documento || ''; // Clientes usa 'documento' no 'numero_documento'
+            const email = persona.email || '';
+            
+            // Crear option con atributos data para búsqueda mejorada
+            const option = $(`<option value="${persona.id}">${nombreCompleto}</option>`);
+            option.attr('data-documento', documento);
+            option.attr('data-email', email);
+            option.attr('data-nombre', persona.nombre || '');
+            option.attr('data-apellido', persona.apellido || '');
+            
+            select.append(option);
+        });
+        
+        // Destruir Select2 si ya existe
+        try {
+            if (select.data('select2')) {
+                select.select2('destroy');
+                select.removeData('select2');
+                select.removeClass('select2-hidden-accessible');
+            }
+        } catch (e) {
+            console.log('Error al destruir Select2:', e);
+        }
+        
+        // Inicializar Select2 con búsqueda mejorada (EXACTAMENTE igual que el campo de cliente)
+        try {
+            select.select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Buscar por nombre, apellido o documento...',
+                allowClear: true,
+                width: '100%',
+                dropdownParent: $('#modalBusquedaPersonas'),
+                minimumInputLength: 0, // Mostrar todos los resultados al abrir
+                language: {
+                    noResults: function() {
+                        return 'No se encontraron personas';
+                    },
+                    searching: function() {
+                        return 'Buscando...';
+                    }
+                },
+                // Matcher personalizado para búsqueda en múltiples campos (igual que clientes)
+                matcher: function(params, data) {
+                    // Si no hay término de búsqueda, mostrar todos los resultados
+                    if (!params.term || $.trim(params.term) === '') {
+                        return data;
+                    }
+                    
+                    const searchTerm = params.term.toLowerCase().trim();
+                    const text = (data.text || '').toLowerCase();
+                    
+                    // Buscar en el texto del option
+                    if (text.indexOf(searchTerm) > -1) {
+                        return data;
+                    }
+                    
+                    // Buscar en atributos data (igual que clientes)
+                    const $element = $(data.element);
+                    const documento = ($element.attr('data-documento') || '').toLowerCase();
+                    const email = ($element.attr('data-email') || '').toLowerCase();
+                    const nombre = ($element.attr('data-nombre') || '').toLowerCase();
+                    const apellido = ($element.attr('data-apellido') || '').toLowerCase();
+                    
+                    // Buscar en documento, email, nombre o apellido
+                    if (documento.indexOf(searchTerm) > -1 || 
+                        email.indexOf(searchTerm) > -1 ||
+                        nombre.indexOf(searchTerm) > -1 ||
+                        apellido.indexOf(searchTerm) > -1) {
+                        return data;
+                    }
+                    
+                    return null;
+                },
+                // Template para mostrar resultados con más información
+                templateResult: function(data) {
+                    if (!data.id) {
+                        return data.text;
+                    }
+                    
+                    const personaData = window.personasDataList?.find(p => p.id == data.id);
+                    if (personaData) {
+                        const nombreCompleto = `${personaData.nombre || ''} ${personaData.apellido || ''}`.trim();
+                        const documento = personaData.documento || '';
+                        const email = personaData.email || '';
+                        
+                        return $(`
+                            <div class="cliente-option p-2">
+                                <div class="fw-bold text-primary">${nombreCompleto}</div>
+                                ${documento ? `<div class="text-muted small"><i class="fas fa-id-card me-1"></i>${documento}</div>` : ''}
+                                ${email ? `<div class="text-muted small"><i class="fas fa-envelope me-1"></i>${email}</div>` : ''}
+                            </div>
+                        `);
+                    }
+                    
+                    return data.text;
+                },
+                templateSelection: function(data) {
+                    if (!data.id) {
+                        return data.text;
+                    }
+                    
+                    const personaData = window.personasDataList?.find(p => p.id == data.id);
+                    if (personaData) {
+                        const nombreCompleto = `${personaData.nombre || ''} ${personaData.apellido || ''}`.trim();
+                        return nombreCompleto;
+                    }
+                    
+                    return data.text;
+                }
+            });
+            
+            console.log('Select2 de búsqueda de personas inicializado correctamente');
+            
+            // Eventos EXACTAMENTE iguales a los del campo de cliente
+            
+            // Asegurar que el campo de búsqueda esté siempre visible y funcional
+            select.on('select2:open', function() {
+                setTimeout(() => {
+                    const searchField = $('.select2-search__field');
+                    if (searchField.length > 0) {
+                        searchField.focus();
+                        // Limpiar el campo de búsqueda para mostrar todos los resultados
+                        searchField.val('');
+                        // Disparar evento input para actualizar resultados
+                        searchField.trigger('input');
+                    }
+                }, 100);
+            });
+            
+            // Abrir automáticamente el dropdown al hacer clic en el campo
+            select.on('select2:select', function() {
+                // Cerrar después de seleccionar
+                setTimeout(() => {
+                    select.select2('close');
+                }, 100);
+            });
+            
+            // Abrir dropdown automáticamente al hacer clic en el contenedor
+            setTimeout(() => {
+                const select2Container = select.next('.select2-container');
+                if (select2Container.length > 0) {
+                    select2Container.on('click', function(e) {
+                        // Solo abrir si no está ya abierto
+                        if (!select2Container.hasClass('select2-container--open')) {
+                            select.select2('open');
+                        }
+                    });
+                }
+            }, 200);
+            
+            // Evento change para mostrar información de la persona seleccionada
+            select.on('change', function() {
+                const selectedId = $(this).val();
+                
+                if (selectedId) {
+                    const personaData = window.personasDataList?.find(p => p.id == selectedId);
+                    if (personaData) {
+                        // Agregar directamente como acompañante sin confirmación
+                        agregarPersonaComoAcompananteDirecto(personaData);
+                    } else {
+                        $('#infoPersonaSeleccionada').hide();
+                    }
+                } else {
+                    $('#infoPersonaSeleccionada').hide();
+                }
+            });
+        } catch (e) {
+            console.error('Error al inicializar Select2:', e);
+        }
+    }).fail(function(xhr) {
+        console.error('Error al cargar personas:', xhr);
+        showNotification('Error al cargar personas', 'error');
+    });
+}
+
+function agregarPersonaComoAcompananteDirecto(persona) {
+    // Validar capacidad antes de agregar
+    const totalActual = 1 + acompanantesTemporales.length;
+    if (totalActual >= capacidadMaximaHabitacion) {
+        showNotification('Ha alcanzado la capacidad máxima de la habitación', 'warning');
+        return;
+    }
+    
+    // Verificar si ya está agregado
+    const yaExiste = acompanantesTemporales.find(a => a.persona_id == persona.id);
+    if (yaExiste) {
+        showNotification('Esta persona ya está agregada como acompañante', 'warning');
+        return;
+    }
+    
+    // EVITAR QUE EL CLIENTE PRINCIPAL SE AGREGUE COMO ACOMPAÑANTE
+    const clientePrincipalId = $('#cliente_id').val();
+    if (persona.id == clientePrincipalId) {
+        showNotification('Esta persona es el cliente principal, no se puede agregar como acompañante', 'warning');
+        return;
+    }
+    
+    // Agregar a la lista
+    const acompanante = {
+        index: Date.now(),
+        persona_id: persona.id,
+        nombre: persona.nombre,
+        apellido: persona.apellido,
+        tipo_documento: 'CC', // Valor por defecto ya que clientes no tiene tipo_documento
+        numero_documento: persona.documento, // Clientes usa 'documento'
+        fecha_nacimiento: null, // Clientes no tiene fecha_nacimiento
+        parentesco: '',
+        email: persona.email,
+        telefono: persona.telefono || '',
+        es_menor: false // Por defecto ya que no podemos calcular edad
+    };
+    
+    acompanantesTemporales.push(acompanante);
+    
+    // Actualizar interfaz
+    actualizarListaAcompanantes();
+    actualizarCapacidadInfo();
+    
+    // Cerrar modal
+    $('#modalBusquedaPersonas').modal('hide');
+    
+    showNotification('Acompañante agregado correctamente', 'success');
+}
+
+function mostrarInfoPersonaSeleccionada(persona) {
+    const nombreCompleto = `${persona.nombre || ''} ${persona.apellido || ''}`.trim();
+    const documento = persona.documento || '';
+    const email = persona.email || '';
+    
+    $('#nombrePersonaSeleccionada').html(nombreCompleto);
+    $('#detallesPersonaSeleccionada').html(`
+        ${documento ? `Documento: ${documento}` : ''}
+        ${email ? `• ${email}` : ''}
+    `);
+    
+    // Guardar datos de la persona para usarlos después
+    $('#infoPersonaSeleccionada').data('persona', persona);
+    $('#infoPersonaSeleccionada').show();
+}
+
+function confirmarPersonaSeleccionada() {
+    const persona = $('#infoPersonaSeleccionada').data('persona');
+    
+    if (!persona) {
+        showNotification('Seleccione una persona primero', 'warning');
+        return;
+    }
+    
+    // Validar capacidad antes de agregar
+    const totalActual = 1 + acompanantesTemporales.length;
+    if (totalActual >= capacidadMaximaHabitacion) {
+        showNotification('Ha alcanzado la capacidad máxima de la habitación', 'warning');
+        return;
+    }
+    
+    // Verificar si ya está agregado
+    const yaExiste = acompanantesTemporales.find(a => a.persona_id == persona.id);
+    if (yaExiste) {
+        showNotification('Esta persona ya está agregada como acompañante', 'warning');
+        return;
+    }
+    
+    // EVITAR QUE EL CLIENTE PRINCIPAL SE AGREGUE COMO ACOMPAÑANTE
+    const clientePrincipalId = $('#cliente_id').val();
+    if (persona.id == clientePrincipalId) {
+        showNotification('Esta persona es el cliente principal, no se puede agregar como acompañante', 'warning');
+        return;
+    }
+    
+    // Agregar a la lista
+    const acompanante = {
+        index: Date.now(),
+        persona_id: persona.id,
+        nombre: persona.nombre,
+        apellido: persona.apellido,
+        tipo_documento: 'CC', // Valor por defecto ya que clientes no tiene tipo_documento
+        numero_documento: persona.documento, // Clientes usa 'documento'
+        fecha_nacimiento: null, // Clientes no tiene fecha_nacimiento
+        parentesco: '',
+        email: persona.email,
+        telefono: persona.telefono || '',
+        es_menor: false // Por defecto ya que no podemos calcular edad
+    };
+    
+    acompanantesTemporales.push(acompanante);
+    
+    // Actualizar interfaz
+    actualizarListaAcompanantes();
+    actualizarCapacidadInfo();
+    
+    // Cerrar modal
+    $('#modalBusquedaPersonas').modal('hide');
+    
+    showNotification('Acompañante agregado correctamente', 'success');
+}
+
+function crearNuevaPersonaAcompanante() {
+    // Cerrar modal de búsqueda
+    $('#modalBusquedaPersonas').modal('hide');
+    
+    // Abrir modal de cliente en modo acompañante
+    modoAcompanante = true;
+    $('#modalTitle').text('Nuevo Acompañante');
+    $('#formCliente')[0].reset();
+    $('#cliente_form_id').val('');
+    
+    // Cambiar texto del botón de guardar
+    $('button[form="formCliente"]').html('<i class="fas fa-plus me-2"></i>Agregar como Acompañante');
+    
+    // Abrir modal de cliente
+    $('#modalCliente').modal('show');
+}
+
+function actualizarListaAcompanantes() {
+    const container = $('#acompanantesReservaContainer');
+    const contador = $('#contadorAcompanantes');
+    
+    contador.text(acompanantesTemporales.length);
+    
+    if (acompanantesTemporales.length === 0) {
+        container.html('<p class="text-muted mb-0 text-center">No hay acompañantes registrados</p>');
+        return;
+    }
+    
+    let html = '';
+    acompanantesTemporales.forEach((acompanante, index) => {
+        const edad = acompanante.fecha_nacimiento ? calcularEdad(acompanante.fecha_nacimiento) : 'N/A';
+        const menorBadge = acompanante.es_menor ? '<span class="badge bg-warning ms-1">Menor</span>' : '';
+        
+        html += `
+            <div class="d-flex justify-content-between align-items-center p-2 border-bottom acompanante-item">
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center">
+                        <strong>${acompanante.nombre} ${acompanante.apellido}</strong>
+                        ${menorBadge}
+                    </div>
+                    <small class="text-muted d-block">
+                        ${acompanante.tipo_documento}: ${acompanante.numero_documento}
+                        ${acompanante.parentesco ? `• ${acompanante.parentesco}` : ''}
+                        ${edad !== 'N/A' ? `• ${edad} años` : ''}
+                    </small>
+                </div>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-danger" onclick="eliminarAcompanante(${acompanante.index})" title="Eliminar">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.html(html);
+}
+
+function eliminarAcompanante(index) {
+    if (confirm('¿Está seguro de eliminar este acompañante?')) {
+        acompanantesTemporales = acompanantesTemporales.filter(a => a.index != index);
+        actualizarListaAcompanantes();
+        actualizarCapacidadInfo();
+        showNotification('Acompañante eliminado', 'info');
+    }
+}
+
+function calcularEdad(fechaNacimiento) {
+    if (!fechaNacimiento) return 'N/A';
+    
+    const hoy = new Date();
+    const nacimiento = new Date(fechaNacimiento);
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const mes = hoy.getMonth() - nacimiento.getMonth();
+    
+    if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+        edad--;
+    }
+    
+    return edad;
+}
+
+function actualizarCapacidadInfo() {
+    const totalHuéspedes = 1 + acompanantesTemporales.length; // 1 = cliente principal
+    const disponibles = capacidadMaximaHabitacion - totalHuéspedes;
+    
+    const alert = $('#capacidadAlert');
+    const texto = $('#textoCapacidad');
+    
+    if (capacidadMaximaHabitacion === 0) {
+        texto.text('Seleccione una habitación para ver la capacidad');
+        alert.removeClass('alert-success alert-warning alert-danger').addClass('alert-info');
+    } else if (disponibles > 0) {
+        texto.html(`Ocupación: ${totalHuéspedes}/${capacidadMaximaHabitacion} huéspedes • ${disponibles} disponible(s)`);
+        alert.removeClass('alert-info alert-warning alert-danger').addClass('alert-success');
+    } else if (disponibles === 0) {
+        texto.html(`Ocupación: ${totalHuéspedes}/${capacidadMaximaHabitacion} huéspedes • Capacidad completa`);
+        alert.removeClass('alert-info alert-success alert-danger').addClass('alert-warning');
+    } else {
+        texto.html(`Ocupación: ${totalHuéspedes}/${capacidadMaximaHabitacion} huéspedes • <strong>Excede capacidad</strong>`);
+        alert.removeClass('alert-info alert-success alert-warning').addClass('alert-danger');
+    }
+    
+    // Actualizar número de huéspedes en el formulario
+    $('#numero_huespedes').val(totalHuéspedes);
+}
+
+function obtenerAcompanantesReserva() {
+    return acompanantesTemporales.map(a => ({
+        persona_id: a.persona_id,
+        nombre: a.nombre,
+        apellido: a.apellido,
+        tipo_documento: a.tipo_documento,
+        numero_documento: a.numero_documento,
+        fecha_nacimiento: a.fecha_nacimiento,
+        parentesco: a.parentesco,
+        email: a.email,
+        telefono: a.telefono
+    }));
+}
+
+function limpiarAcompanantesTemporales() {
+    acompanantesTemporales = [];
+    actualizarListaAcompanantes();
+    actualizarCapacidadInfo();
+}
+
+function cargarAcompanantesReserva(reservaId) {
+    // Como la tabla reserva_huespedes no existe, 
+    // intentamos cargar desde las observaciones de la reserva
+    console.log(`Intentando cargar acompañantes para reserva ${reservaId} desde observaciones`);
+    
+    // Limpiar acompañantes temporales
+    acompanantesTemporales = [];
+    
+    // Intentar obtener los datos de la reserva actual
+    $.get(`api/endpoints/reservas.php?id=${reservaId}`)
+        .done(function(reserva) {
+            console.log('Datos de reserva recibidos:', reserva);
+            console.log('Observaciones de la reserva:', reserva.observaciones);
+            
+            if (reserva.observaciones) {
+                try {
+                    // Buscar el JSON de acompañantes en las observaciones
+                    const obsText = reserva.observaciones;
+                    const acompanantesMatch = obsText.match(/ACOMPANANTES:\s*(\[.*?\])/s);
+                    
+                    if (acompanantesMatch && acompanantesMatch[1]) {
+                        const acompanantesJSON = acompanantesMatch[1];
+                        const acompanantesData = JSON.parse(acompanantesJSON);
+                        
+                        console.log('Acompañantes encontrados en observaciones:', acompanantesData);
+                        
+                        // Obtener el ID del cliente principal para excluirlo
+                        const clientePrincipalId = reserva.cliente_id;
+                        
+                        // Agregar solo los que no sean el cliente principal
+                        acompanantesData.forEach((acompanante, index) => {
+                            if (acompanante.persona_id != clientePrincipalId) {
+                                acompanantesTemporales.push({
+                                    index: Date.now() + index,
+                                    persona_id: acompanante.persona_id,
+                                    nombre: acompanante.nombre,
+                                    apellido: acompanante.apellido,
+                                    tipo_documento: acompanante.tipo_documento,
+                                    numero_documento: acompanante.numero_documento,
+                                    fecha_nacimiento: acompanante.fecha_nacimiento,
+                                    parentesco: acompanante.parentesco,
+                                    email: acompanante.email,
+                                    telefono: acompanante.telefono,
+                                    es_menor: acompanante.es_menor || false
+                                });
+                            }
+                        });
+                        
+                        console.log('Acompañantes cargados:', acompanantesTemporales.length);
+                    } else {
+                        console.log('No se encontró JSON de acompañantes en las observaciones');
+                    }
+                } catch (e) {
+                    console.error('Error parsing acompañantes desde observaciones:', e);
+                }
+            } else {
+                console.log('La reserva no tiene observaciones');
+            }
+            
+            // Actualizar la interfaz
+            actualizarListaAcompanantes();
+            actualizarCapacidadInfo();
+        })
+        .fail(function(xhr) {
+            console.error('Error cargando reserva:', xhr);
+            // Actualizar interfaz vacía
+            actualizarListaAcompanantes();
+            actualizarCapacidadInfo();
+        });
+}
+
+function showNotification(message, type) {
+    // Implementación de la función showNotification
+}
+
+function verHistorialPedidos(habitacionId, habitacionNumero, clienteNombre) {
+    // Actualizar información en el modal
+    $('#infoReserva').text(`Habitación ${habitacionNumero} - ${clienteNombre}`);
+    
+    // Mostrar modal
+    $('#modalHistorialPedidos').modal('show');
+    
+    // Cargar historial de pedidos
+    $.get(`api/endpoints/pedidos_productos.php?reserva_id=${habitacionId}`, function(data) {
+        const pedidos = Array.isArray(data) ? data : (data.records || []);
+        
+        if (pedidos.length === 0) {
+            $('#historialPedidosContent').html(`
+                <div class="text-center py-4">
+                    <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No hay pedidos registrados</h5>
+                    <p class="text-muted">Esta reserva aún no tiene pedidos de productos.</p>
+                </div>
+            `);
+            return;
+        }
+        
+        let html = '<div class="row">';
+        
+        pedidos.forEach((pedido, index) => {
+            const fechaPedido = new Date(pedido.fecha_pedido).toLocaleString('es-CO');
+            const detallesHtml = pedido.detalles ? pedido.detalles.map(detalle => 
+                `<tr>
+                    <td>${detalle.producto_nombre}</td>
+                    <td>${detalle.categoria || ''}</td>
+                    <td>${detalle.cliente_nombre ? detalle.cliente_nombre + ' ' + (detalle.cliente_apellido || '') : 'No especificado'}</td>
+                    <td>${detalle.cantidad}</td>
+                    <td>$${parseFloat(detalle.precio_unitario).toLocaleString('es-CO')}</td>
+                    <td>$${parseFloat(detalle.subtotal).toLocaleString('es-CO')}</td>
+                </tr>`
+            ).join('') : '';
+            
+            html += `
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">
+                                <i class="fas fa-receipt me-2"></i>Pedido #${pedido.id}
+                            </h6>
+                            <span class="badge bg-primary">$${parseFloat(pedido.total || 0).toLocaleString('es-CO')}</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>${fechaPedido}
+                                </small>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th>Categoría</th>
+                                            <th>Cliente</th>
+                                            <th>Cant.</th>
+                                            <th>Precio</th>
+                                            <th>Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${detallesHtml}
+                                    </tbody>
+                                </table>
+                            </div>
+                            ${pedido.notas ? `
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        <strong>Notas:</strong> ${pedido.notas}
+                                    </small>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        
+        // Agregar resumen total
+        const totalGeneral = pedidos.reduce((sum, pedido) => sum + parseFloat(pedido.total || 0), 0);
+        html += `
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-chart-line me-2"></i>
+                                <strong>Resumen General</strong><br>
+                                <small class="text-muted">
+                                    ${pedidos.length} pedido(s) • Total consumido: $${totalGeneral.toLocaleString('es-CO')}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <h4 class="mb-0">$${totalGeneral.toLocaleString('es-CO')}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        $('#historialPedidosContent').html(html);
+    }).fail(function() {
+        $('#historialPedidosContent').html(`
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Error al cargar el historial de pedidos
+            </div>
+        `);
+    });
+}
+
 </script>
 
 <style>
@@ -2134,6 +3042,96 @@ function limpiarFiltros() {
 
 #modalReserva .cliente-option:hover {
     background-color: #f8f9fa;
+}
+
+/* Estilos para Select2 en modal de búsqueda de personas */
+#modalBusquedaPersonas .select2-container {
+    width: 100% !important;
+}
+
+#modalBusquedaPersonas .select2-container--open .select2-dropdown {
+    z-index: 1055;
+}
+
+#modalBusquedaPersonas .select2-search--dropdown .select2-search__field {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+}
+
+#modalBusquedaPersonas .select2-results__option {
+    padding: 8px;
+}
+
+#modalBusquedaPersonas .select2-results__option--highlighted {
+    background-color: #0d6efd;
+    color: white;
+}
+
+/* Estilos para gestión de acompañantes */
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.acompanante-item {
+    transition: background-color 0.2s ease;
+}
+
+.acompanante-item:hover {
+    background-color: #f8f9fa;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.alert {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+.alert-info {
+    background-color: #e7f3ff;
+    color: #0c5460;
+}
+
+.alert-success {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    color: #664d03;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Scroll para lista de acompañantes */
+#acompanantesReservaContainer {
+    scrollbar-width: thin;
+    scrollbar-color: #dee2e6 #f8f9fa;
+}
+
+#acompanantesReservaContainer::-webkit-scrollbar {
+    width: 6px;
+}
+
+#acompanantesReservaContainer::-webkit-scrollbar-track {
+    background: #f8f9fa;
+}
+
+#acompanantesReservaContainer::-webkit-scrollbar-thumb {
+    background: #dee2e6;
+    border-radius: 3px;
+}
+
+#acompanantesReservaContainer::-webkit-scrollbar-thumb:hover {
+    background: #adb5bd;
 }
 </style>
 
