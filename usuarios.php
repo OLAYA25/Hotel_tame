@@ -26,7 +26,7 @@ include 'includes/sidebar.php';
                 <h1>Usuarios</h1>
                 <p class="text-muted mb-0">Gestiona los usuarios del sistema</p>
             </div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalUsuario" onclick="abrirModalNuevo()">
+            <button class="btn btn-primary" onclick="abrirModalNuevo()">
                 <i class="fas fa-plus me-2"></i>Nuevo Usuario
             </button>
         </div>
@@ -179,12 +179,21 @@ function cargarUsuarios() {
 }
 
 function abrirModalNuevo() {
+    console.log('Abriendo modal de nuevo usuario...');
     $('#modalTitle').text('Nuevo Usuario');
     $('#formUsuario')[0].reset();
     $('#usuario_id').val('');
     $('#password').prop('required', true);
     $('#passwordField').show();
     $('#password').attr('placeholder', 'Contraseña'); // Placeholder para nuevo usuario
+    
+    // Abrir el modal con la API de Bootstrap 5
+    const modalElement = document.getElementById('modalUsuario');
+    const modal = new bootstrap.Modal(modalElement, {
+        backdrop: 'static',
+        keyboard: true
+    });
+    modal.show();
 }
 
 function editarUsuario(id) {
