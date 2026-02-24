@@ -334,7 +334,12 @@ function editarCliente(id) {
         $('#ciudad').val(cliente.ciudad);
         $('#nacionalidad').val(cliente.nacionalidad || cliente.pais || '').trigger('change');
         $('#direccion').val(cliente.direccion);
-        $('#modalCliente').modal('show');
+        const modalElement = document.getElementById('modalCliente');
+        const modal = new bootstrap.Modal(modalElement, {
+            backdrop: 'static',
+            keyboard: true
+        });
+        modal.show();
     });
 }
 

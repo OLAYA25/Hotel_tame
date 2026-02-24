@@ -28,7 +28,7 @@ include 'includes/sidebar.php';
                 <button class="btn btn-outline-info btn-sm" onclick="verificarActualizacionesAutomaticas()" title="Verificar actualizaciones automáticas">
                     <i class="fas fa-sync"></i> Verificar
                 </button>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalReserva" onclick="abrirModalNuevo()">
+                <button class="btn btn-primary" onclick="abrirModalNuevo()">
                     <i class="fas fa-plus me-2"></i>Nueva Reserva
                 </button>
             </div>
@@ -864,6 +864,12 @@ function cargarClientes() {
         return;
     }
     
+    // Evitar recarga si ya está inicializado
+    if (select.data('select2') && select.find('option').length > 1) {
+        console.log('Select2 de clientes ya inicializado, evitando recarga');
+        return;
+    }
+    
     // Usar endpoint final con la misma estructura que los endpoints funcionales
     $.get('api/endpoints/clientes_final.php', function(data) {
         console.log('Clientes recibidos:', data);
@@ -960,16 +966,7 @@ function cargarClientes() {
                     const clienteData = window.clientesDataList?.find(c => c.id == data.id);
                     if (clienteData) {
                         const nombreCompleto = `${clienteData.nombre || ''} ${clienteData.apellido || ''}`.trim();
-                        const documento = clienteData.documento || '';
-                        const email = clienteData.email || '';
-                        
-                        return $(`
-                            <div class="cliente-option p-2">
-                                <div class="fw-bold text-primary">${nombreCompleto}</div>
-                                ${documento ? `<div class="text-muted small"><i class="fas fa-id-card me-1"></i>${documento}</div>` : ''}
-                                ${email ? `<div class="text-muted small"><i class="fas fa-envelope me-1"></i>${email}</div>` : ''}
-                            </div>
-                        `);
+                        return nombreCompleto;
                     }
                     
                     return data.text;
@@ -991,26 +988,20 @@ function cargarClientes() {
             
             console.log('Select2 inicializado correctamente');
             
-            // Asegurar que el campo de búsqueda esté siempre visible y funcional
-            select.on('select2:open', function() {
-                setTimeout(() => {
-                    const searchField = $('.select2-search__field');
-                    if (searchField.length > 0) {
-                        searchField.focus();
-                        // Limpiar el campo de búsqueda para mostrar todos los resultados
-                        searchField.val('');
-                        // Disparar evento input para actualizar resultados
-                        searchField.trigger('input');
+            // Agregar evento change para actualizar información
+            select.on('change', function() {
+                const clienteId = $(this).val();
+                if (clienteId) {
+                    const cliente = window.clientesDataList?.find(c => c.id == clienteId);
+                    if (cliente) {
+                        console.log('Cliente seleccionado:', cliente);
                     }
-                }, 100);
-            });
-            
-            // Abrir automáticamente el dropdown al hacer clic en el campo
-            select.on('select2:select', function() {
-                // Cerrar después de seleccionar
-                setTimeout(() => {
-                    select.select2('close');
-                }, 100);
+                    
+                    // Cerrar después de seleccionar
+                    setTimeout(() => {
+                        select.select2('close');
+                    }, 100);
+                }
             });
             
             // Abrir dropdown automáticamente al hacer clic en el contenedor
@@ -1039,6 +1030,16 @@ function cargarHabitaciones() {
     // Pedir habitaciones disponibles desde el backend (más fiable)
     const start = $('#fecha_entrada').val() || '';
     const end = $('#fecha_salida').val() || '';
+    
+    // Evitar llamadas múltiples si las fechas son las mismas
+    if (cargarHabitaciones.lastStart === start && cargarHabitaciones.lastEnd === end) {
+        console.log('Mismas fechas, evitando recarga de habitaciones');
+        return;
+    }
+    
+    cargarHabitaciones.lastStart = start;
+    cargarHabitaciones.lastEnd = end;
+    
     $.get(`api/endpoints/habitaciones_disponibles.php?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`, function(data) {
         const habitacionesList = Array.isArray(data) ? data : (data.records || []);
         habitaciones = habitacionesList;
@@ -1117,6 +1118,34 @@ function populateHabitacionesSelect(habitacionesList) {
     const select = $('#habitacion_id');
     console.log('Elemento habitación encontrado:', select.length > 0);
     
+    // Si ya está inicializado y no hay cambios, solo actualizar opciones
+    const isAlreadyInitialized = select.data('select2');
+    const currentOptions = select.find('option').length;
+    
+    if (isAlreadyInitialized && currentOptions > 1) {
+        console.log('Select2 ya inicializado, actualizando opciones...');
+        select.empty().append('<option value="">Seleccione una habitación...</option>');
+        let count = 0;
+        habitacionesList.forEach(hab => {
+            const precio = hab.precio ?? hab.precio_noche ?? 0;
+            const capacidad = hab.capacidad ?? hab.capacidad_maxima ?? hab.max_huespedes ?? null;
+            const capTxt = capacidad ? ` · cap ${capacidad}` : '';
+            select.append(
+                `<option value="${hab.id}" data-precio="${precio}" data-capacidad="${capacidad ?? ''}">Hab. ${hab.numero} - ${hab.tipo}${capTxt} ($${parseFloat(precio).toLocaleString('es-CO')}/noche)</option>`
+            );
+            count++;
+        });
+        
+        if (count === 0) {
+            select.append('<option value="" disabled>No hay habitaciones disponibles para las fechas seleccionadas</option>');
+        }
+        
+        select.trigger('change');
+        console.log('Opciones actualizadas, count:', count);
+        return;
+    }
+    
+    // Inicialización completa
     select.empty().append('<option value="">Seleccione una habitación...</option>');
     let count = 0;
     habitacionesList.forEach(hab => {
@@ -1324,6 +1353,7 @@ function validarCapacidad() {
 }
 
 function abrirModalNuevo() {
+    console.log('Abriendo modal de nueva reserva...');
     $('#modalTitle').text('Nueva Reserva');
     $('#formReserva')[0].reset();
     $('#reserva_id').val('');
@@ -1331,37 +1361,64 @@ function abrirModalNuevo() {
     // Limpiar acompañantes temporales
     limpiarAcompanantesTemporales();
     
+    // Destruir Select2 existente ANTES de establecer valores
+    try {
+        $('#cliente_id').select2('destroy');
+        $('#habitacion_id').select2('destroy');
+        console.log('Select2 destruidos correctamente');
+    } catch (e) {
+        console.log('No había Select2 para destruir:', e);
+    }
+    
+    // Establecer fechas por defecto
     const today = new Date().toISOString().split('T')[0];
-    $('#fecha_entrada').val(today); // Establecer fecha actual por defecto
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    
+    $('#fecha_entrada').val(today);
+    $('#fecha_salida').val(tomorrowStr);
     $('#fecha_entrada').attr('min', today);
-    $('#fecha_salida').attr('min', today);
-    // Repoblar select de habitaciones usando las fechas actuales
-    cargarHabitaciones();
+    $('#fecha_salida').attr('min', tomorrowStr);
+    
     // valor por defecto para método de pago
     $('#metodo_pago').val('efectivo');
     // Limpiar información de capacidad
     $('#capacidadInfo').hide();
     $('#capacidadWarning').hide();
     
-    // Destruir Select2 existente antes de inicializar
-    try {
-        $('#cliente_id').select2('destroy');
-    } catch (e) {
-        // No hay Select2 inicializado, está bien
-    }
+    // Limpiar cache para forzar recarga inicial
+    cargarHabitaciones.lastStart = null;
+    cargarHabitaciones.lastEnd = null;
     
-    // Mostrar modal y luego inicializar Select2
-    $('#modalReserva').modal('show');
+    // Mostrar modal PRIMERO
+    const modalElement = document.getElementById('modalReserva');
+    const modal = new bootstrap.Modal(modalElement, {
+        backdrop: 'static',
+        keyboard: true
+    });
+    modal.show();
     
     // Esperar a que el modal esté completamente visible para inicializar Select2
     setTimeout(() => {
-        console.log('Modal abierto, inicializando Select2 de clientes...');
-        cargarClientes();
+        console.log('Modal visible, inicializando Select2...');
+        
+        // Cargar habitaciones primero (con las fechas ya establecidas)
+        cargarHabitaciones();
+        
+        // Luego cargar clientes
+        setTimeout(() => {
+            cargarClientes();
+        }, 200);
     }, 300);
 }
 
 function editarReserva(id) {
+    console.log('Editando reserva:', id);
+    
     $.get(`api/endpoints/reservas.php?id=${id}`, function(reserva) {
+        console.log('Datos de reserva recibidos:', reserva);
+        
         $('#modalTitle').text('Editar Reserva');
         $('#reserva_id').val(reserva.id);
         
@@ -1403,77 +1460,48 @@ function editarReserva(id) {
         // Guardar el valor correcto para establecerlo después de que todo cargue
         const valorHuespedesCorrecto = reserva.numero_huespedes ?? reserva.num_huespedes ?? 1;
         
-        // Abrir el modal
-        $('#modalReserva').modal('show');
-        
-        // Pedir habitaciones disponibles para el rango y también forzar incluir la habitación actual
-        $.get(`api/endpoints/habitaciones_disponibles.php?start=${encodeURIComponent(reserva.fecha_entrada)}&end=${encodeURIComponent(reserva.fecha_salida)}&include_id=${encodeURIComponent(reserva.habitacion_id)}`, function(data) {
-            const habs = Array.isArray(data) ? data : (data.records || []);
-            habitaciones = habs;
-            populateHabitacionesSelect(habs);
-            
-            // Establecer el valor de habitación DESPUÉS de inicializar Select2
-            setTimeout(() => {
-                $('#habitacion_id').val(habitacionId).trigger('change');
-                
-                // Forzar actualización de Select2
-                if ($('#habitacion_id').data('select2')) {
-                    $('#habitacion_id').trigger('change.select2');
-                }
-            }, 100);
-            
-            // Actualizar la capacidad máxima para la habitación seleccionada
-            setTimeout(() => {
-                actualizarCapacidadMaxima();
-            }, 100);
-            
-            // Cargar acompañantes existentes de la reserva
-            setTimeout(() => {
-                cargarAcompanantesReserva(reserva.id);
-            }, 500);
-        }).fail(function(xhr, status, error) {
-            console.error('Error cargando habitaciones:', xhr.responseText);
-            showNotification('Error al cargar habitaciones disponibles', 'error');
+        // Abrir el modal PRIMERO
+        console.log('Abriendo modal de edición...');
+        const modalElement = document.getElementById('modalReserva');
+        const modal = new bootstrap.Modal(modalElement, {
+            backdrop: 'static',
+            keyboard: true
         });
+        modal.show();
         
-        // Establecer cliente DESPUÉS de inicializar Select2
+        // Esperar a que el modal esté visible para cargar datos
         setTimeout(() => {
-            $('#cliente_id').val(clienteId).trigger('change');
+            console.log('Modal visible, cargando datos...');
             
-            // Forzar actualización de Select2
-            if ($('#cliente_id').data('select2')) {
-                $('#cliente_id').trigger('change.select2');
-            }
-            
-            // Establecer el valor correcto de huéspedes DESPUÉS de todo
-            setTimeout(() => {
-                $('#numero_huespedes').val(valorHuespedesCorrecto);
+            // Pedir habitaciones disponibles para el rango y también forzar incluir la habitación actual
+            $.get(`api/endpoints/habitaciones_disponibles.php?start=${encodeURIComponent(reserva.fecha_entrada)}&end=${encodeURIComponent(reserva.fecha_salida)}&include_id=${encodeURIComponent(reserva.habitacion_id)}`, function(data) {
+                const habs = Array.isArray(data) ? data : (data.records || []);
+                habitaciones = habs;
+                populateHabitacionesSelect(habs);
                 
-                // Forzar nuevamente después de un pequeño delay para asegurar que sea el último
+                // Establecer valores DESPUÉS de inicializar Select2
                 setTimeout(() => {
+                    $('#habitacion_id').val(habitacionId).trigger('change');
+                    $('#cliente_id').val(clienteId).trigger('change');
                     $('#numero_huespedes').val(valorHuespedesCorrecto);
-                }, 300);
-            }, 500);
-        }, 100);
+                    
+                    // Actualizar capacidad
+                    actualizarCapacidadMaxima();
+                    
+                    // Cargar acompañantes existentes
+                    setTimeout(() => {
+                        cargarAcompanantesReserva(reserva.id);
+                    }, 300);
+                }, 200);
+            }).fail(function(xhr, status, error) {
+                console.error('Error cargando habitaciones:', xhr.responseText);
+                showNotification('Error al cargar habitaciones disponibles', 'error');
+            });
+        }, 300);
+        
     }).fail(function(xhr, status, error) {
         console.error('Error cargando reserva:', xhr.responseText);
         showNotification('Error al cargar datos de la reserva', 'error');
-        try {
-            $('#modalReserva')
-                .off('shown.bs.modal.cargarAcompanantes')
-                .one('shown.bs.modal.cargarAcompanantes', function() {
-                    if (typeof cargarAcompanantesReservaEnFormulario === 'function') {
-                        cargarAcompanantesReservaEnFormulario(reserva.id);
-                    }
-                })
-                .modal('show');
-        } catch (e) {
-            // Fallback si no existe el evento/Bootstrap
-            $('#modalReserva').modal('show');
-            if (typeof cargarAcompanantesReservaEnFormulario === 'function') {
-                setTimeout(() => cargarAcompanantesReservaEnFormulario(reserva.id), 300);
-            }
-        }
     });
 }
 
@@ -1735,7 +1763,12 @@ function abrirModalCliente() {
     // Restaurar texto del botón
     $('button[form="formCliente"]').html('Guardar Cliente');
     
-    $('#modalCliente').modal('show');
+    const modalElement = document.getElementById('modalCliente');
+    const modal = new bootstrap.Modal(modalElement, {
+        backdrop: 'static',
+        keyboard: true
+    });
+    modal.show();
 }
 
 function guardarCliente(e) {
@@ -2415,7 +2448,12 @@ function abrirModalBusquedaPersonas() {
     // Limpiar selección anterior
     $('#busquedaPersonaSelect').val('').trigger('change');
     $('#infoPersonaSeleccionada').hide();
-    $('#modalBusquedaPersonas').modal('show');
+    const modalElement = document.getElementById('modalBusquedaPersonas');
+    const modal = new bootstrap.Modal(modalElement, {
+        backdrop: 'static',
+        keyboard: true
+    });
+    modal.show();
     
     // Cargar personas e inicializar Select2
     cargarPersonasParaSelect2();
@@ -2753,7 +2791,12 @@ function crearNuevaPersonaAcompanante() {
     $('button[form="formCliente"]').html('<i class="fas fa-plus me-2"></i>Agregar como Acompañante');
     
     // Abrir modal de cliente
-    $('#modalCliente').modal('show');
+    const modalElement = document.getElementById('modalCliente');
+    const modal = new bootstrap.Modal(modalElement, {
+        backdrop: 'static',
+        keyboard: true
+    });
+    modal.show();
 }
 
 function actualizarListaAcompanantes() {
@@ -2946,7 +2989,12 @@ function verHistorialPedidos(habitacionId, habitacionNumero, clienteNombre) {
     $('#infoReserva').text(`Habitación ${habitacionNumero} - ${clienteNombre}`);
     
     // Mostrar modal
-    $('#modalHistorialPedidos').modal('show');
+    const modalElement = document.getElementById('modalHistorialPedidos');
+    const modal = new bootstrap.Modal(modalElement, {
+        backdrop: 'static',
+        keyboard: true
+    });
+    modal.show();
     
     // Cargar historial de pedidos
     $.get(`api/endpoints/pedidos_productos.php?reserva_id=${habitacionId}`, function(data) {

@@ -215,7 +215,12 @@ function editarUsuario(id) {
         // Agregar texto indicativo
         $('#password').attr('placeholder', 'Dejar en blanco para mantener la contraseña actual');
         
-        $('#modalUsuario').modal('show');
+        const modalElement = document.getElementById('modalUsuario');
+        const modal = new bootstrap.Modal(modalElement, {
+            backdrop: 'static',
+            keyboard: true
+        });
+        modal.show();
     }).fail(function(xhr, status, error) {
         console.error('Error loading user:', xhr.responseText);
         showNotification('Error al cargar datos del usuario', 'error');
