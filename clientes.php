@@ -20,7 +20,7 @@ include 'includes/sidebar.php';
                 <h1>Clientes</h1>
                 <p class="text-muted mb-0">Gestiona los clientes del hotel</p>
             </div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCliente" onclick="abrirModalNuevo()">
+            <button class="btn btn-primary" onclick="abrirModalNuevo()">
                 <i class="fas fa-plus me-2"></i>Nuevo Cliente
             </button>
         </div>
@@ -312,9 +312,18 @@ function handleSearch(event) {
 }
 
 function abrirModalNuevo() {
+    console.log('Abriendo modal de nuevo cliente...');
     $('#modalTitle').text('Nuevo Cliente');
     $('#formCliente')[0].reset();
     $('#cliente_id').val('');
+    
+    // Abrir el modal con la API de Bootstrap 5
+    const modalElement = document.getElementById('modalCliente');
+    const modal = new bootstrap.Modal(modalElement, {
+        backdrop: 'static',
+        keyboard: true
+    });
+    modal.show();
 }
 
 function editarCliente(id) {
