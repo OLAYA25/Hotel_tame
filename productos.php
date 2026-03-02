@@ -20,7 +20,7 @@ include 'includes/sidebar.php';
                 <h1>Productos</h1>
                 <p class="text-muted mb-0">Gestiona los productos disponibles para los clientes</p>
             </div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalProducto" onclick="abrirModalNuevo()">
+            <button class="btn btn-primary" onclick="abrirModalNuevo()">
                 <i class="fas fa-plus me-2"></i>Nuevo Producto
             </button>
         </div>
@@ -273,12 +273,21 @@ function cargarProductos() {
 }
 
 function abrirModalNuevo() {
+    console.log('Abriendo modal de nuevo producto...');
     $('#modalTitle').text('Nuevo Producto');
     $('#formProducto')[0].reset();
     $('#producto_id').val('');
     $('#imagePreview').html('');
     $('#imagen_url').val('');
     $('#activo').prop('checked', true);
+    
+    // Abrir el modal con la API de Bootstrap 5
+    const modalElement = document.getElementById('modalProducto');
+    const modal = new bootstrap.Modal(modalElement, {
+        backdrop: 'static',
+        keyboard: true
+    });
+    modal.show();
 }
 
 function previewImage(input) {
