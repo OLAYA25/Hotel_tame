@@ -20,7 +20,7 @@ include 'includes/sidebar.php';
                 <h1>Habitaciones</h1>
                 <p class="text-muted mb-0">Gestiona las habitaciones del hotel</p>
             </div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalHabitacion" onclick="abrirModalNuevo()">
+            <button class="btn btn-primary" onclick="abrirModalNuevo()">
                 <i class="fas fa-plus me-2"></i>Nueva Habitación
             </button>
         </div>
@@ -188,9 +188,18 @@ function cargarHabitaciones() {
 }
 
 function abrirModalNuevo() {
+    console.log('Abriendo modal de nueva habitación...');
     $('#modalTitle').text('Nueva Habitación');
     $('#formHabitacion')[0].reset();
     $('#habitacion_id').val('');
+    
+    // Abrir el modal con la API de Bootstrap 5
+    const modalElement = document.getElementById('modalHabitacion');
+    const modal = new bootstrap.Modal(modalElement, {
+        backdrop: 'static',
+        keyboard: true
+    });
+    modal.show();
 }
 
 function previewImageHabitacion(input) {
