@@ -10,6 +10,7 @@ class Usuario {
     public $password;
     public $rol;
     public $telefono;
+    public $nacionalidad;
     public $activo;
     public $created_at;
     public $lastError;
@@ -20,7 +21,7 @@ class Usuario {
 
     // Obtener todos los usuarios
     public function getAll() {
-        $query = "SELECT id, nombre, apellido, email, rol, telefono, activo, created_at 
+        $query = "SELECT id, nombre, apellido, email, rol, telefono, nacionalidad, activo, created_at 
                   FROM " . $this->table_name . " 
                   WHERE deleted_at IS NULL 
                   ORDER BY created_at DESC";
@@ -32,7 +33,7 @@ class Usuario {
 
     // Obtener usuario por ID
     public function getById() {
-        $query = "SELECT id, nombre, apellido, email, rol, telefono, activo, created_at 
+        $query = "SELECT id, nombre, apellido, email, rol, telefono, nacionalidad, activo, created_at 
                   FROM " . $this->table_name . " 
                   WHERE id = ? AND deleted_at IS NULL";
         
@@ -47,6 +48,7 @@ class Usuario {
             $this->rol = $row['rol'];
             $this->telefono = $row['telefono'];
             $this->apellido = $row['apellido'];
+            $this->nacionalidad = $row['nacionalidad'];
             $this->activo = $row['activo'];
             $this->created_at = $row['created_at'];
             return true;
@@ -57,8 +59,8 @@ class Usuario {
     // Crear usuario
     public function create() {
         $query = "INSERT INTO " . $this->table_name . " 
-                  (nombre, apellido, email, password, rol, telefono, activo) 
-                  VALUES (:nombre, :apellido, :email, :password, :rol, :telefono, :activo)";
+                  (nombre, apellido, email, password, rol, telefono, nacionalidad, activo) 
+                  VALUES (:nombre, :apellido, :email, :password, :rol, :telefono, :nacionalidad, :activo)";
         
         $stmt = $this->conn->prepare($query);
         
@@ -68,6 +70,7 @@ class Usuario {
         $this->password = password_hash($this->password, PASSWORD_BCRYPT);
         $this->rol = htmlspecialchars(strip_tags($this->rol));
         $this->telefono = htmlspecialchars(strip_tags($this->telefono));
+        $this->nacionalidad = htmlspecialchars(strip_tags($this->nacionalidad));
         
         $stmt->bindParam(":nombre", $this->nombre);
         $stmt->bindParam(":apellido", $this->apellido);
@@ -75,6 +78,7 @@ class Usuario {
         $stmt->bindParam(":password", $this->password);
         $stmt->bindParam(":rol", $this->rol);
         $stmt->bindParam(":telefono", $this->telefono);
+        $stmt->bindParam(":nacionalidad", $this->nacionalidad);
         $stmt->bindParam(":activo", $this->activo);
         
         try {
@@ -100,6 +104,7 @@ class Usuario {
                       password = :password,
                       rol = :rol, 
                       telefono = :telefono, 
+                      nacionalidad = :nacionalidad,
                       activo = :activo,
                       updated_at = NOW()
                   WHERE id = :id";
@@ -111,6 +116,7 @@ class Usuario {
         $this->email = htmlspecialchars(strip_tags($this->email));
         $this->rol = htmlspecialchars(strip_tags($this->rol));
         $this->telefono = htmlspecialchars(strip_tags($this->telefono));
+        $this->nacionalidad = htmlspecialchars(strip_tags($this->nacionalidad));
         $this->id = htmlspecialchars(strip_tags($this->id));
         
         $stmt->bindParam(":nombre", $this->nombre);
@@ -119,6 +125,7 @@ class Usuario {
         $stmt->bindParam(":password", $this->password);
         $stmt->bindParam(":rol", $this->rol);
         $stmt->bindParam(":telefono", $this->telefono);
+        $stmt->bindParam(":nacionalidad", $this->nacionalidad);
         $stmt->bindParam(":activo", $this->activo);
         $stmt->bindParam(":id", $this->id);
         
@@ -141,6 +148,7 @@ class Usuario {
                       email = :email, 
                       rol = :rol, 
                       telefono = :telefono, 
+                      nacionalidad = :nacionalidad,
                       activo = :activo,
                       updated_at = NOW()
                   WHERE id = :id";
@@ -152,6 +160,7 @@ class Usuario {
         $this->email = htmlspecialchars(strip_tags($this->email));
         $this->rol = htmlspecialchars(strip_tags($this->rol));
         $this->telefono = htmlspecialchars(strip_tags($this->telefono));
+        $this->nacionalidad = htmlspecialchars(strip_tags($this->nacionalidad));
         $this->id = htmlspecialchars(strip_tags($this->id));
         
         $stmt->bindParam(":nombre", $this->nombre);
@@ -159,6 +168,7 @@ class Usuario {
         $stmt->bindParam(":email", $this->email);
         $stmt->bindParam(":rol", $this->rol);
         $stmt->bindParam(":telefono", $this->telefono);
+        $stmt->bindParam(":nacionalidad", $this->nacionalidad);
         $stmt->bindParam(":activo", $this->activo);
         $stmt->bindParam(":id", $this->id);
         

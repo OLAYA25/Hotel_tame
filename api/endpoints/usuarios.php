@@ -37,6 +37,7 @@ switch($method) {
                     "email" => $usuario->email,
                     "rol" => $usuario->rol,
                     "telefono" => $usuario->telefono,
+                    "nacionalidad" => $usuario->nacionalidad,
                     "activo" => $usuario->activo,
                     "created_at" => $usuario->created_at
                 );
@@ -88,6 +89,7 @@ switch($method) {
             $usuario->password = $data->password;
             $usuario->rol = $data->rol;
             $usuario->telefono = $data->telefono ?? "";
+            $usuario->nacionalidad = $data->nacionalidad ?? "Colombia";
             $usuario->activo = $data->activo ?? 1;
             
             if(!$usuario->emailExists()) {
@@ -120,6 +122,7 @@ switch($method) {
             $usuario->email = $data->email;
             $usuario->rol = $data->rol;
             $usuario->telefono = $data->telefono ?? "";
+            $usuario->nacionalidad = $data->nacionalidad ?? "Colombia";
             $usuario->activo = $data->activo ?? 1;
             
             // Si se proporciona una nueva contraseña, actualizarla

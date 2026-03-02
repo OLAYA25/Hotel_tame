@@ -112,6 +112,13 @@ include 'includes/sidebar.php';
 <script>
 $(document).ready(function() {
     cargarUsuarios();
+    
+    // Limpiar backdrop cuando se cierra el modal
+    $('#modalUsuario').on('hidden.bs.modal', function () {
+        $('.modal-backdrop').remove();
+        $('body').removeClass('modal-open');
+        $('body').css('padding-right', '0');
+    });
 });
 
 function cargarUsuarios() {
@@ -206,7 +213,21 @@ function editarUsuario(id) {
         $('#apellido').val(usuario.apellido || '');
         $('#email').val(usuario.email);
         $('#telefono').val(usuario.telefono || '');
-        $('#nacionalidad').val(usuario.nacionalidad || '').trigger('change');
+        $('#direccion').val(usuario.direccion || '');
+        
+        // Abrir el modal con la API de Bootstrap 5
+        const modalElementEdit = document.getElementById('modalUsuario');
+        const modalEdit = new bootstrap.Modal(modalElementEdit, {
+            backdrop: 'static',
+            keyboard: true
+        });
+        modalEdit.show();
+        
+        // Esperar a que el modal esté completamente visible para cargar Select2
+        setTimeout(() => {
+            // Cargar nacionalidad después de que Select2 esté inicializado
+            $('#nacionalidad').val(usuario.nacionalidad || '').trigger('change');
+        }, 300);
         
         // Limpiar y establecer el rol
         $('#rol').val('');
