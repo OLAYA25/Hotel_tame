@@ -66,14 +66,14 @@ $current_page = basename($_SERVER['PHP_SELF']);
         <!-- <a href="mis_actividades.php" class="nav-link text-white <?php echo $current_page == 'mis_actividades.php' ? 'active' : ''; ?>">
             <i class="fas fa-tasks"></i> Mis Actividades
         </a> -->
-        <!-- <?php if ($_SESSION['usuario']['rol'] === 'admin' || $_SESSION['usuario']['rol'] === 'Contador' || $_SESSION['usuario']['rol'] === 'Auxiliar Contable'): ?> -->
-        <!-- <a href="contabilidad.php" class="nav-link text-white <?php echo $current_page == 'contabilidad.php' ? 'active' : ''; ?>">
+       <?php if ($_SESSION['usuario']['rol'] === 'admin' || $_SESSION['usuario']['rol'] === 'Contador' || $_SESSION['usuario']['rol'] === 'Auxiliar Contable'): ?>
+        <a href="contabilidad.php" class="nav-link text-white <?php echo $current_page == 'contabilidad.php' ? 'active' : ''; ?>">
             <i class="fas fa-calculator"></i> Contabilidad
-        </a> -->
-        <!-- <a href="reportes.php" class="nav-link text-white <?php echo $current_page == 'reportes.php' ? 'active' : ''; ?>">
+        </a> 
+       <a href="reportes.php" class="nav-link text-white <?php echo $current_page == 'reportes.php' ? 'active' : ''; ?>">
             <i class="fas fa-chart-line"></i> Reportes
-        </a> -->
-        <!-- <?php endif; ?> -->
+        </a> 
+       <?php endif; ?>
         <hr class="my-1 border-white border-opacity-25">
         
         <a href="logout.php" class="nav-link text-white">

@@ -65,7 +65,8 @@ switch($method) {
             $stmt->bindParam(":telefono", $data->telefono);
             $stmt->bindParam(":fecha_nacimiento", $data->fecha_nacimiento);
             $stmt->bindParam(":ciudad", $data->ciudad);
-            $stmt->bindParam(":pais", $data->pais);
+            $paisValue = $data->nacionalidad ?? $data->pais ?? null;
+            $stmt->bindParam(":pais", $paisValue);
             $stmt->bindParam(":direccion", $data->direccion);
             
             if($stmt->execute()) {
@@ -150,7 +151,8 @@ switch($method) {
             $stmt->bindParam(":telefono", $data->telefono);
             $stmt->bindParam(":fecha_nacimiento", $data->fecha_nacimiento);
             $stmt->bindParam(":ciudad", $data->ciudad);
-            $stmt->bindParam(":pais", $data->pais);
+            $paisValue = $data->nacionalidad ?? $data->pais ?? null;
+            $stmt->bindParam(":pais", $paisValue);
             $stmt->bindParam(":direccion", $data->direccion);
             
             if($stmt->execute()) {

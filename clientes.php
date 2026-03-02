@@ -110,7 +110,16 @@ include 'includes/sidebar.php';
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Fecha de Nacimiento *</label>
-                            <input type="date" class="form-control" id="fecha_nacimiento" required>
+                            <input type="date" class="form-control" id="fecha_nacimiento" required onchange="calcularEdadCliente()">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Estado</label>
+                            <div class="form-control-plaintext">
+                                <span id="estadoCliente" class="badge fs-6">
+                                    <i class="fas fa-user me-1"></i>
+                                    <span id="textoEstado">Seleccione fecha</span>
+                                </span>
+                            </div>
                         </div>
                     </div>
 
@@ -327,12 +336,26 @@ function abrirModalNuevo() {
 }
 
 function editarCliente(id) {
+    console.log('=== INICIANDO EDITAR CLIENTE ID:', id, '===');
     $.get(`api/endpoints/clientes_final.php?id=${id}`, function(cliente) {
+        console.log('=== DATOS RECIBIDOS DEL SERVIDOR ===');
+        console.log('Respuesta cruda:', cliente);
+        console.log('Tipo de dato:', typeof cliente);
+        console.log('¿Es objeto?', cliente !== null && typeof cliente === 'object');
+        
+        if (!cliente || cliente.message) {
+            console.error('Error: Cliente no encontrado o error en servidor:', cliente);
+            showNotification(cliente?.message || 'Error al cargar cliente', 'error');
+            return;
+        }
+        
         $('#modalTitle').text('Editar Cliente');
         $('#cliente_id').val(cliente.id);
         $('#nombre').val(cliente.nombre);
         $('#apellido').val(cliente.apellido);
         $('#fecha_nacimiento').val(cliente.fecha_nacimiento || '');
+        // Calcular edad automáticamente al cargar
+        setTimeout(() => calcularEdadCliente(), 100);
         $('#tipo_documento').val(cliente.tipo_documento);
         // Guardar el número completo en campo oculto y mostrar versión enmascarada
         $('#numero_documento_full').val(cliente.documento || cliente.numero_documento || '');
@@ -341,21 +364,43 @@ function editarCliente(id) {
         $('#email').val(cliente.email);
         $('#telefono').val(cliente.telefono);
         $('#ciudad').val(cliente.ciudad);
-        $('#nacionalidad').val(cliente.nacionalidad || cliente.pais || '').trigger('change');
         $('#direccion').val(cliente.direccion);
+        
+        // Esperar a que el modal esté visible para inicializar Select2 y cargar valores
         const modalElement = document.getElementById('modalCliente');
         const modal = new bootstrap.Modal(modalElement, {
             backdrop: 'static',
             keyboard: true
         });
         modal.show();
+        
+        // Esperar a que el modal esté completamente visible para cargar Select2
+        setTimeout(() => {
+            // Debug: mostrar qué valor se recibió
+            console.log('Cliente recibido:', cliente);
+            console.log('Nacionalidad guardada:', cliente.nacionalidad);
+            console.log('País guardado:', cliente.pais);
+            
+            // Cargar nacionalidad después de que Select2 esté inicializado
+            const valorNacionalidad = cliente.nacionalidad || cliente.pais || '';
+            console.log('Valor a establecer en nacionalidad:', valorNacionalidad);
+            
+            $('#nacionalidad').val(valorNacionalidad).trigger('change');
+            
+            // Verificar si se estableció correctamente
+            setTimeout(() => {
+                console.log('Valor actual de nacionalidad:', $('#nacionalidad').val());
+            }, 100);
+        }, 300);
     });
 }
 
 function guardarCliente(e) {
     e.preventDefault();
+    console.log('=== INICIANDO GUARDAR CLIENTE ===');
     
     const id = $('#cliente_id').val();
+    console.log('ID del cliente:', id);
     
     // Obtener acompañantes del formulario
     const acompanantes = obtenerAcompanantes();
@@ -370,10 +415,15 @@ function guardarCliente(e) {
         email: $('#email').val(),
         telefono: $('#telefono').val(),
         ciudad: $('#ciudad').val(),
-        nacionalidad: $('#nacionalidad').val(),
+        nacionalidad: $('#nacionalidad').val() || null, // Asegurar que sea null si está vacío
         direccion: $('#direccion').val(),
         acompanantes: acompanantes // Agregar acompañantes al envío
     };
+    
+    // Debug: mostrar qué valor se está guardando
+    console.log('Guardando cliente con nacionalidad:', $('#nacionalidad').val());
+    console.log('Valor directo del select:', document.getElementById('nacionalidad').value);
+    console.log('Datos completos:', data);
     
     if (id) data.id = parseInt(id);
 
@@ -913,5 +963,37 @@ $(document).ready(function() {
     z-index: 1055 !important;
 }
 </style>
+
+<script>
+// Función para calcular edad y mostrar estado
+function calcularEdadCliente() {
+    const fechaNacimiento = $('#fecha_nacimiento').val();
+    const estadoBadge = $('#estadoCliente');
+    const textoEstado = $('#textoEstado');
+    
+    if (!fechaNacimiento) {
+        estadoBadge.removeClass('bg-success bg-warning bg-primary bg-secondary').addClass('bg-secondary');
+        textoEstado.text('Seleccione fecha');
+        return;
+    }
+    
+    const hoy = new Date();
+    const nacimiento = new Date(fechaNacimiento);
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const mesDiferencia = hoy.getMonth() - nacimiento.getMonth();
+    
+    if (mesDiferencia < 0 || (mesDiferencia === 0 && hoy.getDate() < nacimiento.getDate())) {
+        edad--;
+    }
+    
+    if (edad >= 18) {
+        estadoBadge.removeClass('bg-warning bg-primary bg-secondary').addClass('bg-success');
+        textoEstado.text(`Adulto (${edad} años)`);
+    } else {
+        estadoBadge.removeClass('bg-success bg-primary bg-secondary').addClass('bg-warning');
+        textoEstado.text(`Niño (${edad} años)`);
+    }
+}
+</script>
 
 <?php include 'includes/footer.php'; ?>

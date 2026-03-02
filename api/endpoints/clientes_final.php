@@ -15,7 +15,7 @@ try {
         case 'GET':
             if (isset($_GET['id'])) {
                 // Obtener cliente por ID
-                $query = "SELECT id, nombre, apellido, email, telefono, documento, tipo_documento, fecha_nacimiento, ciudad, pais, direccion 
+                $query = "SELECT id, nombre, apellido, email, telefono, documento, tipo_documento, fecha_nacimiento, ciudad, pais as nacionalidad, direccion 
                           FROM clientes 
                           WHERE id = ? AND deleted_at IS NULL";
                 
