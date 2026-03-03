@@ -222,6 +222,8 @@ include 'includes/sidebar.php';
                                 <option value="">Seleccione un motivo...</option>
                                 <option value="turismo">Turismo</option>
                                 <option value="negocios">Negocios</option>
+                                <option value="trabajo">Trabajo</option>
+                                <option value="vacaciones">Vacaciones</option>
                                 <option value="conferencia">Conferencia</option>
                                 <option value="convencion">Convención</option>
                                 <option value="visita_familiar">Visita Familiar</option>
