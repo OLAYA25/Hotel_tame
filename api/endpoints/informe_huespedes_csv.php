@@ -30,7 +30,8 @@ switch($method) {
                         c.fecha_nacimiento,
                         c.pais as nacionalidad,
                         r.motivo_viaje,
-                        r.num_huespedes as numero_huespedes
+                        r.num_huespedes as numero_huespedes,
+                        r.notas
                     FROM reservas r
                     LEFT JOIN clientes c ON r.cliente_id = c.id
                     WHERE MONTH(r.fecha_entrada) = ? 
@@ -47,11 +48,12 @@ switch($method) {
                     $item = 1;
                     
                     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                        // Calcular adultos y niños basado en fecha de nacimiento
+                        // Inicializar contadores
                         $adultos = 0;
                         $ninos = 0;
                         $pax = 0;
                         
+                        // Contar cliente principal
                         if ($row['fecha_nacimiento']) {
                             $fecha_nacimiento = new DateTime($row['fecha_nacimiento']);
                             $hoy = new DateTime();
@@ -65,6 +67,48 @@ switch($method) {
                         } else {
                             // Si no hay fecha de nacimiento, asumir adulto
                             $adultos = 1;
+                        }
+                        
+                        // Procesar acompañantes desde el campo notas
+                        $notas = $row['notas'] ?? '';
+                        $acompanantes = [];
+                        
+                        // Extraer JSON de acompañantes
+                        if (strpos($notas, 'ACOMPANANTES:') !== false) {
+                            $inicio = strpos($notas, 'ACOMPANANTES:');
+                            $json_part = substr($notas, $inicio + 13);
+                            $json_part = trim($json_part);
+                            
+                            // Intentar decodificar el JSON
+                            $acompanantes_data = json_decode($json_part, true);
+                            if (json_last_error() === JSON_ERROR_NONE && is_array($acompanantes_data)) {
+                                $acompanantes = $acompanantes_data;
+                            }
+                        }
+                        
+                        // Contar acompañantes
+                        foreach ($acompanantes as $acompanante) {
+                            $fecha_nac_acompanante = $acompanante['fecha_nacimiento'] ?? null;
+                            
+                            if ($fecha_nac_acompanante && $fecha_nac_acompanante !== '' && $fecha_nac_acompanante !== 'null') {
+                                try {
+                                    $fecha_nac = new DateTime($fecha_nac_acompanante);
+                                    $hoy = new DateTime();
+                                    $edad = $hoy->diff($fecha_nac)->y;
+                                    
+                                    if ($edad >= 18) {
+                                        $adultos++;
+                                    } else {
+                                        $ninos++;
+                                    }
+                                } catch (Exception $e) {
+                                    // Si hay error en la fecha, asumir adulto
+                                    $adultos++;
+                                }
+                            } else {
+                                // Si no hay fecha de nacimiento, asumir adulto
+                                $adultos++;
+                            }
                         }
                         
                         $pax = $adultos + $ninos;
@@ -154,6 +198,7 @@ switch($method) {
                         c.pais as nacionalidad,
                         r.motivo_viaje,
                         r.num_huespedes as numero_huespedes,
+                        r.notas,
                         r.fecha_entrada,
                         r.fecha_salida
                     FROM reservas r
@@ -193,10 +238,12 @@ switch($method) {
                     $total_pax = 0;
                     
                     while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                        // Calcular adultos y niños
+                        // Inicializar contadores
                         $adultos = 0;
                         $ninos = 0;
+                        $pax = 0;
                         
+                        // Contar cliente principal
                         if ($data['fecha_nacimiento']) {
                             $fecha_nacimiento = new DateTime($data['fecha_nacimiento']);
                             $hoy = new DateTime();
@@ -209,6 +256,48 @@ switch($method) {
                             }
                         } else {
                             $adultos = 1;
+                        }
+                        
+                        // Procesar acompañantes desde el campo notas
+                        $notas = $data['notas'] ?? '';
+                        $acompanantes = [];
+                        
+                        // Extraer JSON de acompañantes
+                        if (strpos($notas, 'ACOMPANANTES:') !== false) {
+                            $inicio = strpos($notas, 'ACOMPANANTES:');
+                            $json_part = substr($notas, $inicio + 13);
+                            $json_part = trim($json_part);
+                            
+                            // Intentar decodificar el JSON
+                            $acompanantes_data = json_decode($json_part, true);
+                            if (json_last_error() === JSON_ERROR_NONE && is_array($acompanantes_data)) {
+                                $acompanantes = $acompanantes_data;
+                            }
+                        }
+                        
+                        // Contar acompañantes
+                        foreach ($acompanantes as $acompanante) {
+                            $fecha_nac_acompanante = $acompanante['fecha_nacimiento'] ?? null;
+                            
+                            if ($fecha_nac_acompanante && $fecha_nac_acompanante !== '' && $fecha_nac_acompanante !== 'null') {
+                                try {
+                                    $fecha_nac = new DateTime($fecha_nac_acompanante);
+                                    $hoy = new DateTime();
+                                    $edad = $hoy->diff($fecha_nac)->y;
+                                    
+                                    if ($edad >= 18) {
+                                        $adultos++;
+                                    } else {
+                                        $ninos++;
+                                    }
+                                } catch (Exception $e) {
+                                    // Si hay error en la fecha, asumir adulto
+                                    $adultos++;
+                                }
+                            } else {
+                                // Si no hay fecha de nacimiento, asumir adulto
+                                $adultos++;
+                            }
                         }
                         
                         $pax = $adultos + $ninos;
