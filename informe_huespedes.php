@@ -31,6 +31,12 @@ include 'includes/sidebar.php';
                 <button class="btn btn-primary" onclick="exportarCSV()">
                     <i class="fas fa-file-csv me-2"></i>Exportar CSV
                 </button>
+                <button class="btn btn-success" onclick="exportarXLSX()">
+                    <i class="fas fa-file-excel me-2"></i>Exportar XLSX
+                </button>
+                <button class="btn btn-warning" onclick="exportarODS()">
+                    <i class="fas fa-file-alt me-2"></i>Exportar ODS
+                </button>
             </div>
         </div>
     </div>
@@ -350,6 +356,22 @@ function exportarCSV() {
     
     window.open(`api/endpoints/informe_huespedes_csv.php?accion=exportar_csv&mes=${mes}&anio=${anio}`, '_blank');
     showNotification('Descargando archivo CSV...', 'info');
+}
+
+function exportarXLSX() {
+    const mes = $('#mesFiltro').val();
+    const anio = $('#anioFiltro').val();
+    
+    window.open(`api/endpoints/informe_huespedes_xlsx.php?accion=exportar_xlsx&mes=${mes}&anio=${anio}`, '_blank');
+    showNotification('Generando archivo XLSX (Excel)...', 'info');
+}
+
+function exportarODS() {
+    const mes = $('#mesFiltro').val();
+    const anio = $('#anioFiltro').val();
+    
+    window.open(`api/endpoints/informe_huespedes_xlsx.php?accion=exportar_ods&mes=${mes}&anio=${anio}`, '_blank');
+    showNotification('Generando archivo ODS (OpenDocument)...', 'info');
 }
 
 // Event listeners para filtros
