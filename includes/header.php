@@ -28,8 +28,10 @@
 </style>
     <link rel="stylesheet" href="assets/css/style.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/i18n/es.js"></script>
 </head>
 <body>
+    <!-- Sistema de Notificaciones -->
+    <?php include_once __DIR__ . '/../components/notifications_simple.php'; ?>
     <div class="d-flex">

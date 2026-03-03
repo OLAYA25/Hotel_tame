@@ -73,6 +73,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
        <a href="reportes.php" class="nav-link text-white <?php echo $current_page == 'reportes.php' ? 'active' : ''; ?>">
             <i class="fas fa-chart-line"></i> Reportes
         </a> 
+       <a href="backup_manager.php" class="nav-link text-white <?php echo $current_page == 'backup_manager.php' ? 'active' : ''; ?>">
+            <i class="fas fa-database"></i> Backups
+        </a>
        <?php endif; ?>
         <hr class="my-1 border-white border-opacity-25">
         
