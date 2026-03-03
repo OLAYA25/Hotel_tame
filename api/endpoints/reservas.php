@@ -39,7 +39,78 @@ switch($method) {
             break;
         }
         
-        if(isset($_GET['id'])) {
+        elseif(isset($_GET['accion']) && $_GET['accion'] === 'distribucion_nacionalidad') {
+            // Obtener distribución por nacionalidad de una reserva específica
+            $reserva_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+            
+            if ($reserva_id > 0) {
+                $reserva->id = $reserva_id;
+                if ($reserva->getById()) {
+                    // Obtener información del cliente principal
+                    $stmt_cliente = $db->prepare("
+                        SELECT c.pais as nacionalidad 
+                        FROM clientes c 
+                        WHERE c.id = :cliente_id
+                    ");
+                    $stmt_cliente->bindParam(':cliente_id', $reserva->cliente_id);
+                    $stmt_cliente->execute();
+                    $cliente = $stmt_cliente->fetch();
+                    
+                    $nacionalidades = [];
+                    
+                    // Agregar cliente principal
+                    if ($cliente && $cliente['nacionalidad']) {
+                        $nacionalidad = $cliente['nacionalidad'];
+                        $nacionalidades[$nacionalidad] = ($nacionalidades[$nacionalidad] ?? 0) + 1;
+                    }
+                    
+                    // Intentar obtener acompañantes de las observaciones (JSON)
+                    if (!empty($reserva->notas)) {
+                        // Buscar JSON de acompañantes en las observaciones
+                        if (preg_match('/ACOMPANANTES:\s*(\[.*?\])/s', $reserva->notas, $matches)) {
+                            $acompanantes_json = $matches[1];
+                            $acompanantes = json_decode($acompanantes_json, true);
+                            
+                            if (is_array($acompanantes)) {
+                                foreach ($acompanantes as $acompanante) {
+                                    // Obtener nacionalidad del cliente si existe persona_id
+                                    if (isset($acompanante['persona_id'])) {
+                                        $stmt_persona = $db->prepare("
+                                            SELECT pais FROM clientes WHERE id = :persona_id
+                                        ");
+                                        $stmt_persona->bindParam(':persona_id', $acompanante['persona_id']);
+                                        $stmt_persona->execute();
+                                        $persona = $stmt_persona->fetch();
+                                        
+                                        if ($persona && $persona['pais']) {
+                                            $nacionalidad = $persona['pais'];
+                                            $nacionalidades[$nacionalidad] = ($nacionalidades[$nacionalidad] ?? 0) + 1;
+                                        }
+                                    } else {
+                                        // Si no hay persona_id, usar nacionalidad por defecto
+                                        $nacionalidades['No especificada'] = ($nacionalidades['No especificada'] ?? 0) + 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    http_response_code(200);
+                    echo json_encode(array(
+                        "success" => true,
+                        "data" => $nacionalidades,
+                        "reserva_id" => $reserva_id
+                    ));
+                } else {
+                    http_response_code(404);
+                    echo json_encode(array("success" => false, "message" => "Reserva no encontrada"));
+                }
+            } else {
+                http_response_code(400);
+                echo json_encode(array("success" => false, "message" => "ID de reserva no válido"));
+            }
+            break;
+        } elseif(isset($_GET['id'])) {
             $reserva->id = $_GET['id'];
             if($reserva->getById()) {
                 $reserva_arr = array(
@@ -55,6 +126,11 @@ switch($method) {
                     "num_huespedes" => $reserva->num_huespedes,
                     "numero_huespedes" => $reserva->numero_huespedes,
                     "observaciones" => $reserva->notas,
+                    "cliente_nombre" => $reserva->cliente_nombre,
+                    "cliente_pais" => $reserva->cliente_pais,
+                    "habitacion_numero" => $reserva->habitacion_numero,
+                    "habitacion_tipo" => $reserva->habitacion_tipo,
+                    "habitacion_capacidad" => $reserva->capacidad,
                     "created_at" => $reserva->created_at
                 );
                 http_response_code(200);
@@ -80,6 +156,7 @@ switch($method) {
                         "habitacion_id" => $row['habitacion_id'],
                         "habitacion_numero" => $row['habitacion_numero'],
                         "habitacion_tipo" => $row['habitacion_tipo'],
+                        "habitacion_capacidad" => $row['capacidad'] ?? null,
                         "fecha_entrada" => $row['fecha_entrada'],
                         "fecha_salida" => $row['fecha_salida'],
                         "estado" => $row['estado'],
@@ -88,6 +165,7 @@ switch($method) {
                         "noches" => $row['noches'],
                         "num_huespedes" => $row['num_huespedes'],
                         "numero_huespedes" => $row['num_huespedes'],
+                        "cliente_pais" => $row['cliente_pais'] ?? null,
                         "created_at" => $row['created_at']
                     );
                     array_push($reservas_arr["records"], $reserva_item);
@@ -119,9 +197,11 @@ switch($method) {
                         "cliente_nombre" => $row['cliente_nombre'],
                         "cliente_email" => $row['cliente_email'],
                         "cliente_telefono" => $row['cliente_telefono'],
+                        "cliente_pais" => $row['cliente_pais'],
                         "habitacion_id" => $row['habitacion_id'],
                         "habitacion_numero" => $row['habitacion_numero'],
                         "habitacion_tipo" => $row['habitacion_tipo'],
+                        "habitacion_capacidad" => $row['capacidad'],
                         "fecha_entrada" => $row['fecha_entrada'],
                         "fecha_salida" => $row['fecha_salida'],
                         "estado" => $row['estado'],

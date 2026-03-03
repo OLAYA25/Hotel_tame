@@ -203,15 +203,66 @@ include 'includes/sidebar.php';
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label class="form-label">Número de Huéspedes *</label>
-                            <input type="number" class="form-control" id="numero_huespedes" required min="1" max="10" onchange="validarCapacidad()">
+                            <input type="number" class="form-control" id="numero_huespedes" required min="1" max="10" onchange="validarCapacidad(); actualizarDistribucionHuespedes()">
                             <small class="text-muted d-block">No debe exceder la capacidad de la habitación seleccionada</small>
                         </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Adultos *</label>
+                            <input type="number" class="form-control" id="numero_adultos" required min="1" max="10" value="1" onchange="validarDistribucionHuespedes()">
+                            <small class="text-muted d-block">Mayores de 18 años</small>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Niños</label>
+                            <input type="number" class="form-control" id="numero_ninos" min="0" max="10" value="0" onchange="validarDistribucionHuespedes()">
+                            <small class="text-muted d-block">Menores de 18 años</small>
+                        </div>
+                    </div>
+
+                    <!-- Distribución por Nacionalidad -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label class="form-label">
+                                <i class="fas fa-globe me-2"></i>Distribución por Nacionalidad
+                            </label>
+                            <div id="distribucion-nacionalidad" class="border rounded p-3 bg-light">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="fw-bold">Cliente Principal:</span>
+                                            <span class="badge bg-primary" id="nacionalidad-principal">-</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="fw-bold">Acompañantes:</span>
+                                            <span class="badge bg-secondary" id="nacionalidad-acompanantes">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="fw-bold">Total:</span>
+                                            <span class="badge bg-success" id="nacionalidad-total">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Precio Total</label>
                             <input type="number" class="form-control" id="precio_total" step="0.01" placeholder="0.00">
                             <small class="text-muted d-block">Puedes modificar este precio para aplicar descuentos especiales</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Precio por Huésped</label>
+                            <input type="number" class="form-control" id="precio_por_huesped" step="0.01" readonly>
+                            <small class="text-muted d-block">Calculado automáticamente</small>
                         </div>
                     </div>
 
@@ -250,9 +301,6 @@ include 'includes/sidebar.php';
                                 <span class="badge bg-secondary ms-2" id="contadorAcompanantes">0</span>
                             </h6>
                             <div class="btn-group">
-                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="agregarAcompananteReserva()">
-                                    <i class="fas fa-plus me-1"></i>Agregar Acompañante
-                                </button>
                                 <button type="button" class="btn btn-sm btn-outline-info" onclick="abrirModalBusquedaPersonas()">
                                     <i class="fas fa-search me-1"></i>Buscar Persona
                                 </button>
@@ -418,6 +466,7 @@ include 'includes/sidebar.php';
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Motivo de Viaje</label>
                             <select class="form-select" id="motivo_viaje">
+                                <option value="">Seleccione un motivo...</option>
                                 <option value="turismo">Turismo</option>
                                 <option value="negocios">Negocios</option>
                                 <option value="conferencia">Conferencia</option>
@@ -682,6 +731,29 @@ function renderizarReservasPagina(reservasList) {
         const pagoIcon = pagoIconos[reserva.metodo_pago] || '<i class="fas fa-money-bill-wave"></i>';
         const pagoTexto = pagoTextos[reserva.metodo_pago] || 'Efectivo';
         
+        // Calcular número real de huéspedes para ocupación
+        let numHuespedesOcupacion = reserva.numero_huespedes || reserva.num_huespedes;
+        
+        // Si es null, contar desde observaciones
+        if (!numHuespedesOcupacion && reserva.observaciones) {
+            try {
+                if (reserva.observaciones.includes('ACOMPANANTES:')) {
+                    const acompanantesMatch = reserva.observaciones.match(/ACOMPANANTES:\s*(\[.*?\])/s);
+                    if (acompanantesMatch) {
+                        const acompanantes = JSON.parse(acompanantesMatch[1]);
+                        numHuespedesOcupacion = (acompanantes?.length || 0) + 1;
+                    }
+                }
+            } catch (e) {
+                numHuespedesOcupacion = 1;
+            }
+        }
+        
+        // Si sigue siendo null, usar 1 por defecto
+        if (!numHuespedesOcupacion) {
+            numHuespedesOcupacion = 1;
+        }
+        
         list.append(`
             <div class="col-12 mb-4">
                 <div class="card shadow-sm border-0">
@@ -697,10 +769,16 @@ function renderizarReservasPagina(reservasList) {
                                         <span class="badge bg-${estadoBadge}">${estadoTexto}</span>
                                     </div>
                                 </div>
-                                <small class="text-muted d-block" id="acompanantes-info-${reserva.id}">
-                                    <i class="fas fa-users me-1"></i> 
-                                    <span class="acompanantes-count">Cargando...</span>
-                                </small>
+                                <div class="mb-2">
+                                    <small class="text-muted d-block" id="detalles-huespedes-${reserva.id}">
+                                        <i class="fas fa-user-friends me-1"></i> 
+                                        <span id="adultos-ninos-${reserva.id}">Cargando...</span>
+                                    </small>
+                                    <small class="text-muted d-block" id="nacionalidad-info-${reserva.id}">
+                                        <i class="fas fa-globe me-1"></i> 
+                                        <span id="nacionalidad-detalle-${reserva.id}">Cargando...</span>
+                                    </small>
+                                </div>
                             </div>
                             <div class="col-md-3">
                                 <h5 class="text-primary mb-1">
@@ -709,7 +787,11 @@ function renderizarReservasPagina(reservasList) {
                                 <small class="text-muted d-block">${reserva.habitacion_tipo}</small>
                                 <small class="text-muted d-block">
                                     <i class="fas fa-user-friends me-1"></i> 
-                                    ${reserva.numero_huespedes || reserva.num_huespedes || 1} huésped${(reserva.numero_huespedes || reserva.num_huespedes || 1) > 1 ? 'es' : ''}
+                                    Capacidad: ${reserva.habitacion_capacidad || '-'} huéspedes
+                                </small>
+                                <small class="text-muted d-block">
+                                    <i class="fas fa-bed me-1"></i> 
+                                    Ocupación: ${numHuespedesOcupacion}/${reserva.habitacion_capacidad || '-'}
                                 </small>
                             </div>
                             <div class="col-md-4">
@@ -718,11 +800,17 @@ function renderizarReservasPagina(reservasList) {
                                     ${reserva.fecha_entrada} - ${reserva.fecha_salida}
                                     <span class="badge bg-secondary ms-1">${dias} noche${dias > 1 ? 's' : ''}</span>
                                 </small>
-                                <small class="text-muted d-block text-nowrap" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${pagoIcon} ${pagoTexto}</small>
+                                <small class="text-muted d-block">
+                                    <i class="fas fa-money-bill-wave me-1"></i>
+                                    ${pagoIcon} ${pagoTexto}
+                                </small>
                             </div>
                             <div class="col-md-2 text-end">
                                 <h4 class="text-primary mb-2">$${parseFloat(reserva.total ?? reserva.precio_total ?? 0).toLocaleString('es-CO')}</h4>
-                                <div class="d-flex gap-2 justify-content-end">
+                                <small class="text-muted d-block">
+                                    $${parseFloat((reserva.total ?? reserva.precio_total ?? 0) / numHuespedesOcupacion).toLocaleString('es-CO')} por huésped
+                                </small>
+                                <div class="d-flex gap-2 justify-content-end mt-2">
                                     <button class="btn btn-outline-primary btn-sm" onclick="editarReserva(${reserva.id})">
                                         <i class="fas fa-edit"></i>
                                     </button>
@@ -737,8 +825,8 @@ function renderizarReservasPagina(reservasList) {
             </div>
         `);
         
-        // Cargar información de acompañantes para esta reserva
-        cargarAcompanantesReservaInfo(reserva.id);
+        // Cargar información detallada de huéspedes
+        cargarDetallesHuespedes(reserva.id);
     });
 }
 
@@ -1360,6 +1448,9 @@ function abrirModalNuevo() {
     $('#formReserva')[0].reset();
     $('#reserva_id').val('');
     
+    // Asegurar que el select de motivo viaje esté en blanco
+    $('#motivo_viaje').val('');
+    
     // Limpiar acompañantes temporales
     limpiarAcompanantesTemporales();
     
@@ -1433,34 +1524,84 @@ function editarReserva(id) {
         $('#precio_total').val(reserva.total ?? reserva.precio_total ?? 0);
         $('#estado').val(reserva.estado);
         $('#metodo_pago').val(reserva.metodo_pago ?? 'efectivo');
-        $('#motivo_viaje').val(reserva.motivo_viaje || '');
-        
-        // Separar observaciones del usuario del JSON de acompañantes
-        let observacionesUsuario = reserva.observaciones || '';
-        let notasReserva = '';
-        
-        if (observacionesUsuario) {
-            // Separar el JSON de acompañantes del resto de observaciones
-            const acompanantesMatch = observacionesUsuario.match(/(.*?)(ACOMPANANTES:\s*\[.*?\])/s);
-            if (acompanantesMatch) {
-                // Mantener solo las observaciones de usuario (sin JSON)
-                observacionesUsuario = acompanantesMatch[1].trim();
-            } else {
-                // Si no hay JSON, limpiar cualquier residuo
-                observacionesUsuario = observacionesUsuario.replace(/ACOMPANANTES:\s*\[.*?\]/gs, '').trim();
+        // Buscar motivo de viaje en las observaciones
+        let motivoViaje = '';
+        if (reserva.observaciones) {
+            // Buscar patrón MOTIVO: valor en las observaciones
+            const motivoMatch = reserva.observaciones.match(/MOTIVO:\s*([^\n\r]+)/);
+            if (motivoMatch) {
+                motivoViaje = motivoMatch[1].trim();
             }
-            
-            // Intentar separar las notas específicas de la reserva de las observaciones generales
-            // Por ahora, pondremos todo en notas_reserva ya que es más específico
-            notasReserva = observacionesUsuario;
-            observacionesUsuario = '';
         }
         
-        $('#observaciones').val(observacionesUsuario);
-        $('#notas_reserva').val(notasReserva);
+        $('#motivo_viaje').val(motivoViaje);
+        
+        // Separar observaciones del usuario del JSON de acompañantes y del MOTIVO
+        let observacionesUsuario = reserva.observaciones || '';
+        let notasReserva = '';
+        let observacionesGenerales = '';
+        
+        if (observacionesUsuario) {
+            // Primero, extraer y eliminar el MOTIVO si existe
+            const motivoMatch = observacionesUsuario.match(/MOTIVO:\s*([^\n\r]+)/);
+            if (motivoMatch) {
+                // Ya procesamos el motivo arriba, ahora lo quitamos de las observaciones
+                observacionesUsuario = observacionesUsuario.replace(/MOTIVO:\s*[^\n\r]*\n?/, '').trim();
+            }
+            
+            // Luego, separar el JSON de acompañantes del resto de observaciones
+            const acompanantesMatch = observacionesUsuario.match(/(.*?)(ACOMPANANTES:\s*\[.*?\])/s);
+            if (acompanantesMatch) {
+                // El resto antes del JSON puede contener ambos tipos de observaciones
+                const resto = acompanantesMatch[1].trim();
+                
+                // Buscar etiquetas específicas para separar
+                const obsGeneralesMatch = resto.match(/OBSERVACIONES_GENERALES:\s*([\s\S]*?)(?=NOTAS_RESERVA:|$)/);
+                const notasReservaMatch = resto.match(/NOTAS_RESERVA:\s*([\s\S]*?)(?=OBSERVACIONES_GENERALES:|$)/);
+                
+                if (obsGeneralesMatch) {
+                    observacionesGenerales = obsGeneralesMatch[1].trim();
+                }
+                if (notasReservaMatch) {
+                    notasReserva = notasReservaMatch[1].trim();
+                }
+                
+                // Si no hay etiquetas, asumir que todo son notas de reserva (comportamiento anterior)
+                if (!obsGeneralesMatch && !notasReservaMatch) {
+                    notasReserva = resto;
+                    observacionesGenerales = '';
+                }
+            } else {
+                // Si no hay JSON, buscar etiquetas en todo el texto
+                const obsGeneralesMatch = observacionesUsuario.match(/OBSERVACIONES_GENERALES:\s*([\s\S]*?)(?=NOTAS_RESERVA:|$)/);
+                const notasReservaMatch = observacionesUsuario.match(/NOTAS_RESERVA:\s*([\s\S]*?)(?=OBSERVACIONES_GENERALES:|$)/);
+                
+                if (obsGeneralesMatch) {
+                    observacionesGenerales = obsGeneralesMatch[1].trim();
+                }
+                if (notasReservaMatch) {
+                    notasReserva = notasReservaMatch[1].trim();
+                }
+                
+                // Si no hay etiquetas, asumir que todo son notas de reserva
+                if (!obsGeneralesMatch && !notasReservaMatch) {
+                    notasReserva = observacionesUsuario.trim();
+                    observacionesGenerales = '';
+                }
+            }
+        }
+        
+        // Asignar a los campos correctos
+        $('#observaciones').val(observacionesGenerales);  // Campo de observaciones generales
+        $('#notas_reserva').val(notasReserva);           // Campo de notas específicas de la reserva
         
         // Guardar el valor correcto para establecerlo después de que todo cargue
         const valorHuespedesCorrecto = reserva.numero_huespedes ?? reserva.num_huespedes ?? 1;
+        
+        // Establecer valores de adultos/niños (por defecto todos adultos)
+        $('#numero_adultos').val(valorHuespedesCorrecto);
+        $('#numero_ninos').val(0);
+        $('#numero_huespedes').val(valorHuespedesCorrecto);
         
         // Abrir el modal PRIMERO
         console.log('Abriendo modal de edición...');
@@ -1490,9 +1631,14 @@ function editarReserva(id) {
                     // Actualizar capacidad
                     actualizarCapacidadMaxima();
                     
-                    // Cargar acompañantes existentes
+                    // Actualizar distribución por nacionalidad
                     setTimeout(() => {
-                        cargarAcompanantesReserva(reserva.id);
+                        actualizarDistribucionNacionalidad();
+                    }, 100);
+                    
+                    // Cargar acompañantes existentes en el formulario
+                    setTimeout(() => {
+                        cargarAcompanantesReservaEnFormularioDesdeObservaciones(reserva);
                     }, 300);
                 }, 200);
             }).fail(function(xhr, status, error) {
@@ -1514,17 +1660,92 @@ function resetAcompanantesReservaForm() {
     if (container) {
         container.innerHTML = '<p class="text-muted mb-0 text-center">No hay acompañantes registrados</p>';
     }
-    // Esto también sincroniza el campo numero_huespedes
+    // No actualizar contadores aquí, se hará después de cargar
+}
+
+function cargarAcompanantesReservaEnFormularioDesdeObservaciones(reserva) {
+    // Limpiar primero
+    resetAcompanantesReservaForm();
+    
+    console.log('Cargando acompañantes desde observaciones para reserva:', reserva.id);
+    
+    if (!reserva.observaciones) {
+        console.log('No hay observaciones para cargar acompañantes');
+        // Actualizar contador aunque no haya acompañantes
+        actualizarListaAcompanantes();
+        return;
+    }
+    
     try {
-        actualizarTotalHuespedes();
+        // Buscar el JSON de acompañantes en las observaciones
+        const obsText = reserva.observaciones;
+        const acompanantesMatch = obsText.match(/ACOMPANANTES:\s*(\[.*?\])/s);
+        
+        if (acompanantesMatch && acompanantesMatch[1]) {
+            const acompanantesJSON = acompanantesMatch[1];
+            const acompanantesData = JSON.parse(acompanantesJSON);
+            
+            console.log('Acompañantes encontrados:', acompanantesData);
+            
+            // Obtener el ID del cliente principal para excluirlo
+            const clientePrincipalId = reserva.cliente_id;
+            
+            // Filtrar y cargar solo los que no sean el cliente principal
+            const acompanantesFiltrados = acompanantesData.filter(a => a.persona_id != clientePrincipalId);
+            
+            if (acompanantesFiltrados.length === 0) {
+                console.log('No hay acompañantes adicionales (solo cliente principal)');
+                // Limpiar el contenedor y actualizar contador
+                const container = document.getElementById('acompanantesReservaContainer');
+                if (container) {
+                    container.innerHTML = '<p class="text-muted mb-0 text-center">No hay acompañantes registrados</p>';
+                }
+                actualizarListaAcompanantes();
+                return;
+            }
+            
+            // Limpiar el contenedor antes de agregar
+            const container = document.getElementById('acompanantesReservaContainer');
+            if (container) {
+                container.innerHTML = '';
+            }
+            
+            // Cargar cada acompañante en el formulario
+            acompanantesFiltrados.forEach((acompanante, idx) => {
+                agregarFormularioAcompananteVacio();
+                const n = acompananteReservaCount; // Usar el contador actualizado
+                
+                console.log(`Cargando acompañante ${n}:`, acompanante);
+                
+                // Actualizar spans visibles (solo lectura)
+                $(`#acompanante_nombre_${n}`).text(acompanante.nombre || '[Nombre]');
+                $(`#acompanante_apellido_${n}`).text(acompanante.apellido || '[Apellido]');
+                $(`#acompanante_documento_${n}`).text(`${acompanante.tipo_documento || 'CC'}: ${acompanante.numero_documento || '[Documento]'}`);
+                
+                // Actualizar campos ocultos (para guardar)
+                $(`#hidden_acompanante_nombre_${n}`).val(acompanante.nombre || '');
+                $(`#hidden_acompanante_apellido_${n}`).val(acompanante.apellido || '');
+                $(`#hidden_acompanante_tipo_doc_${n}`).val(acompanante.tipo_documento || 'CC');
+                $(`#hidden_acompanante_num_doc_${n}`).val(acompanante.numero_documento || '');
+            });
+            
+            console.log(`Se cargaron ${acompanantesFiltrados.length} acompañantes en el formulario`);
+            
+            // Actualizar contador después de cargar
+            actualizarListaAcompanantes();
+        } else {
+            console.log('No se encontró JSON de acompañantes en las observaciones');
+            // Actualizar contador aunque no haya JSON
+            actualizarListaAcompanantes();
+        }
     } catch (e) {
-        // si el DOM aún no está listo para actualizar, ignorar
+        console.error('Error cargando acompañantes desde observaciones:', e);
+        // Actualizar contador en caso de error
+        actualizarListaAcompanantes();
     }
 }
 
-function cargarAcompanantesReservaEnFormulario(reservaId) {
-    // Limpiar primero
-    resetAcompanantesReservaForm();
+function cargarAcompanantesReserva(reservaId) {
 
     $.get(`api/endpoints/acompanantes.php?reserva_id=${encodeURIComponent(reservaId)}`, function(data) {
         const lista = Array.isArray(data) ? data : (data.records || data.acompanantes || []);
@@ -1654,27 +1875,39 @@ function guardarReserva(e) {
     // Obtener acompañantes del formulario
     const acompanantes = obtenerAcompanantesReserva();
 
-    // Preservar JSON de acompañantes existente en las observaciones
-    let observacionesLimpias = $('#observaciones').val() || '';
+    // Obtener las notas del usuario del campo de notas_reserva y observaciones generales
+    let notasUsuario = $('#notas_reserva').val() || '';
+    let observacionesGenerales = $('#observaciones').val() || '';
+    let observacionesLimpias = '';
     
-    // Combinar las notas de la reserva con las observaciones existentes
-    if (notasReserva) {
+    // Construir las observaciones finales con etiquetas específicas
+    if (observacionesGenerales) {
+        observacionesLimpias = 'OBSERVACIONES_GENERALES:\n' + observacionesGenerales;
+    }
+    
+    if (notasUsuario) {
         if (observacionesLimpias) {
-            observacionesLimpias = notasReserva + '\n\n' + observacionesLimpias;
+            observacionesLimpias += '\n\nNOTAS_RESERVA:\n' + notasUsuario;
         } else {
-            observacionesLimpias = notasReserva;
+            observacionesLimpias = 'NOTAS_RESERVA:\n' + notasUsuario;
         }
     }
     
-    if (observacionesLimpias) {
-        // Separar el JSON de acompañantes del resto de observaciones
-        const acompanantesMatch = observacionesLimpias.match(/(.*?)(ACOMPANANTES:\s*\[.*?\])/s);
-        if (acompanantesMatch) {
-            // Mantener solo las observaciones de usuario (sin JSON)
-            observacionesLimpias = acompanantesMatch[1].trim();
+    // Agregar JSON de acompañantes si hay
+    if (acompanantes.length > 0) {
+        const jsonAcompanantes = JSON.stringify(acompanantes, null, 2);
+        if (observacionesLimpias) {
+            observacionesLimpias += '\n\nACOMPANANTES:\n' + jsonAcompanantes;
         } else {
-            // Si no hay JSON, limpiar cualquier residuo
-            observacionesLimpias = observacionesLimpias.replace(/ACOMPANANTES:\s*\[.*?\]/gs, '').trim();
+            observacionesLimpias = 'ACOMPANANTES:\n' + jsonAcompanantes;
+        }
+    }
+
+    // Agregar motivo de viaje a las observaciones solo si se seleccionó uno válido
+    if (motivoViaje && motivoViaje !== '') {
+        // Verificar si ya existe un MOTIVO en las observaciones para evitar duplicados
+        if (!observacionesLimpias.match(/MOTIVO:\s*[^\n\r]+/)) {
+            observacionesLimpias = `MOTIVO: ${motivoViaje}\n${observacionesLimpias}`;
         }
     }
 
@@ -1687,7 +1920,6 @@ function guardarReserva(e) {
         total: total,
         estado: $('#estado').val() || 'pendiente',
         metodo_pago: $('#metodo_pago').val() || 'efectivo',
-        motivo_viaje: motivoViaje,
         observaciones: observacionesLimpias,
         noches: noches,
         acompanantes: acompanantes // Agregar acompañantes al envío
@@ -2109,7 +2341,25 @@ function cargarAcompanantesReservaInfo(reservaId) {
     // Buscar la reserva en la lista actual para obtener el número de huéspedes
     const reserva = reservas.find(r => r.id == reservaId);
     if (reserva) {
-        const numHuespedes = reserva.num_huespedes || reserva.numero_huespedes || 1;
+        let numHuespedes = reserva.num_huespedes || reserva.numero_huespedes || 1;
+        
+        // Si es null, contar desde el JSON de acompañantes
+        if (!reserva.num_huespedes && !reserva.numero_huespedes && reserva.observaciones) {
+            try {
+                // Buscar JSON de acompañantes
+                if (reserva.observaciones.includes('ACOMPANANTES:')) {
+                    const acompanantesMatch = reserva.observaciones.match(/ACOMPANANTES:\s*(\[.*?\])/s);
+                    if (acompanantesMatch) {
+                        const acompanantes = JSON.parse(acompanantesMatch[1]);
+                        numHuespedes = (acompanantes?.length || 0) + 1; // +1 por el cliente principal
+                    }
+                }
+            } catch (e) {
+                console.error('Error parsing acompañantes:', e);
+                numHuespedes = 1;
+            }
+        }
+        
         if (numHuespedes > 1) {
             infoElement.text(`${numHuespedes} huéspedes`);
         } else {
@@ -2154,36 +2404,40 @@ function actualizarTotalHuespedes() {
     let menores = 0;
     
     acompanantes.forEach(function(item) {
-        const nombre = item.querySelector('[name^="acompanante_reserva_nombre_"]').value;
-        const apellido = item.querySelector('[name^="acompanante_reserva_apellido_"]').value;
+        // Leer desde campos ocultos con verificación de nulidad
+        const nombreInput = item.querySelector('[name^="hidden_acompanante_nombre_"]');
+        const apellidoInput = item.querySelector('[name^="hidden_acompanante_apellido_"]');
         
-        if (nombre && apellido) {
+        if (nombreInput && apellidoInput && nombreInput.value && apellidoInput.value) {
             totalHuespedes++;
-            const edadInput = item.querySelector('[name^="acompanante_reserva_edad_"]');
-            const edad = parseInt(edadInput.value) || 0;
-            
-            if (edad < 18) {
-                menores++;
-            } else {
-                adultos++;
-            }
+            // En diseño minimalista, asumimos que son adultos
+            adultos++;
         }
     });
     
-    // Actualizar el campo de número de huéspedes
-    document.getElementById('numero_huespedes').value = totalHuespedes;
+    // Actualizar campos
+    const numeroHuespedesInput = document.getElementById('numero_huespedes');
+    const numeroAdultosInput = document.getElementById('numero_adultos');
+    const numeroNinosInput = document.getElementById('numero_ninos');
     
-    // Actualizar información visual (si existe)
-    const totalHuespedesCount = document.getElementById('totalHuespedesCount');
-    if (totalHuespedesCount) {
-        document.getElementById('totalHuespedesCount').textContent = totalHuespedes;
-        document.getElementById('adultosCount').textContent = adultos;
-        document.getElementById('menoresCount').textContent = menores;
-        document.getElementById('totalHuespedesInfo').style.display = 'block';
+    if (numeroHuespedesInput) {
+        numeroHuespedesInput.value = totalHuespedes;
+    }
+    if (numeroAdultosInput) {
+        numeroAdultosInput.value = adultos;
+    }
+    if (numeroNinosInput) {
+        numeroNinosInput.value = menores;
     }
     
-    // Validar capacidad
-    validarCapacidad();
+    // Actualizar capacidad
+    actualizarCapacidadInfo();
+    
+    // Actualizar distribución por nacionalidad si hay datos
+    const reservaId = document.getElementById('reserva_id').value;
+    if (reservaId) {
+        actualizarDistribucionNacionalidad(reservaId);
+    }
 }
 
 function cargarAcompanantesPendientes() {
@@ -2442,8 +2696,45 @@ function agregarAcompananteReserva() {
         return;
     }
     
-    // Abrir modal de búsqueda
-    abrirModalBusquedaPersonas();
+    // Agregar formulario vacío (no abrir modal de búsqueda automáticamente)
+    agregarFormularioAcompananteVacio();
+}
+
+function agregarFormularioAcompananteVacio() {
+    const container = document.getElementById('acompanantesReservaContainer');
+    if (!container) return;
+    
+    acompananteReservaCount++;
+    const n = acompananteReservaCount;
+    
+    const formHtml = `
+        <div class="acompanante-reserva-item mb-2" id="acompanante_${n}">
+            <div class="d-flex align-items-center">
+                <strong class="me-2">Acompañante ${n}:</strong>
+                <span class="me-3" id="acompanante_nombre_${n}">[Nombre]</span>
+                <span class="me-3" id="acompanante_apellido_${n}">[Apellido]</span>
+                <span class="me-3" id="acompanante_documento_${n}">[Documento]</span>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="eliminarAcompananteReserva(${n})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            <!-- Campos ocultos para guardar datos -->
+            <input type="hidden" name="acompanante_reserva_nombre_${n}" id="hidden_acompanante_nombre_${n}">
+            <input type="hidden" name="acompanante_reserva_apellido_${n}" id="hidden_acompanante_apellido_${n}">
+            <input type="hidden" name="acompanante_reserva_tipo_doc_${n}" id="hidden_acompanante_tipo_doc_${n}">
+            <input type="hidden" name="acompanante_reserva_num_doc_${n}" id="hidden_acompanante_num_doc_${n}">
+        </div>
+    `;
+    
+    // Si es el primer acompañante, limpiar el mensaje "No hay acompañantes"
+    if (acompananteReservaCount === 1) {
+        container.innerHTML = '';
+    }
+    
+    container.insertAdjacentHTML('beforeend', formHtml);
+    
+    // Actualizar contadores
+    actualizarListaAcompanantes();
 }
 
 function abrirModalBusquedaPersonas() {
@@ -2660,14 +2951,17 @@ function cargarPersonasParaSelect2() {
 
 function agregarPersonaComoAcompananteDirecto(persona) {
     // Validar capacidad antes de agregar
-    const totalActual = 1 + acompanantesTemporales.length;
+    const totalActual = 1 + document.querySelectorAll('.acompanante-reserva-item').length;
     if (totalActual >= capacidadMaximaHabitacion) {
         showNotification('Ha alcanzado la capacidad máxima de la habitación', 'warning');
         return;
     }
     
     // Verificar si ya está agregado
-    const yaExiste = acompanantesTemporales.find(a => a.persona_id == persona.id);
+    const yaExiste = Array.from(document.querySelectorAll('.acompanante-reserva-item')).some(item => {
+        const hiddenId = item.querySelector('[name^="hidden_acompanante_nombre_"]');
+        return hiddenId && hiddenId.value === persona.nombre;
+    });
     if (yaExiste) {
         showNotification('Esta persona ya está agregada como acompañante', 'warning');
         return;
@@ -2680,22 +2974,20 @@ function agregarPersonaComoAcompananteDirecto(persona) {
         return;
     }
     
-    // Agregar a la lista
-    const acompanante = {
-        index: Date.now(),
-        persona_id: persona.id,
-        nombre: persona.nombre,
-        apellido: persona.apellido,
-        tipo_documento: 'CC', // Valor por defecto ya que clientes no tiene tipo_documento
-        numero_documento: persona.documento, // Clientes usa 'documento'
-        fecha_nacimiento: null, // Clientes no tiene fecha_nacimiento
-        parentesco: '',
-        email: persona.email,
-        telefono: persona.telefono || '',
-        es_menor: false // Por defecto ya que no podemos calcular edad
-    };
+    // Agregar formulario de acompañante con los datos
+    agregarFormularioAcompananteVacio();
+    const n = acompananteReservaCount;
     
-    acompanantesTemporales.push(acompanante);
+    // Actualizar spans visibles (solo lectura)
+    $(`#acompanante_nombre_${n}`).text(persona.nombre || '[Nombre]');
+    $(`#acompanante_apellido_${n}`).text(persona.apellido || '[Apellido]');
+    $(`#acompanante_documento_${n}`).text(`CC: ${persona.documento || '[Documento]'}`);
+    
+    // Actualizar campos ocultos (para guardar)
+    $(`#hidden_acompanante_nombre_${n}`).val(persona.nombre || '');
+    $(`#hidden_acompanante_apellido_${n}`).val(persona.apellido || '');
+    $(`#hidden_acompanante_tipo_doc_${n}`).val('CC');
+    $(`#hidden_acompanante_num_doc_${n}`).val(persona.documento || '');
     
     // Actualizar interfaz
     actualizarListaAcompanantes();
@@ -2805,41 +3097,31 @@ function actualizarListaAcompanantes() {
     const container = $('#acompanantesReservaContainer');
     const contador = $('#contadorAcompanantes');
     
-    contador.text(acompanantesTemporales.length);
+    // Contar los formularios de acompañantes con la clase correcta
+    const formulariosAcompanantes = container.find('.acompanante-reserva-item').length;
+    contador.text(formulariosAcompanantes);
     
-    if (acompanantesTemporales.length === 0) {
+    if (formulariosAcompanantes === 0) {
         container.html('<p class="text-muted mb-0 text-center">No hay acompañantes registrados</p>');
-        return;
     }
     
-    let html = '';
-    acompanantesTemporales.forEach((acompanante, index) => {
-        const edad = acompanante.fecha_nacimiento ? calcularEdad(acompanante.fecha_nacimiento) : 'N/A';
-        const menorBadge = acompanante.es_menor ? '<span class="badge bg-warning ms-1">Menor</span>' : '';
+    // Actualizar totales de huéspedes
+    actualizarTotalHuespedes();
+}
+
+function eliminarAcompananteReserva(numero) {
+    if (confirm('¿Está seguro de eliminar este acompañante?')) {
+        // Eliminar el formulario del acompañante
+        $(`#acompanante_${numero}`).remove();
         
-        html += `
-            <div class="d-flex justify-content-between align-items-center p-2 border-bottom acompanante-item">
-                <div class="flex-grow-1">
-                    <div class="d-flex align-items-center">
-                        <strong>${acompanante.nombre} ${acompanante.apellido}</strong>
-                        ${menorBadge}
-                    </div>
-                    <small class="text-muted d-block">
-                        ${acompanante.tipo_documento}: ${acompanante.numero_documento}
-                        ${acompanante.parentesco ? `• ${acompanante.parentesco}` : ''}
-                        ${edad !== 'N/A' ? `• ${edad} años` : ''}
-                    </small>
-                </div>
-                <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-danger" onclick="eliminarAcompanante(${acompanante.index})" title="Eliminar">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-    });
-    
-    container.html(html);
+        // Actualizar contador
+        actualizarListaAcompanantes();
+        
+        // Actualizar capacidad
+        actualizarCapacidadInfo();
+        
+        showNotification('Acompañante eliminado', 'info');
+    }
 }
 
 function eliminarAcompanante(index) {
@@ -2867,7 +3149,9 @@ function calcularEdad(fechaNacimiento) {
 }
 
 function actualizarCapacidadInfo() {
-    const totalHuéspedes = 1 + acompanantesTemporales.length; // 1 = cliente principal
+    // Contar acompañantes reales desde los spans
+    const acompanantesReales = document.querySelectorAll('.acompanante-reserva-item').length;
+    const totalHuéspedes = 1 + acompanantesReales; // 1 = cliente principal
     const disponibles = capacidadMaximaHabitacion - totalHuéspedes;
     
     const alert = $('#capacidadAlert');
@@ -3552,5 +3836,219 @@ $(document).ready(function() {
     background: #adb5bd;
 }
 </style>
+
+<script>
+// Funciones para manejar la distribución de huéspedes
+function actualizarDistribucionHuespedes() {
+    const numAdultos = parseInt($('#numero_adultos').val()) || 1;
+    const numNinos = parseInt($('#numero_ninos').val()) || 0;
+    const totalHuespedes = numAdultos + numNinos;
+    
+    // Actualizar el campo total
+    $('#numero_huespedes').val(totalHuespedes);
+    
+    // Validar capacidad
+    validarCapacidad();
+    
+    // Actualizar precio por huésped si hay precio total
+    const precioTotal = parseFloat($('#precio_total').val()) || 0;
+    if (precioTotal > 0 && totalHuespedes > 0) {
+        $('#precio_por_huesped').val((precioTotal / totalHuespedes).toFixed(2));
+    }
+    
+    // Actualizar distribución por nacionalidad si hay cliente seleccionado
+    actualizarDistribucionNacionalidad();
+}
+
+function validadDistribucionHuespedes() {
+    const numAdultos = parseInt($('#numero_adultos').val()) || 1;
+    const numNinos = parseInt($('#numero_ninos').val()) || 0;
+    const totalHuespedes = numAdultos + numNinos;
+    
+    // Validar que haya al menos un adulto
+    if (numAdultos < 1) {
+        $('#numero_adultos').addClass('is-invalid');
+        showNotification('Debe haber al menos un adulto', 'error');
+        return false;
+    } else {
+        $('#numero_adultos').removeClass('is-invalid');
+    }
+    
+    // Validar que el total coincida
+    const totalCampo = parseInt($('#numero_huespedes').val()) || 0;
+    if (totalHuespedes !== totalCampo) {
+        $('#numero_huespedes').val(totalHuespedes);
+    }
+    
+    return true;
+}
+
+function actualizarDistribucionNacionalidad() {
+    const clienteId = $('#cliente_id').val();
+    const reservaId = $('#reserva_id').val();
+    
+    if (!clienteId) {
+        $('#nacionalidad-principal').text('-');
+        $('#nacionalidad-acompanantes').text('-');
+        $('#nacionalidad-total').text('-');
+        return;
+    }
+    
+    // Obtener información del cliente con manejo de errores mejorado
+    $.get(`api/endpoints/clientes.php?id=${clienteId}`)
+    .done(function(cliente) {
+        const nacionalidadPrincipal = cliente.pais || 'No especificada';
+        $('#nacionalidad-principal').text(nacionalidadPrincipal);
+        
+        // Si estamos editando, obtener distribución desde la API
+        if (reservaId) {
+            $.get(`api/endpoints/reservas.php?accion=distribucion_nacionalidad&id=${reservaId}`)
+            .done(function(distribucion) {
+                if (distribucion.success && distribucion.data) {
+                    let distribucionText = '';
+                    let totalAcompanantes = 0;
+                    
+                    for (const [pais, count] of Object.entries(distribucion.data)) {
+                        if (count > 1) {
+                            distribucionText += `${count} de ${pais}, `;
+                        } else {
+                            distribucionText += `1 de ${pais}, `;
+                        }
+                        totalAcompanantes += count;
+                    }
+                    
+                    // Quitar la última coma y espacio
+                    distribucionText = distribucionText.slice(0, -2);
+                    
+                    $('#nacionalidad-acompanantes').text(distribucionText);
+                    $('#nacionalidad-total').text(`${totalAcompanantes} huésped${totalAcompanantes > 1 ? 'es' : ''}`);
+                } else {
+                    // Fallback: mostrar solo el cliente principal
+                    $('#nacionalidad-acompanantes').text('Solo cliente principal');
+                    $('#nacionalidad-total').text('1 huésped');
+                }
+            })
+            .fail(function() {
+                // Fallback: mostrar solo el cliente principal
+                $('#nacionalidad-acompanantes').text('Solo cliente principal');
+                $('#nacionalidad-total').text('1 huésped');
+            });
+        } else {
+            // Si es nueva reserva, contar acompañantes del formulario
+            const acompanantes = obtenerAcompanantesReserva();
+            const nacionalidades = {};
+            
+            // Incluir al cliente principal
+            nacionalidades[nacionalidadPrincipal] = (nacionalidades[nacionalidadPrincipal] || 0) + 1;
+            
+            // Contar acompañantes
+            acompanantes.forEach(acompanante => {
+                const pais = acompanante.pais || 'No especificada';
+                nacionalidades[pais] = (nacionalidades[pais] || 0) + 1;
+            });
+            
+            // Mostrar distribución
+            let distribucionText = '';
+            let totalAcompanantes = 0;
+            
+            for (const [pais, count] of Object.entries(nacionalidades)) {
+                if (count > 1) {
+                    distribucionText += `${count} de ${pais}, `;
+                } else {
+                    distribucionText += `1 de ${pais}, `;
+                }
+                totalAcompanantes += count;
+            }
+            
+            // Quitar la última coma y espacio
+            distribucionText = distribucionText.slice(0, -2);
+            
+            $('#nacionalidad-acompanantes').text(distribucionText);
+            $('#nacionalidad-total').text(`${totalAcompanantes} huésped${totalAcompanantes > 1 ? 'es' : ''}`);
+        }
+    })
+    .fail(function() {
+        // Si falla la carga del cliente, mostrar valores por defecto
+        $('#nacionalidad-principal').text('No disponible');
+        $('#nacionalidad-acompanantes').text('No disponible');
+        $('#nacionalidad-total').text('No disponible');
+    });
+}
+
+function cargarDetallesHuespedes(reservaId) {
+    // Obtener información detallada de la reserva
+    $.get(`api/endpoints/reservas.php?id=${reservaId}`, function(reserva) {
+        // Contar huéspedes desde observaciones si num_huespedes es null
+        let numHuespedes = reserva.numero_huespedes || reserva.num_huespedes || 1;
+        
+        // Si es null, contar desde el JSON de acompañantes
+        if (!reserva.numero_huespedes && !reserva.num_huespedes && reserva.observaciones) {
+            try {
+                // Buscar JSON de acompañantes
+                if (reserva.observaciones.includes('ACOMPANANTES:')) {
+                    const acompanantesMatch = reserva.observaciones.match(/ACOMPANANTES:\s*(\[.*?\])/s);
+                    if (acompanantesMatch) {
+                        const acompanantes = JSON.parse(acompanantesMatch[1]);
+                        numHuespedes = (acompanantes?.length || 0) + 1; // +1 por el cliente principal
+                    }
+                }
+            } catch (e) {
+                console.error('Error parsing acompañantes:', e);
+                numHuespedes = 1;
+            }
+        }
+        
+        // Por defecto, asumimos que todos son adultos si no hay datos específicos
+        const adultos = numHuespedes;
+        const ninos = 0;
+        
+        // Actualizar detalles de huéspedes
+        $(`#adultos-ninos-${reservaId}`).text(`${adultos} adulto${adultos > 1 ? 's' : ''}, ${ninos} niño${ninos > 1 ? 's' : ''}`);
+        
+        // Mostrar nacionalidad del cliente principal directamente
+        const nacionalidadText = reserva.cliente_pais || 'No especificada';
+        $(`#nacionalidad-detalle-${reservaId}`).text(nacionalidadText);
+        
+        // Intentar obtener distribución por nacionalidad si hay acompañantes
+        $.get(`api/endpoints/reservas.php?accion=distribucion_nacionalidad&id=${reservaId}`, function(distribucion) {
+            if (distribucion.success && distribucion.data && Object.keys(distribucion.data).length > 1) {
+                let nacionalidadText = '';
+                for (const [pais, count] of Object.entries(distribucion.data)) {
+                    if (count > 1) {
+                        nacionalidadText += `${count} de ${pais}, `;
+                    } else {
+                        nacionalidadText += `1 de ${pais}, `;
+                    }
+                }
+                nacionalidadText = nacionalidadText.slice(0, -2); // Quitar última coma
+                
+                $(`#nacionalidad-detalle-${reservaId}`).text(nacionalidadText);
+            }
+        }).fail(function() {
+            // Silenciosamente fallback a nacionalidad del cliente
+        });
+    });
+}
+
+// Actualizar distribución cuando cambia el cliente
+$('#cliente_id').on('change', function() {
+    actualizarDistribucionNacionalidad();
+});
+
+// Actualizar precio por huésped cuando cambia el precio total
+$('#precio_total').on('input', function() {
+    const precioTotal = parseFloat($(this).val()) || 0;
+    const totalHuespedes = parseInt($('#numero_huespedes').val()) || 1;
+    
+    if (precioTotal > 0 && totalHuespedes > 0) {
+        $('#precio_por_huesped').val((precioTotal / totalHuespedes).toFixed(2));
+    }
+});
+
+// Inicializar distribución al cargar el modal
+$('#modalReserva').on('shown.bs.modal', function() {
+    actualizarDistribucionNacionalidad();
+});
+</script>
 
 <?php include 'includes/footer.php'; ?>

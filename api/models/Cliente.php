@@ -51,18 +51,8 @@ class Cliente {
 
     // Obtener cliente por ID
     public function getById() {
-        // Consulta segura que verifica si existen los campos adicionales
-        $query = "SELECT c.id, c.nombre, c.apellido, c.email, c.telefono, c.tipo_documento, c.documento, c.fecha_nacimiento, c.ciudad, c.pais, c.direccion, c.created_at,
-                         CASE 
-                             WHEN (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'clientes' AND COLUMN_NAME = 'motivo_viaje') > 0 
-                             THEN c.motivo_viaje 
-                             ELSE 'turismo' 
-                         END as motivo_viaje,
-                         CASE 
-                             WHEN (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'clientes' AND COLUMN_NAME = 'acompanantes_info') > 0 
-                             THEN c.acompanantes_info 
-                             ELSE NULL 
-                         END as acompanantes_info
+        // Consulta simple sin campos opcionales que causan errores
+        $query = "SELECT c.id, c.nombre, c.apellido, c.email, c.telefono, c.tipo_documento, c.documento, c.fecha_nacimiento, c.ciudad, c.pais, c.direccion, c.created_at
                   FROM " . $this->table_name . " c
                   WHERE c.id = ? AND c.deleted_at IS NULL";
         

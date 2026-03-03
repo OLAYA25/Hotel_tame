@@ -19,6 +19,13 @@ class Reserva {
     public $created_at;
     public $updated_at;
     public $deleted_at;
+    
+    // Propiedades adicionales para joins
+    public $cliente_nombre;
+    public $cliente_pais;
+    public $habitacion_numero;
+    public $habitacion_tipo;
+    public $capacidad;
 
     // Estados válidos para una reserva
     private $estados_validos = ['pendiente', 'confirmada', 'cancelada', 'completada'];
@@ -110,8 +117,10 @@ class Reserva {
                     c.nombre as cliente_nombre, 
                     c.email as cliente_email, 
                     c.telefono as cliente_telefono,
+                    c.pais as cliente_pais,
                     h.numero as habitacion_numero, 
                     h.tipo as habitacion_tipo,
+                    h.capacidad as capacidad,
                     h.precio_noche as habitacion_precio
                 FROM " . $this->table_name . " r
                 LEFT JOIN clientes c ON r.cliente_id = c.id
@@ -170,8 +179,10 @@ class Reserva {
                     c.nombre as cliente_nombre, 
                     c.email as cliente_email,
                     c.telefono as cliente_telefono,
+                    c.pais as cliente_pais,
                     h.numero as habitacion_numero, 
                     h.tipo as habitacion_tipo,
+                    h.capacidad as capacidad,
                     h.precio_noche as habitacion_precio
                 FROM " . $this->table_name . " r
                 LEFT JOIN clientes c ON r.cliente_id = c.id
@@ -198,6 +209,14 @@ class Reserva {
             $this->notas = $row['notas'] ?? null;
             $this->created_at = $row['created_at'];
             $this->updated_at = $row['updated_at'];
+            
+            // Agregar propiedades adicionales
+            $this->cliente_nombre = $row['cliente_nombre'] ?? null;
+            $this->cliente_pais = $row['cliente_pais'] ?? null;
+            $this->habitacion_numero = $row['habitacion_numero'] ?? null;
+            $this->habitacion_tipo = $row['habitacion_tipo'] ?? null;
+            $this->capacidad = $row['capacidad'] ?? null;
+            
             return true;
         }
         return false;
@@ -272,8 +291,10 @@ class Reserva {
                     r.precio_total AS total,
                     r.num_noches AS noches,
                     c.nombre as cliente_nombre,
+                    c.pais as cliente_pais,
                     h.numero as habitacion_numero, 
-                    h.tipo as habitacion_tipo
+                    h.tipo as habitacion_tipo,
+                    h.capacidad as capacidad
                 FROM " . $this->table_name . " r
                 LEFT JOIN clientes c ON r.cliente_id = c.id
                 LEFT JOIN habitaciones h ON r.habitacion_id = h.id
