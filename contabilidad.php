@@ -31,6 +31,9 @@ include 'includes/sidebar.php';
                 <button class="btn btn-outline-info" onclick="generarReporte()">
                     <i class="fas fa-file-excel me-2"></i>Exportar Reporte
                 </button>
+                <button class="btn btn-outline-success" onclick="window.location.href='informe_huespedes.php'">
+                    <i class="fas fa-users me-2"></i>Informe Huéspedes
+                </button>
             </div>
         </div>
     </div>
@@ -94,6 +97,70 @@ include 'includes/sidebar.php';
                             <i class="fas fa-exchange-alt fa-2x"></i>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Informe de Huéspedes Resumido -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Resumen de Huéspedes del Mes</h5>
+                <button class="btn btn-sm btn-outline-primary" onclick="cargarResumenHuespedes()">
+                    <i class="fas fa-sync me-1"></i>Actualizar
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row g-3" id="resumenHuespedes">
+                <div class="col-md-2">
+                    <div class="text-center">
+                        <h4 class="text-primary" id="resumenTotalReservas">0</h4>
+                        <small class="text-muted">Reservas</small>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="text-center">
+                        <h4 class="text-success" id="resumenTotalIngresos">$0</h4>
+                        <small class="text-muted">Ingresos</small>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="text-center">
+                        <h4 class="text-info" id="resumenTotalPax">0</h4>
+                        <small class="text-muted">Total Pax</small>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="text-center">
+                        <h4 class="text-warning" id="resumenAdultos">0</h4>
+                        <small class="text-muted">Adultos</small>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="text-center">
+                        <h4 class="text-danger" id="resumenNinos">0</h4>
+                        <small class="text-muted">Niños</small>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="text-center">
+                        <h4 class="text-secondary" id="resumenDias">0</h4>
+                        <small class="text-muted">Días HPDJ</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Gráfico de Motivos de Viaje -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <h6>Distribución por Motivo de Viaje</h6>
+                    <canvas id="graficoMotivos" width="400" height="200"></canvas>
+                </div>
+                <div class="col-md-6">
+                    <h6>Distribución por Nacionalidad</h6>
+                    <canvas id="graficoNacionalidades" width="400" height="200"></canvas>
                 </div>
             </div>
         </div>
@@ -295,7 +362,7 @@ $(document).ready(function() {
     cargarResumenFinanciero();
     cargarTransacciones();
     cargarCuentas();
-    
+    cargarResumenHuespedes(); // Cargar resumen de huéspedes
     // Establecer fecha actual por defecto
     $('#fecha').val(new Date().toISOString().split('T')[0]);
 });
@@ -568,6 +635,121 @@ function generarReporte() {
     const fechaFin = $('#fechaFin').val();
     
     window.open(`api/endpoints/contabilidad.php?accion=exportar_excel&fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}`, '_blank');
+}
+
+// Funciones para el resumen de huéspedes
+function cargarResumenHuespedes() {
+    const mes = new Date().getMonth() + 1;
+    const anio = new Date().getFullYear();
+    
+    $.get(`api/endpoints/informe_huespedes_csv.php?accion=generar_informe&mes=${mes}&anio=${anio}`, function(data) {
+        console.log('Resumen de huéspedes:', data);
+        
+        // Actualizar contadores
+        $('#resumenTotalReservas').text(data.totales.total_reservas);
+        $('#resumenTotalIngresos').text('$' + data.totales.total_valor);
+        $('#resumenTotalPax').text(data.totales.total_pax);
+        $('#resumenAdultos').text(data.totales.total_adultos);
+        $('#resumenNinos').text(data.totales.total_ninos);
+        $('#resumenDias').text(data.totales.total_dias);
+        
+        // Generar gráficos
+        generarGraficos(data.informe);
+    }).fail(function(xhr, status, error) {
+        console.error('Error cargando resumen de huéspedes:', xhr.responseText);
+    });
+}
+
+function generarGraficos(datos) {
+    // Gráfico de motivos de viaje
+    const motivos = {};
+    datos.forEach(item => {
+        const motivo = item['MOTIVO DE VIAJE'];
+        motivos[motivo] = (motivos[motivo] || 0) + 1;
+    });
+    
+    const canvasMotivos = document.getElementById('graficoMotivos');
+    if (canvasMotivos) {
+        const ctx = canvasMotivos.getContext('2d');
+        
+        // Limpiar canvas
+        ctx.clearRect(0, 0, canvasMotivos.width, canvasMotivos.height);
+        
+        // Dibujar gráfico de barras simple
+        const motivosArray = Object.entries(motivos);
+        const maxCount = Math.max(...motivosArray.map(([_, count]) => count));
+        const barWidth = canvasMotivos.width / motivosArray.length;
+        const barHeight = canvasMotivos.height - 40;
+        
+        motivosArray.forEach(([motivo, count], index) => {
+            const barHeightPercent = (count / maxCount) * barHeight;
+            const x = index * barWidth + 10;
+            const y = canvasMotivos.height - barHeightPercent - 20;
+            
+            // Dibujar barra
+            ctx.fillStyle = `hsl(${index * 360 / motivosArray.length}, 70%, 50%)`;
+            ctx.fillRect(x, y, barWidth - 20, barHeightPercent);
+            
+            // Dibujar texto
+            ctx.fillStyle = '#333';
+            ctx.font = '10px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(motivo.substring(0, 8), x + (barWidth - 20) / 2, canvasMotivos.height - 5);
+            ctx.fillText(count, x + (barWidth - 20) / 2, y - 5);
+        });
+    }
+    
+    // Gráfico de nacionalidades (top 5)
+    const nacionalidades = {};
+    datos.forEach(item => {
+        const nacionalidad = item.NACIONALIDAD;
+        if (nacionalidad && nacionalidad !== 'No especificada') {
+            nacionalidades[nacionalidad] = (nacionalidades[nacionalidad] || 0) + 1;
+        }
+    });
+    
+    const topNacionalidades = Object.entries(nacionalidades)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 5);
+    
+    const canvasNacionalidades = document.getElementById('graficoNacionalidades');
+    if (canvasNacionalidades) {
+        const ctx = canvasNacionalidades.getContext('2d');
+        
+        // Limpiar canvas
+        ctx.clearRect(0, 0, canvasNacionalidades.width, canvasNacionalidades.height);
+        
+        // Dibujar gráfico de pastel simple
+        const total = topNacionalidades.reduce((sum, [, count]) => sum + count, 0);
+        let currentAngle = 0;
+        const centerX = canvasNacionalidades.width / 2;
+        const centerY = canvasNacionalidades.height / 2;
+        const radius = Math.min(centerX, centerY) - 20;
+        
+        topNacionalidades.forEach(([nacionalidad, count], index) => {
+            const sliceAngle = (count / total) * 2 * Math.PI;
+            
+            // Dibujar porción
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+            ctx.closePath();
+            ctx.fillStyle = `hsl(${index * 360 / topNacionalidades.length}, 70%, 50%)`;
+            ctx.fill();
+            
+            // Dibujar etiqueta
+            const labelAngle = currentAngle + sliceAngle / 2;
+            const labelX = centerX + Math.cos(labelAngle) * (radius * 0.7);
+            const labelY = centerY + Math.sin(labelAngle) * (radius * 0.7);
+            
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 10px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(nacionalidad.substring(0, 3), labelX, labelY);
+            
+            currentAngle += sliceAngle;
+        });
+    }
 }
 
 function showNotification(message, type) {

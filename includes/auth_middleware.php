@@ -21,11 +21,19 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
 // El index.php siempre debe ser accesible para usuarios autenticados
 if ($current_page !== 'index.php') {
-    // Verificar acceso al módulo
-    if (!SimplePermissionHelper::canAccessModule($current_page)) {
-        // Redirigir al dashboard con mensaje de error
-        header('Location: index.php?error=access_denied');
-        exit;
+    // Permitir acceso a informe_huespedes si tiene permiso de contabilidad
+    if ($current_page === 'informe_huespedes.php') {
+        if (!SimplePermissionHelper::canAccessModule('contabilidad.php')) {
+            header('Location: index.php?error=access_denied');
+            exit;
+        }
+    } else {
+        // Verificar acceso al módulo
+        if (!SimplePermissionHelper::canAccessModule($current_page)) {
+            // Redirigir al dashboard con mensaje de error
+            header('Location: index.php?error=access_denied');
+            exit;
+        }
     }
 }
 
