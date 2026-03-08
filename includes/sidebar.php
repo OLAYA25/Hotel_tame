@@ -33,6 +33,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
         <a href="usuarios.php" class="nav-link text-white <?php echo $current_page == 'usuarios.php' ? 'active' : ''; ?>">
             <i class="fas fa-users"></i> Usuarios
         </a>
+        <a href="settings.php" class="nav-link text-white <?php echo $current_page == 'settings.php' ? 'active' : ''; ?>">
+            <i class="fas fa-cog"></i> Configuración
+        </a>
         <!-- <a href="roles.php" class="nav-link text-white <?php echo $current_page == 'roles.php' ? 'active' : ''; ?>">
             <i class="fas fa-user-shield"></i> Roles y Permisos
         </a> -->
@@ -49,23 +52,30 @@ $current_page = basename($_SERVER['PHP_SELF']);
         <a href="reservas.php" class="nav-link text-white <?php echo $current_page == 'reservas.php' ? 'active' : ''; ?>">
             <i class="fas fa-calendar-check"></i> Reservas
         </a>
-        <!-- <a href="eventos.php" class="nav-link text-white <?php echo $current_page == 'eventos.php' ? 'active' : ''; ?>">
-            <i class="fas fa-calendar-alt"></i> Eventos
-        </a> -->
-        <!-- <a href="espacios_eventos.php" class="nav-link text-white <?php echo $current_page == 'espacios_eventos.php' ? 'active' : ''; ?>">
-            <i class="fas fa-door-open"></i> Espacios de Eventos
-        </a> -->
-        <!-- <a href="reservas_eventos.php" class="nav-link text-white <?php echo $current_page == 'reservas_eventos.php' ? 'active' : ''; ?>">
-            <i class="fas fa-calendar-plus"></i> Reservas de Eventos
-        </a> -->
-        <!-- <?php if ($_SESSION['usuario']['rol'] === 'admin'): ?> -->
-        <!-- <a href="turnos.php" class="nav-link text-white <?php echo $current_page == 'turnos.php' ? 'active' : ''; ?>">
+        
+        <!-- Módulos reactivados con permisos granulares -->
+        <?php if ($_SESSION['usuario']['rol'] === 'admin' || $_SESSION['usuario']['rol'] === 'gerente'): ?>
+        <a href="turnos.php" class="nav-link text-white <?php echo $current_page == 'turnos.php' ? 'active' : ''; ?>">
             <i class="fas fa-user-clock"></i> Gestión de Turnos
-        </a> -->
-        <!-- <?php endif; ?> -->
-        <!-- <a href="mis_actividades.php" class="nav-link text-white <?php echo $current_page == 'mis_actividades.php' ? 'active' : ''; ?>">
+        </a>
+        <?php endif; ?>
+        
+        <a href="mis_actividades.php" class="nav-link text-white <?php echo $current_page == 'mis_actividades.php' ? 'active' : ''; ?>">
             <i class="fas fa-tasks"></i> Mis Actividades
-        </a> -->
+        </a>
+        
+        <!-- Módulos de eventos (futuros) -->
+        <?php if ($_SESSION['usuario']['rol'] === 'admin'): ?>
+        <a href="eventos.php" class="nav-link text-white <?php echo $current_page == 'eventos.php' ? 'active' : ''; ?>">
+            <i class="fas fa-calendar-alt"></i> Eventos
+        </a>
+        <a href="espacios_eventos.php" class="nav-link text-white <?php echo $current_page == 'espacios_eventos.php' ? 'active' : ''; ?>">
+            <i class="fas fa-door-open"></i> Espacios de Eventos
+        </a>
+        <a href="reservas_eventos.php" class="nav-link text-white <?php echo $current_page == 'reservas_eventos.php' ? 'active' : ''; ?>">
+            <i class="fas fa-calendar-plus"></i> Reservas de Eventos
+        </a>
+        <?php endif; ?>
        <?php if ($_SESSION['usuario']['rol'] === 'admin' || $_SESSION['usuario']['rol'] === 'Contador' || $_SESSION['usuario']['rol'] === 'Auxiliar Contable'): ?>
         <a href="contabilidad.php" class="nav-link text-white <?php echo $current_page == 'contabilidad.php' ? 'active' : ''; ?>">
             <i class="fas fa-calculator"></i> Contabilidad

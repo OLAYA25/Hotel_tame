@@ -416,27 +416,57 @@ let notificationManager = {
             } else {
                 badge.style.display = 'none';
             }
+        } else {
+            // Si no existe el badge, crearlo dinámicamente
+            this.createNotificationBadge();
+        }
+    },
+    
+    createNotificationBadge() {
+        // Buscar un lugar para insertar el badge
+        const notificationIcon = document.querySelector('.fa-bell');
+        if (notificationIcon) {
+            const badge = document.createElement('span');
+            badge.id = 'notification-badge';
+            badge.className = 'badge bg-danger ms-1';
+            badge.style.display = 'none';
+            notificationIcon.parentNode.appendChild(badge);
         }
     },
     
     showFloatingNotification(type, title, message, duration = 5000) {
-        const container = document.getElementById('floating-notifications');
-        if (!container) return;
+        let container = document.getElementById('floating-notifications');
+        if (!container) {
+            // Crear el contenedor si no existe
+            container = document.createElement('div');
+            container.id = 'floating-notifications';
+            container.className = 'floating-notifications';
+            document.body.appendChild(container);
+        }
         
         const notification = document.createElement('div');
         notification.className = `floating-notification ${type}`;
         
         notification.innerHTML = `
-            <div class="floating-notification-header">
-                <div class="floating-notification-title">${title}</div>
-                <button class="floating-notification-close" onclick="this.parentElement.parentElement.remove()">
-                    <i class="fas fa-times"></i>
-                </button>
+            <div class="notification-content">
+                <div class="notification-header">
+                    <strong>${title}</strong>
+                    <button class="close-btn">&times;</button>
+                </div>
+                <div class="notification-body">${message}</div>
             </div>
-            <div class="floating-notification-message">${message}</div>
         `;
         
         container.appendChild(notification);
+        
+        // Evento para cerrar manualmente
+        const closeBtn = notification.querySelector('.close-btn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                notification.classList.add('closing');
+                setTimeout(() => notification.remove(), 300);
+            });
+        }
         
         // Auto cerrar
         setTimeout(() => {
@@ -447,8 +477,15 @@ let notificationManager = {
     
     checkNewNotifications() {
         // Verificar nuevas notificaciones vía AJAX si el endpoint existe
-        fetch('api/endpoints/notifications.php?accion=verificar_nuevas')
-        .then(response => response.json())
+        fetch('api/endpoints/notifications.php?accion=verificar_nuevas', {
+            credentials: 'include' // Incluir cookies para sesión
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success && data.new_notifications.length > 0) {
                 data.new_notifications.forEach(notif => {
@@ -462,7 +499,7 @@ let notificationManager = {
             // Silenciosamente ignorar errores de red
             console.log('Sistema de notificaciones: sin conexión');
         });
-    }
+    },
 };
 
 // Inicializar cuando el DOM esté listo

@@ -37,6 +37,68 @@ class Database {
 
         return $this->conn;
     }
+    
+    // Método para crear backup de la base de datos
+    public function backup($filepath) {
+        try {
+            $db_name = $this->db_name;
+            $host = $this->host;
+            $username = $this->username;
+            $password = $this->password;
+            
+            // Usar mysqldump para crear el backup
+            $command = "mysqldump --single-transaction --routines --triggers --host={$host} --user={$username} --password={$password} {$db_name} > {$filepath}";
+            
+            // Ejecutar el comando
+            $output = [];
+            $return_var = 0;
+            exec($command, $output, $return_var);
+            
+            if ($return_var === 0 && file_exists($filepath) && filesize($filepath) > 0) {
+                return true;
+            } else {
+                error_log("Error en backup: " . implode("\n", $output));
+                return false;
+            }
+            
+        } catch (Exception $e) {
+            error_log("Error creando backup: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    // Método para restaurar backup de la base de datos
+    public function restore($filepath) {
+        try {
+            $db_name = $this->db_name;
+            $host = $this->host;
+            $username = $this->username;
+            $password = $this->password;
+            
+            if (!file_exists($filepath)) {
+                throw new Exception("Archivo de backup no encontrado");
+            }
+            
+            // Usar mysql para restaurar el backup
+            $command = "mysql --host={$host} --user={$username} --password={$password} {$db_name} < {$filepath}";
+            
+            // Ejecutar el comando
+            $output = [];
+            $return_var = 0;
+            exec($command, $output, $return_var);
+            
+            if ($return_var === 0) {
+                return true;
+            } else {
+                error_log("Error en restore: " . implode("\n", $output));
+                return false;
+            }
+            
+        } catch (Exception $e) {
+            error_log("Error restaurando backup: " . $e->getMessage());
+            return false;
+        }
+    }
 }
 
 // Helper opcional para compatibilidad (usa PDO internamente)

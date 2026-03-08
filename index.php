@@ -59,6 +59,40 @@ include 'includes/sidebar.php';
 <div class="main-content">
     <div id="notification-container"></div>
     
+    <!-- Mensajes de error -->
+    <?php if (isset($_GET['error'])): ?>
+        <div class="row mb-4">
+            <div class="col-12">
+                <?php if ($_GET['error'] === 'access_denied'): ?>
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Acceso Denegado:</strong> 
+                        <?php 
+                        if (isset($_GET['module'])) {
+                            $module = htmlspecialchars($_GET['module']);
+                            echo "No tienes permisos para acceder al módulo <strong>{$module}</strong>.";
+                        } else {
+                            echo "No tienes permisos para acceder a esta página.";
+                        }
+                        ?>
+                        <br>
+                        <small class="text-muted">Contacta al administrador del sistema si necesitas acceso a esta funcionalidad.</small>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <?php elseif ($_GET['error'] === 'permission_denied'): ?>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-ban me-2"></i>
+                        <strong>Permiso Requerido:</strong> 
+                        Necesitas permisos específicos para acceder a esta funcionalidad.
+                        <br>
+                        <small class="text-muted">Por favor, contacta al administrador del sistema.</small>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+    
     <div class="page-header">
         <h1>Dashboard - Sistema de Gestión Hotelera</h1>
     </div>
@@ -76,7 +110,7 @@ include 'includes/sidebar.php';
                             <p class="mb-0">Análisis avanzado con IA y métricas predictivas</p>
                         </div>
                         <div>
-                            <a href="dashboard_advanced.php" class="btn btn-light">
+                            <a href="mis_actividades_v2.php" class="btn btn-light">
                                 <i class="fas fa-arrow-right me-2"></i>Acceder Dashboard
                             </a>
                         </div>
@@ -113,7 +147,7 @@ include 'includes/sidebar.php';
                                             <p class="mb-0">Análisis avanzado con IA y métricas predictivas</p>
                                         </div>
                                         <div>
-                                            <a href="dashboard_advanced.php" class="btn btn-light">
+                                            <a href="mis_actividades_v2.php?v=<?php echo time(); ?>" class="btn btn-light">
                                                 <i class="fas fa-arrow-right me-2"></i>Acceder Dashboard
                                             </a>
                                         </div>

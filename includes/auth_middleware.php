@@ -24,14 +24,14 @@ if ($current_page !== 'index.php') {
     // Permitir acceso a informe_huespedes si tiene permiso de contabilidad
     if ($current_page === 'informe_huespedes.php') {
         if (!SimplePermissionHelper::canAccessModule('contabilidad.php')) {
-            header('Location: index.php?error=access_denied');
+            header('Location: index.php?error=access_denied&module=contabilidad');
             exit;
         }
     } else {
         // Verificar acceso al módulo
         if (!SimplePermissionHelper::canAccessModule($current_page)) {
-            // Redirigir al dashboard con mensaje de error
-            header('Location: index.php?error=access_denied');
+            // Redirigir al dashboard con mensaje de error específico
+            header('Location: index.php?error=access_denied&module=' . urlencode($current_page));
             exit;
         }
     }

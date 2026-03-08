@@ -1,0 +1,25 @@
+# Denegar acceso directo a archivos de backup
+<Files "*.sql">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files "*.zip">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files "*.gz">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Denegar listado de directorios
+Options -Indexes
+
+# Solo permitir acceso desde el sistema local
+<RequireAny>
+    Require ip 127.0.0.1
+    Require ip ::1
+    Require local
+</RequireAny>
