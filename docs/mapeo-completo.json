@@ -1,0 +1,304 @@
+{
+  "estado_actual": {
+    "estructura": "mixta_raiz",
+    "funcionalidad": "completamente_operativa",
+    "apariencia": "debe_preservarse_exactamente"
+  },
+  "vistas_principales": {
+    "home.php": {
+      "tipo": "publica",
+      "funcion": "pagina_principal_publica",
+      "incluye": ["config/database.php"],
+      "estilos": ["assets/css/style.css", "bootstrap", "fontawesome"],
+      "db_tables": ["habitaciones", "reservas", "clientes"],
+      "contenido": "catalogo de habitaciones, formulario de reservas"
+    },
+    "portal_cliente.php": {
+      "tipo": "publica",
+      "funcion": "portal_para_clientes",
+      "incluye": ["config/database.php", "includes/header.php", "includes/footer.php"],
+      "estilos": ["assets/css/style.css", "bootstrap"],
+      "db_tables": ["reservas", "clientes", "habitaciones"],
+      "contenido": "gestion de reservas del cliente"
+    },
+    "index.php": {
+      "tipo": "privada",
+      "funcion": "dashboard_administrativo",
+      "incluye": ["config/database.php", "includes/auth_middleware.php", "includes/header.php", "includes/sidebar.php", "includes/footer.php"],
+      "estilos": ["assets/css/style.css", "assets/css/dashboard.css"],
+      "db_tables": ["habitaciones", "reservas", "clientes", "usuarios"],
+      "contenido": "estadisticas, actividad reciente, métricas"
+    },
+    "login.php": {
+      "tipo": "publica",
+      "funcion": "autenticacion",
+      "incluye": ["config/database.php"],
+      "estilos": ["assets/css/style.css"],
+      "db_tables": ["usuarios"],
+      "contenido": "formulario de login"
+    },
+    "reservas.php": {
+      "tipo": "privada",
+      "funcion": "gestion_de_reservas",
+      "incluye": ["config/database.php", "includes/header.php", "includes/sidebar.php", "includes/footer.php"],
+      "estilos": ["assets/css/style.css", "select2"],
+      "db_tables": ["reservas", "clientes", "habitaciones"],
+      "contenido": "crud completo de reservas"
+    },
+    "clientes.php": {
+      "tipo": "privada",
+      "funcion": "gestion_de_clientes",
+      "incluye": ["config/database.php", "includes/header.php", "includes/sidebar.php"],
+      "estilos": ["assets/css/style.css"],
+      "db_tables": ["clientes"],
+      "contenido": "crud de clientes"
+    },
+    "habitaciones.php": {
+      "tipo": "privada",
+      "funcion": "gestion_de_habitaciones",
+      "incluye": ["config/database.php", "includes/header.php", "includes/sidebar.php"],
+      "estilos": ["assets/css/style.css"],
+      "db_tables": ["habitaciones"],
+      "contenido": "crud de habitaciones"
+    },
+    "dashboard_advanced.php": {
+      "tipo": "privada",
+      "funcion": "dashboard_avanzado",
+      "incluye": ["config/database.php", "includes/header.php", "includes/sidebar.php"],
+      "estilos": ["assets/css/style.css", "assets/css/dashboard.css"],
+      "db_tables": ["usuarios", "reservas", "clientes"],
+      "contenido": "dashboard con widgets y notificaciones"
+    },
+    "mis_actividades_v2.php": {
+      "tipo": "privada",
+      "funcion": "dashboard_adaptativo_por_rol",
+      "incluye": ["config/database.php", "lib/RoleBasedDashboard.php", "includes/header.php", "includes/sidebar.php"],
+      "estilos": ["assets/css/style.css"],
+      "db_tables": ["usuarios", "reservas", "habitaciones"],
+      "contenido": "dashboard inteligente según rol de usuario"
+    }
+  },
+  "vistas_secundarias": {
+    "contabilidad.php": {
+      "tipo": "privada",
+      "funcion": "modulo_contable",
+      "incluye": ["config/database.php", "includes/header.php", "includes/sidebar.php"],
+      "estilos": ["assets/css/style.css"],
+      "db_tables": ["reservas", "clientes", "cuentas_contables"]
+    },
+    "reportes.php": {
+      "tipo": "privada",
+      "funcion": "generacion_de_reportes",
+      "incluye": ["config/database.php", "includes/header.php", "includes/sidebar.php"],
+      "estilos": ["assets/css/style.css"],
+      "db_tables": ["reservas", "clientes", "habitaciones"]
+    },
+    "usuarios.php": {
+      "tipo": "privada",
+      "funcion": "gestion_de_usuarios",
+      "incluye": ["config/database.php", "includes/header.php", "includes/sidebar.php"],
+      "estilos": ["assets/css/style.css"],
+      "db_tables": ["usuarios"]
+    },
+    "settings.php": {
+      "tipo": "privada",
+      "funcion": "configuracion_del_sistema",
+      "incluye": ["config/database.php", "includes/header.php", "includes/sidebar.php"],
+      "estilos": ["assets/css/style.css"],
+      "db_tables": ["settings"]
+    },
+    "eventos.php": {
+      "tipo": "privada",
+      "funcion": "gestion_de_eventos",
+      "incluye": ["config/database.php", "includes/header.php", "includes/sidebar.php"],
+      "estilos": ["assets/css/style.css"],
+      "db_tables": ["eventos", "espacios_eventos"]
+    },
+    "productos.php": {
+      "tipo": "privada",
+      "funcion": "gestion_de_productos",
+      "incluye": ["config/database.php", "includes/header.php", "includes/sidebar.php"],
+      "estilos": ["assets/css/style.css"],
+      "db_tables": ["productos"]
+    },
+    "pedidos_productos.php": {
+      "tipo": "privada",
+      "funcion": "gestion_de_pedidos",
+      "incluye": ["config/database.php", "includes/header.php", "includes/sidebar.php"],
+      "estilos": ["assets/css/style.css"],
+      "db_tables": ["pedidos_productos", "productos"]
+    }
+  },
+  "includes_criticos": {
+    "header.php": {
+      "funcion": "cabecera_comun_dashboard",
+      "contiene": "bootstrap, fontawesome, select2, estilos personalizados",
+      "critico": "MUY_CRITICO - Define apariencia visual"
+    },
+    "footer.php": {
+      "funcion": "pie_de_pagina_dashboard",
+      "contiene": "scripts de cierre",
+      "critico": "CRITICO"
+    },
+    "sidebar.php": {
+      "funcion": "navegacion_lateral_dashboard",
+      "contiene": "menu de navegacion por rol",
+      "critico": "MUY_CRITICO - Estructura de navegacion"
+    },
+    "auth_middleware.php": {
+      "funcion": "verificacion_de_permisos",
+      "contiene": "sistema de permisos SimplePermissionHelper",
+      "critico": "CRITICO - Seguridad y acceso"
+    },
+    "simple_permissions.php": {
+      "funcion": "sistema_de_permisos",
+      "contiene": "logica de control de acceso",
+      "critico": "CRITICO - Seguridad"
+    }
+  },
+  "api_endpoints": {
+    "api/endpoints/clientes.php": {
+      "metodos": ["GET", "POST", "PUT", "DELETE"],
+      "db_tables": ["clientes"],
+      "funciones": ["api/models/Cliente.php"]
+    },
+    "api/endpoints/reservas.php": {
+      "metodos": ["GET", "POST", "PUT", "DELETE"],
+      "db_tables": ["reservas", "clientes", "habitaciones"],
+      "funciones": []
+    },
+    "api/endpoints/habitaciones.php": {
+      "metodos": ["GET", "POST", "PUT", "DELETE"],
+      "db_tables": ["habitaciones"],
+      "funciones": []
+    },
+    "api/endpoints/usuarios.php": {
+      "metodos": ["GET", "POST", "PUT", "DELETE"],
+      "db_tables": ["usuarios"],
+      "funciones": []
+    },
+    "api/endpoints/notifications.php": {
+      "metodos": ["GET"],
+      "db_tables": [],
+      "funciones": []
+    },
+    "api/endpoints/widgets.php": {
+      "metodos": ["GET"],
+      "db_tables": [],
+      "funciones": []
+    },
+    "api/endpoints/settings.php": {
+      "metodos": ["GET", "POST"],
+      "db_tables": ["settings"],
+      "funciones": []
+    }
+  },
+  "api_models": {
+    "api/models/Cliente.php": {
+      "funcion": "modelo_de_datos_cliente",
+      "db_tables": ["clientes"]
+    },
+    "api/models/Habitacion.php": {
+      "funcion": "modelo_de_datos_habitacion",
+      "db_tables": ["habitaciones"]
+    },
+    "api/models/Usuario.php": {
+      "funcion": "modelo_de_datos_usuario",
+      "db_tables": ["usuarios"]
+    }
+  },
+  "assets": {
+    "css": {
+      "assets/css/style.css": {
+        "funcion": "estilos_principales_del_sistema",
+        "critico": "MUY_CRITICO - Define toda la apariencia"
+      },
+      "assets/css/dashboard.css": {
+        "funcion": "estilos_especificos_dashboard",
+        "critico": "CRITICO"
+      },
+      "assets/css/web.css": {
+        "funcion": "estilos_paginas_publicas",
+        "critico": "CRITICO"
+      },
+      "assets/css/main.css": {
+        "funcion": "estilos_adicionales",
+        "critico": "IMPORTANTE"
+      }
+    },
+    "js": {
+      "assets/js/main.js": {
+        "funcion": "javascript_principal",
+        "critico": "IMPORTANTE"
+      }
+    },
+    "images": {
+      "assets/images/": {
+        "funcion": "imagenes_del_sistema",
+        "critico": "IMPORTANTE"
+      }
+    }
+  },
+  "configuracion": {
+    "config/database.php": {
+      "funcion": "conexion_a_base_de_datos",
+      "critico": "MUY_CRITICO - Sin esto no funciona nada"
+    }
+  },
+  "librerias": {
+    "lib/RoleBasedDashboard.php": {
+      "funcion": "dashboard_adaptativo",
+      "critico": "IMPORTANTE - Funcionalidad avanzada"
+    }
+  },
+  "componentes": {
+    "components/notifications_ui.php": {
+      "funcion": "sistema_de_notificaciones_visual",
+      "critico": "IMPORTANTE - UX"
+    }
+  },
+  "estructura_objetivo": {
+    "frontend": {
+      "views": {
+        "public": ["home.php", "portal_cliente.php", "login.php"],
+        "private": ["index.php", "reservas.php", "clientes.php", "habitaciones.php", "dashboard_advanced.php", "mis_actividades_v2.php", "contabilidad.php", "reportes.php", "usuarios.php", "settings.php", "eventos.php", "productos.php", "pedidos_productos.php"]
+      }
+    },
+    "backend": {
+      "api": {
+        "endpoints": ["todos los archivos .php de api/endpoints/"],
+        "models": ["todos los archivos .php de api/models/"]
+      },
+      "includes": ["todos los archivos .php de includes/"],
+      "utils": ["lib/", "components/"],
+      "config": ["config/"]
+    },
+    "assets": {
+      "css": ["assets/css/"],
+      "js": ["assets/js/"],
+      "images": ["assets/images/"]
+    }
+  },
+  "reglas_de_oro": [
+    "NO_MODIFICAR_EL_CONTENIDO_VISUAL_DE_NINGUN_ARCHIVO_PHP",
+    "NO_CAMBIAR_ESTILOS_CSS",
+    "MANTENER_EXACTAMENTE_EL_MISMO_HTML_OUTPUT",
+    "SOLO_REORGANIZAR_ARCHIVOS_Y_ACTUALIZAR_RUTAS_DE_INCLUDE",
+    "VERIFICAR_CADA_CAMBIO_EN_EL_NAVEGADOR",
+    "EL_USUARIO_NO_DEBE_NOTAR_DIFERENCIA_ALGUNA"
+  ],
+  "puntos_criticos_de_verificacion": [
+    "home.php se ve exactamente igual",
+    "portal_cliente.php mantiene su diseño",
+    "index.php/dashboard se ve idéntico",
+    "login.php funciona y se ve igual",
+    "reservas.php mantiene su interfaz completa",
+    "sidebar.php mantiene colores y estructura",
+    "header.php mantiene navegación",
+    "todos los CSS cargan igual",
+    "todas las imágenes cargan",
+    "Base de datos conecta igual",
+    "Select2 funciona igual",
+    "Bootstrap mantiene estilos"
+  ]
+}

@@ -26,7 +26,7 @@ try {
     
     debug_log("Archivos verificados, incluyendo dependencias");
     
-    include_once '../config/database.php';
+    include_once '../../backend/config/database.php';
     include_once '../models/ClienteSimple.php';
     
     debug_log("Dependencias incluidas");

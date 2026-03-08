@@ -1,0 +1,17 @@
+Prompt sugerido Hotel
+
+Tengo un proyecto llamado "Hotel_tame" que sirve para la gestión interna de un hotel y también como página pública para que los usuarios vean habitaciones, hagan reservas y gestionen su información. Actualmente la estructura está desordenada, con muchos archivos PHP sueltos, pruebas, backups y documentación mezclada.
+
+Quiero que reestructures el proyecto en una forma más limpia y profesional, separando claramente:
+- Frontend (Next.js, páginas públicas, componentes, estilos, assets).
+- Backend (APIs en PHP, modelos, utilidades, configuración, librerías).
+- Documentación (manuales, guías, bitácoras).
+- Pruebas y archivos legacy/debug.
+- Backups y uploads de usuarios.
+
+El resultado debe ser un árbol de carpetas organizado, con nombres consistentes, sin archivos de prueba mezclados en producción, y con un mapa de responsabilidades (qué carpeta se encarga de reservas, clientes, habitaciones, usuarios, contabilidad, notificaciones, etc.).
+
+Por favor, genera:
+1. Una propuesta de estructura de carpetas en formato árbol.
+2. Un mapa de responsabilidades por carpeta.
+3. Recomendaciones adicionales para mantener el proyecto escalable y fácil de mantener.

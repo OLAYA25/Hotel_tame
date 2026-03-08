@@ -1,255 +1,101 @@
 <?php
-require_once 'config/database.php';
-
-// Verificar sesión de usuario
+// index.php - Router principal mejorado
 session_start();
-if (!isset($_SESSION['usuario'])) {
-    header('Location: login.php');
+
+// Definir constante base para el proyecto
+define('HOTEL_TAME_ROOT', __DIR__);
+
+// Mapeo de URLs a archivos PHP ORIGINALES
+$routeMap = [
+    '/' => 'frontend/views/public/home.php',
+    '/home' => 'frontend/views/public/home.php',
+    '/home.php' => 'frontend/views/public/home.php',
+    '/portal-cliente' => 'frontend/views/public/portal_cliente.php',
+    '/login' => 'frontend/views/public/login.php',
+    '/habitaciones' => 'frontend/views/public/habitaciones.php',
+    '/dashboard' => 'frontend/views/private/index.php',
+    '/reservas' => 'frontend/views/private/reservas.php',
+    '/clientes' => 'frontend/views/private/clientes.php',
+    '/usuarios' => 'frontend/views/private/usuarios.php',
+    '/contabilidad' => 'frontend/views/private/contabilidad.php',
+    '/reportes' => 'frontend/views/private/reportes.php',
+    '/settings' => 'frontend/views/private/settings.php',
+    '/eventos' => 'frontend/views/private/eventos.php',
+    '/productos' => 'frontend/views/private/productos.php',
+    '/pedidos-productos' => 'frontend/views/private/pedidos_productos.php',
+    '/mis-actividades' => 'frontend/views/private/mis_actividades.php',
+    '/logout' => 'logout.php',
+    '/turnos' => 'frontend/views/private/turnos.php',
+    '/espacios-eventos' => 'frontend/views/private/espacios_eventos.php',
+    '/reservas-eventos' => 'frontend/views/private/reservas_eventos.php',
+    '/informe-huespedes' => 'frontend/views/private/informe_huespedes.php',
+    '/backup-manager' => 'frontend/views/private/backup_manager.php',
+    '/reservas-online' => 'frontend/views/extra-public/reservas_online.php',
+    '/informe-ocupacion' => 'frontend/views/extra-public/informe_ocupacion_real.php',
+    '/index-simple' => 'frontend/views/extra-public/index_simple.php',
+    '/roles' => 'frontend/views/extra-private/roles.php',
+    '/tareas-limpieza' => 'frontend/views/extra-private/tareas_limpieza.php',
+    '/standalone' => 'frontend/views/extra-private/standalone.php'
+];
+
+// Mapeo de APIs
+$apiMap = [
+    '/api/clientes' => 'api/endpoints/clientes.php',
+    '/api/reservas' => 'api/endpoints/reservas.php',
+    '/api/habitaciones' => 'api/endpoints/habitaciones.php',
+    '/api/usuarios' => 'api/endpoints/usuarios.php',
+    '/api/notifications' => 'api/endpoints/notifications.php',
+    '/api/widgets' => 'api/endpoints/widgets.php',
+    '/api/settings' => 'api/endpoints/settings.php'
+];
+
+// Función para obtener la ruta actual
+function getRequestPath() {
+    $requestUri = $_SERVER['REQUEST_URI'] ?? '';
+    $basePath = '/Hotel_tame';
+    $path = str_replace($basePath, '', $requestUri);
+    $path = parse_url($path, PHP_URL_PATH);
+    return rtrim($path, '/') ?: '/';
+}
+
+// Función para incluir archivo con configuración previa
+function includeWithConfig($filepath) {
+    // Establecer constantes para que las vistas encuentren sus dependencias
+    define('BACKEND_ROOT', HOTEL_TAME_ROOT . '/backend');
+    define('ASSETS_URL', '/Hotel_tame/assets');
+    
+    // Incluir el archivo
+    require_once $filepath;
+}
+
+// Obtener ruta solicitada
+$path = getRequestPath();
+
+// Manejar APIs
+if (strpos($path, '/api/') === 0) {
+    if (isset($apiMap[$path]) && file_exists(HOTEL_TAME_ROOT . '/' . $apiMap[$path])) {
+        require_once HOTEL_TAME_ROOT . '/' . $apiMap[$path];
+        exit;
+    }
+    http_response_code(404);
+    echo json_encode(['error' => 'API endpoint not found']);
     exit;
 }
 
-// Incluir middleware de autenticación y permisos
-require_once 'includes/auth_middleware.php';
-
-try {
-    $database = new Database();
-    $db = $database->getConnection();
-
-    // Total habitaciones
-    $stmt = $db->query("SELECT COUNT(*) as total FROM habitaciones WHERE deleted_at IS NULL");
-    $row = $stmt ? $stmt->fetch() : null;
-    $total_habitaciones = $row['total'] ?? 0;
-
-    $stmt = $db->query("SELECT COUNT(*) as total FROM habitaciones WHERE estado = 'disponible' AND deleted_at IS NULL");
-    $row = $stmt ? $stmt->fetch() : null;
-    $habitaciones_disponibles = $row['total'] ?? 0;
-
-    // Reservas activas
-    $stmt = $db->query("SELECT COUNT(*) as total FROM reservas WHERE estado IN ('confirmada', 'pendiente') AND deleted_at IS NULL");
-    $row = $stmt ? $stmt->fetch() : null;
-    $reservas_activas = $row['total'] ?? 0;
-
-    // Total clientes
-    $stmt = $db->query("SELECT COUNT(*) as total FROM clientes WHERE deleted_at IS NULL");
-    $row = $stmt ? $stmt->fetch() : null;
-    $total_clientes = $row['total'] ?? 0;
-
-    // Ingresos del mes desde reservas confirmadas
-    $stmt = $db->query("SELECT COALESCE(SUM(precio_total), 0) as total 
-                                 FROM reservas 
-                                 WHERE estado = 'confirmada' 
-                                 AND deleted_at IS NULL
-                                 AND MONTH(fecha_entrada) = MONTH(CURRENT_DATE()) 
-                                 AND YEAR(fecha_entrada) = YEAR(CURRENT_DATE())");
-    $row = $stmt ? $stmt->fetch() : null;
-    $ingresos_mes = $row['total'] ?? 0;
-
-    // Actividad reciente
-    $stmt = $db->query("SELECT r.id, r.estado, r.precio_total, r.created_at, c.nombre as cliente_nombre, c.apellido as cliente_apellido, h.numero as habitacion_numero, h.tipo as habitacion_tipo FROM reservas r JOIN clientes c ON r.cliente_id = c.id JOIN habitaciones h ON r.habitacion_id = h.id WHERE r.deleted_at IS NULL ORDER BY r.created_at DESC LIMIT 5");
-    $actividad_reciente = $stmt ? $stmt->fetchAll() : [];
-
-} catch (Exception $e) {
-    die("Error cargando datos: " . $e->getMessage());
+// Manejar vistas
+if (isset($routeMap[$path]) && file_exists(HOTEL_TAME_ROOT . '/' . $routeMap[$path])) {
+    includeWithConfig(HOTEL_TAME_ROOT . '/' . $routeMap[$path]);
+    exit;
 }
 
-include 'includes/header.php';
-include 'includes/sidebar.php';
-?>
+// Si no encuentra, verificar si existe archivo directo
+$directFile = HOTEL_TAME_ROOT . '/' . ltrim($path, '/');
+if (file_exists($directFile) && is_file($directFile)) {
+    require_once $directFile;
+    exit;
+}
 
-<div class="main-content">
-    <div id="notification-container"></div>
-    
-    <!-- Mensajes de error -->
-    <?php if (isset($_GET['error'])): ?>
-        <div class="row mb-4">
-            <div class="col-12">
-                <?php if ($_GET['error'] === 'access_denied'): ?>
-                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        <strong>Acceso Denegado:</strong> 
-                        <?php 
-                        if (isset($_GET['module'])) {
-                            $module = htmlspecialchars($_GET['module']);
-                            echo "No tienes permisos para acceder al módulo <strong>{$module}</strong>.";
-                        } else {
-                            echo "No tienes permisos para acceder a esta página.";
-                        }
-                        ?>
-                        <br>
-                        <small class="text-muted">Contacta al administrador del sistema si necesitas acceso a esta funcionalidad.</small>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                <?php elseif ($_GET['error'] === 'permission_denied'): ?>
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class="fas fa-ban me-2"></i>
-                        <strong>Permiso Requerido:</strong> 
-                        Necesitas permisos específicos para acceder a esta funcionalidad.
-                        <br>
-                        <small class="text-muted">Por favor, contacta al administrador del sistema.</small>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                <?php endif; ?>
-            </div>
-        </div>
-    <?php endif; ?>
-    
-    <div class="page-header">
-        <h1>Dashboard - Sistema de Gestión Hotelera</h1>
-    </div>
-
-    <!-- Dashboard Inteligente -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card bg-gradient-primary text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-brain me-2"></i>Dashboard Inteligente
-                            </h5>
-                            <p class="mb-0">Análisis avanzado con IA y métricas predictivas</p>
-                        </div>
-                        <div>
-                            <a href="mis_actividades_v2.php" class="btn btn-light">
-                                <i class="fas fa-arrow-right me-2"></i>Acceder Dashboard
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row g-4 mb-4">
-        <div class="col-md-3">
-            <div class="stats-card primary">
-                <div class="icon">
-                    <i class="fas fa-bed"></i>
-                </div>
-                <h3><?php echo $total_habitaciones; ?></h3>
-                <p>Total Habitaciones</p>
-                <span class="badge bg-success"><?php echo $habitaciones_disponibles; ?> disponibles</span>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="stats-card success">
-                <div class="icon">
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <div class="card bg-gradient-primary text-white">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="card-title mb-0">
-                                                <i class="fas fa-brain me-2"></i>Dashboard Inteligente
-                                            </h5>
-                                            <p class="mb-0">Análisis avanzado con IA y métricas predictivas</p>
-                                        </div>
-                                        <div>
-                                            <a href="mis_actividades_v2.php?v=<?php echo time(); ?>" class="btn btn-light">
-                                                <i class="fas fa-arrow-right me-2"></i>Acceder Dashboard
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <h3><?php echo $reservas_activas; ?></h3>
-                <p>Reservas Activas</p>
-                <span class="badge bg-warning">Confirmadas y pendientes</span>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="stats-card info">
-                <div class="icon">
-                    <i class="fas fa-users"></i>
-                </div>
-                <h3><?php echo $total_clientes; ?></h3>
-                <p>Total Clientes</p>
-                <span class="badge bg-info">Clientes registrados</span>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="stats-card primary">
-                <div class="icon">
-                    <i class="fas fa-dollar-sign"></i>
-                </div>
-                <h3>$<?php echo number_format($ingresos_mes, 0, ',', '.'); ?></h3>
-                <p>Ingresos del Mes</p>
-                <span class="badge bg-success">Total del mes actual</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-12">
-            <div class="table-container">
-                <h4 class="mb-4">Actividad Reciente</h4>
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Cliente</th>
-                                <th>Habitación</th>
-                                <th>Estado</th>
-                                <th>Precio</th>
-                                <th>Fecha</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php 
-                            if (!empty($actividad_reciente)):
-                                foreach ($actividad_reciente as $row): 
-                            ?>
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="activity-icon me-3">
-                                            <i class="fas fa-user"></i>
-                                        </div>
-                                        <strong><?php echo htmlspecialchars($row['cliente_nombre'] . ' ' . $row['cliente_apellido']); ?></strong>
-                                    </div>
-                                </td>
-                                <td>Habitación <?php echo htmlspecialchars($row['habitacion_numero']); ?> - <?php echo ucfirst($row['habitacion_tipo']); ?></td>
-                                <td>
-                                    <?php
-                                    $badge_class = '';
-                                    switch($row['estado']) {
-                                        case 'confirmada': $badge_class = 'bg-success'; break;
-                                        case 'pendiente': $badge_class = 'bg-warning'; break;
-                                        case 'cancelada': $badge_class = 'bg-danger'; break;
-                                        default: $badge_class = 'bg-secondary';
-                                    }
-                                    ?>
-                                    <span class="badge <?php echo $badge_class; ?>">
-                                        <?php echo ucfirst($row['estado']); ?>
-                                    </span>
-                                </td>
-                                <td><strong>$<?php echo number_format($row['precio_total'], 0, ',', '.'); ?></strong></td>
-                                <td><?php echo date('d/m/Y H:i', strtotime($row['created_at'])); ?></td>
-                            </tr>
-                            <?php 
-                                endforeach;
-                            else:
-                            ?>
-                            <tr>
-                                <td colspan="5" class="text-center">No hay actividad reciente</td>
-                            </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<?php 
-$db = null; // cerrar conexión PDO
-include 'includes/footer.php'; 
+// 404
+http_response_code(404);
+echo "<h1>Página no encontrada</h1><p>La ruta '$path' no existe.</p>";
 ?>

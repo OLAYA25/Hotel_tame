@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Tame - Sistema de Gestión Hotelera</title>
+    <link href="/Hotel_tame/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/Hotel_tame/assets/css/main.css" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <div class="loading-screen">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-3">Cargando Hotel Tame...</p>
+        </div>
+    </div>
+
+    <script>
+        // Redirigir según el estado de autenticación
+        fetch('/Hotel_tame/api/auth?check', {
+            credentials: 'include'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.authenticated) {
+                window.location.href = '/Hotel_tame/dashboard';
+            } else {
+                window.location.href = '/Hotel_tame/login';
+            }
+        })
+        .catch(() => {
+            // Si hay error, mostrar opciones
+            document.getElementById('app').innerHTML = `
+                <div class="container mt-5">
+                    <div class="row justify-content-center">
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3>Bienvenido a Hotel Tame</h3>
+                                </div>
+                                <div class="card-body">
+                                    <p class="text-muted">Seleccione una opción:</p>
+                                    <div class="d-grid gap-3">
+                                        <a href="/Hotel_tame/login" class="btn btn-primary">Iniciar Sesión</a>
+                                        <a href="/Hotel_tame/habitaciones" class="btn btn-outline-primary">Ver Habitaciones</a>
+                                        <a href="/Hotel_tame/portal-cliente" class="btn btn-outline-secondary">Portal de Cliente</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    </script>
+</body>
+</html>

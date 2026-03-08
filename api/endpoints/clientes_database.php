@@ -8,7 +8,7 @@ header("Content-Type: application/json; charset=UTF-8");
 
 try {
     // Usar la clase Database del sistema - ruta corregida
-    include_once '../../config/database.php';
+    include_once '../../backend/config/database.php';
     
     $database = new Database();
     $conn = $database->getConnection();

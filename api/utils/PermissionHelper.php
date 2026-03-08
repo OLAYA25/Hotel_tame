@@ -1,6 +1,6 @@
 <?php
 // Incluir las clases necesarias
-include_once __DIR__ . '/../../config/database.php';
+include_once '../../backend/config/database.php';
 
 // Sistema de gestión de permisos
 class PermissionHelper {

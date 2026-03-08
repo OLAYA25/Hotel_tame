@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Hotel Tame</title>
+    <link href="/Hotel_tame/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/Hotel_tame/assets/css/main.css" rel="stylesheet">
+    <link href="/Hotel_tame/assets/css/dashboard.css" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <div class="loading-screen">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando Dashboard...</span>
+            </div>
+            <p class="mt-3">Cargando Dashboard...</p>
+        </div>
+    </div>
+
+    <script>
+        // Verificar autenticación
+        fetch('/Hotel_tame/api/auth?check', {
+            credentials: 'include'
+        })
+        .then(response => {
+            if (!response.ok) {
+                window.location.href = '/Hotel_tame/login';
+                return;
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data.authenticated) {
+                window.location.href = '/Hotel_tame/login';
+                return;
+            }
+            
+            // Cargar dashboard
+            loadDashboard(data.user);
+        })
+        .catch(() => {
+            window.location.href = '/Hotel_tame/login';
+        });
+
+        function loadDashboard(user) {
+            document.getElementById('app').innerHTML = `
+                <div class="dashboard-container">
+                    <header class="dashboard-header">
+                        <div class="container-fluid">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <h1 class="h3 mb-0">Hotel Tame Dashboard</h1>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <span class="me-3">Bienvenido, ${user.nombre}</span>
+                                    <a href="/Hotel_tame/logout" class="btn btn-outline-danger btn-sm">Cerrar Sesión</a>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+                    
+                    <main class="dashboard-main">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="alert alert-success">
+                                        <h4>✅ Dashboard Cargado Exitosamente</h4>
+                                        <p>La nueva estructura del proyecto está funcionando correctamente.</p>
+                                        <hr>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <strong>Usuario:</strong> ${user.nombre} ${user.apellido}<br>
+                                                <strong>Rol:</strong> ${user.rol}<br>
+                                                <strong>ID:</strong> ${user.id}
+                                            </div>
+                                            <div class="col-md-6">
+                                                <strong>Estructura:</strong> ✅ Backend/Frontend Separado<br>
+                                                <strong>Router:</strong> ✅ PHP Central<br>
+                                                <strong>API:</strong> ✅ Endpoints Organizados
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-4">
+                                <div class="col-md-3">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h5>👥 Clientes</h5>
+                                            <a href="/Hotel_tame/dashboard/clientes" class="btn btn-primary">Gestionar</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h5>🏨 Reservas</h5>
+                                            <a href="/Hotel_tame/dashboard/reservas" class="btn btn-primary">Gestionar</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h5>🛏️ Habitaciones</h5>
+                                            <a href="/Hotel_tame/dashboard/habitaciones" class="btn btn-primary">Gestionar</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h5>👥 Usuarios</h5>
+                                            <a href="/Hotel_tame/dashboard/usuarios" class="btn btn-primary">Gestionar</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

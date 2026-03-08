@@ -3,7 +3,7 @@
  * NotificationManager - Gestor de notificaciones visuales del sistema
  * Maneja notificaciones en tiempo real para el frontend
  */
-require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../backend/config/database.php';
 
 class NotificationManager {
     private static $instance = null;

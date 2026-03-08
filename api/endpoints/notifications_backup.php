@@ -18,7 +18,7 @@ error_log("Notifications API - Session: " . (isset($_SESSION['usuario']) ? 'YES'
 error_log("Notifications API - User ID: " . ($_SESSION['usuario']['id'] ?? 'NOT SET'));
 error_log("Notifications API - Request: " . $_SERVER['REQUEST_URI']);
 
-include_once '../../config/database.php';
+include_once '../../backend/config/database.php';
 include_once '../../lib/NotificationManager.php';
 
 $database = new Database();
