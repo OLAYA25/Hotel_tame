@@ -465,4 +465,4 @@ function showNotification(message, type) {
 }
 </script>
 
-<?php include 'includes/footer.php'; ?>
+<?php include __DIR__ . '/../../../backend/includes/footer.php'; ?>

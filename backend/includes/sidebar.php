@@ -49,6 +49,9 @@ $current_page = str_replace('/Hotel_tame/', '', $_SERVER['REQUEST_URI']);
         <a href="/Hotel_tame/pedidos-productos" class="nav-link text-white <?php echo $current_page == 'pedidos-productos' ? 'active' : ''; ?>">
             <i class="fas fa-shopping-cart"></i> Pedidos
         </a>
+        <a href="/Hotel_tame/reservas" class="nav-link text-white <?php echo $current_page == 'reservas' ? 'active' : ''; ?>">
+            <i class="fas fa-calendar-check"></i> Reservas
+        </a>
         
         <!-- Módulos reactivados con permisos granulares -->
         <?php if ($_SESSION['usuario']['rol'] === 'admin' || $_SESSION['usuario']['rol'] === 'gerente'): ?>

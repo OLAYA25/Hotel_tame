@@ -96,29 +96,6 @@ include __DIR__ . '/../../../backend/includes/sidebar.php';
         <h1>Dashboard - Sistema de Gestión Hotelera</h1>
     </div>
 
-    <!-- Dashboard Inteligente -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card bg-gradient-primary text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-brain me-2"></i>Dashboard Inteligente
-                            </h5>
-                            <p class="mb-0">Análisis avanzado con IA y métricas predictivas</p>
-                        </div>
-                        <div>
-                            <a href="mis_actividades_v2.php" class="btn btn-light">
-                                <i class="fas fa-arrow-right me-2"></i>Acceder Dashboard
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="row g-4 mb-4">
         <div class="col-md-3">
             <div class="stats-card primary">
@@ -134,27 +111,7 @@ include __DIR__ . '/../../../backend/includes/sidebar.php';
         <div class="col-md-3">
             <div class="stats-card success">
                 <div class="icon">
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <div class="card bg-gradient-primary text-white">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="card-title mb-0">
-                                                <i class="fas fa-brain me-2"></i>Dashboard Inteligente
-                                            </h5>
-                                            <p class="mb-0">Análisis avanzado con IA y métricas predictivas</p>
-                                        </div>
-                                        <div>
-                                            <a href="mis_actividades_v2.php?v=<?php echo time(); ?>" class="btn btn-light">
-                                                <i class="fas fa-arrow-right me-2"></i>Acceder Dashboard
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <i class="fas fa-calendar-check"></i>
                 </div>
                 <h3><?php echo $reservas_activas; ?></h3>
                 <p>Reservas Activas</p>
