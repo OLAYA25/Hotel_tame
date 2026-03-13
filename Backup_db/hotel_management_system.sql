@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: localhost
--- Tiempo de generación: 14-02-2026 a las 17:46:46
+-- Tiempo de generación: 11-03-2026 a las 21:56:01
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -20,6 +20,24 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `hotel_management_system`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `backups`
+--
+
+CREATE TABLE `backups` (
+  `id` int(11) NOT NULL,
+  `filename` varchar(255) NOT NULL,
+  `filepath` varchar(500) NOT NULL,
+  `size` bigint(20) NOT NULL,
+  `status` enum('pending','completed','failed','restoring') DEFAULT 'pending',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `completed_at` timestamp NULL DEFAULT NULL,
+  `created_by` varchar(100) DEFAULT NULL,
+  `notes` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 -- --------------------------------------------------------
 
@@ -50,20 +68,20 @@ CREATE TABLE `clientes` (
 
 INSERT INTO `clientes` (`id`, `nombre`, `apellido`, `email`, `telefono`, `documento`, `tipo_documento`, `direccion`, `ciudad`, `pais`, `fecha_nacimiento`, `created_at`, `updated_at`, `deleted_at`) VALUES
 (1, 'Jhuliet Anghelica', 'Tibasosa', 'JhulietTibasosa30@gmail.com', '+573224125100', '1010150914', 'Cedula', 'Calle 123 #45-67', 'Bogotá', 'Colombia', '2003-09-07', '2025-11-18 15:24:33', '2025-11-18 21:16:25', NULL),
-(2, 'Juan', 'Pérez', 'juan.perez@email.com', '3107654321', '0987654321', 'Cedula', 'Carrera 45 #12-34', 'Medellín', 'Colombia', '1985-08-20', '2025-11-18 15:24:33', '2025-11-18 21:16:36', NULL),
-(3, 'Ana', 'López', 'ana.lopez@email.com', '3159876543', '153051152', 'Cedula', 'Avenida 68 #89-01', 'Cali', 'Colombia', '1992-12-10', '2025-11-18 15:24:33', '2025-11-18 20:42:42', NULL),
-(4, 'Pedro', 'Martínez', 'pedro.martinez@email.com', '3201239876', '5544332211', 'Pasaporte', 'Diagonal 27 #34-56', 'Cartagena', 'Colombia', '1988-03-25', '2025-11-18 15:24:33', '2025-11-18 15:24:33', NULL),
+(2, 'Juan', 'Pérez', 'juan.perez@email.com', '3107654321', '0987654321', 'Cedula', 'Carrera 45 #12-34', 'Medellín', 'CO', '1985-08-20', '2025-11-18 15:24:33', '2026-03-03 13:55:09', NULL),
+(3, 'Ana', 'López', 'ana.lopez@email.com', '3159876543', '153051152', 'Cedula', 'Avenida 68 #89-01', 'Cali', 'VE', '1992-12-10', '2025-11-18 15:24:33', '2026-03-03 13:55:45', NULL),
+(4, 'Pedro', 'Martínez', 'pedro.martinez@email.com', '3201239876', '5544332211', 'Pasaporte', 'Diagonal 27 #34-56', 'Cartagena', 'CO', '1988-03-25', '2025-11-18 15:24:33', '2026-03-03 13:56:38', NULL),
 (5, 'Camila', 'Caceres', 'Cami_caceres30@gmail.com', '3218381092', '105546588', 'Cedula', 'Calle 22#16-34', 'Cùcuta', 'Colombia', '2003-10-20', '2025-11-18 20:35:54', '2025-11-18 21:16:14', NULL),
-(6, 'AFDSF', 'ADSFADS', 'admin@hotel.com', '3203564489', '444444555', 'Cedula', 'DFD', 'TAME', 'VCCDC', '2025-12-26', '2025-12-26 14:32:07', '2025-12-26 19:22:41', NULL),
-(7, 'OLAYA', 'SHELKIER', 'cheolaya11@gmail.com', '3203564488', '111823782', 'Cedula', 'CALLE X', 'TAMEE', 'COLOMBIAA', '2025-12-26', '2025-12-26 22:56:05', '2025-12-29 22:38:20', NULL),
+(6, 'AFDSF', 'ADSFADS', 'admin@hotel.com', '3203564489', '444444555', 'Cedula', 'DFD', 'TAME', 'Colombia', '2025-12-26', '2025-12-26 14:32:07', '2026-03-03 02:02:58', NULL),
+(7, 'OLAYA', 'SHELKIER', 'cheolaya11@gmail.com', '3203564488', '111823782', 'Cedula', 'CALLE X', 'TAMEE', 'Colombia', '2025-12-26', '2025-12-26 22:56:05', '2026-03-03 02:02:58', NULL),
 (8, 'pepito ', 'PEREZ', 'pepito@gmail.com', '23424234', '23423424234', 'DNI', 'fdgdfgdf', 'TAME', 'colombia', '2006-07-26', '2025-12-27 02:53:07', '2025-12-27 02:53:07', NULL),
-(9, 'PEDRITO', 'PEREZ', 'pedrito@gmail.com', '3203564480', '111111111114', 'Cedula', 'kk', 'TAME', 'VCCDC', '2026-01-08', '2025-12-29 22:55:34', '2025-12-29 22:55:34', NULL),
-(10, 'eeeeeeeeeeee', 'ñññññññññññ', 'pedrito@gmail.com', '3124589774', '58456456415641', 'Cedula', 'ĺkl', 'TAME', 'VCCDC', '2025-12-31', '2025-12-29 22:59:33', '2025-12-29 22:59:42', NULL),
+(9, 'PEDRITO', 'PEREZ', 'pedrito@gmail.com', '3203564480', '111111111114', 'Cedula', 'kk', 'TAME', 'Colombia', '2026-01-08', '2025-12-29 22:55:34', '2026-03-03 02:02:58', NULL),
+(10, 'eeeeeeeeeeee', 'ñññññññññññ', 'pedrito@gmail.com', '3124589774', '58456456415641', 'Cedula', 'ĺkl', 'TAME', 'Colombia', '2025-12-31', '2025-12-29 22:59:33', '2026-03-03 02:02:58', NULL),
 (11, 'Juanito', 'Rodriguez', 'juanito@gmail.com', '312345867', '10985672', 'Cedula', 'Calle 16', 'Tame', 'Colombia', '2025-01-01', '2026-01-14 16:29:05', '2026-01-23 22:38:22', NULL),
 (12, 'juan', 'cardenas', 'jcardenas.@gmail.com', '320234234234', '342342342', 'Cedula', '123123', 'TAME', 'colombia', '1979-01-28', '2026-01-28 22:06:15', '2026-01-28 22:06:15', NULL),
 (13, 'pepito', 'PEREZ', 'pei95@hotel.com', '31023454345', '2342342', 'Cedula', '234324', 'TAME', 'COLOMBIA', '2005-09-28', '2026-01-28 22:49:23', '2026-01-28 22:53:55', '2026-01-28 22:53:55'),
-(14, 'TESEO', 'PASEO', 'PASEO@hotel.com', '2434234234', '1243214234', 'DNI', 'WREFSEDF', 'TAME', 'COLOMBIA', '1994-12-12', '2026-01-29 00:18:10', '2026-01-29 00:21:54', NULL),
-(15, 'dell', 'APP', 'DELL@hotel.com', '123123123', '43324234', NULL, 'DGSFGFDG', 'TAME', 'COLOMBIA', NULL, '2026-02-11 22:30:54', '2026-02-11 22:30:54', NULL),
+(14, 'TESEO', 'PASEO', 'PASEO@hotel.com', '2434234234', '1243214234', 'DNI', 'WREFSEDF', 'TAME', 'COLOMBIA', '1985-12-10', '2026-01-29 00:18:10', '2026-03-03 02:21:28', NULL),
+(15, 'dell', 'APP', 'DELL@hotel.com', '123123123', '43324234', 'Cedula', 'DGSFGFDG', 'TAME', 'Colombia', '1990-02-02', '2026-02-11 22:30:54', '2026-03-03 02:02:58', NULL),
 (17, 'pipx', 'pithon', 'pipx@hotel.com', '124214234', '143234234', NULL, '23423542345', 'TAME', 'colombia', NULL, '2026-02-11 22:35:44', '2026-02-11 22:35:44', NULL);
 
 -- --------------------------------------------------------
@@ -210,19 +228,81 @@ CREATE TABLE `habitaciones` (
 --
 
 INSERT INTO `habitaciones` (`id`, `numero`, `tipo`, `precio_noche`, `capacidad`, `estado`, `piso`, `descripcion`, `amenidades`, `imagen_url`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, '106', 'simple', 150000.00, 1, 'disponible', 1, 'Habitación simple con cama individual, baño privado y TV', '[\"WiFi\", \"TV\", \"Aire acondicionado\"]', '', '2025-11-18 15:24:33', '2026-01-29 23:32:34', NULL),
+(1, '106', 'simple', 150000.00, 1, 'disponible', 1, 'Habitación simple con cama individual, baño privado y TV', '[\"WiFi\", \"TV\", \"Aire acondicionado\"]', '', '2025-11-18 15:24:33', '2026-02-16 22:11:10', NULL),
 (2, '102', 'doble', 250000.00, 2, 'mantenimiento', 1, 'Habitación doble con dos camas, baño privado, TV y minibar', '[\"WiFi\", \"TV\", \"Minibar\", \"Aire acondicionado\"]', '', '2025-11-18 15:24:33', '2026-01-28 22:32:34', NULL),
 (3, '', 'simple', 0.00, 1, 'disponible', 1, '', '[\"WiFi\", \"TV\", \"Minibar\", \"Jacuzzi\", \"Balcón\"]', NULL, '2025-11-18 15:24:33', '2025-12-29 23:50:53', '2025-12-26 14:53:19'),
-(4, '301', 'presidencial', 800000.00, 6, 'disponible', 3, 'Suite presidencial con 2 habitaciones, sala, comedor, cocina y terraza', '[\"WiFi\", \"TV\", \"Minibar\", \"Cocina\", \"Terraza\", \"Jacuzzi\"]', NULL, '2025-11-18 15:24:33', '2026-01-29 22:05:20', NULL),
-(5, '103', 'doble', 150000.00, 3, 'disponible', 1, 'Habitación simple económica', '[\"WiFi\", \"TV\"]', '', '2025-11-18 15:24:33', '2026-02-12 23:26:27', NULL),
+(4, '301', 'presidencial', 800000.00, 6, 'disponible', 3, 'Suite presidencial con 2 habitaciones, sala, comedor, cocina y terraza', '[\"WiFi\", \"TV\", \"Minibar\", \"Cocina\", \"Terraza\", \"Jacuzzi\"]', NULL, '2025-11-18 15:24:33', '2026-02-17 21:23:30', NULL),
+(5, '103', 'doble', 150000.00, 3, 'disponible', 1, 'Habitación simple económica', '[\"WiFi\", \"TV\"]', '', '2025-11-18 15:24:33', '2026-03-10 14:11:40', NULL),
 (6, '104', 'doble', 250000.00, 2, 'disponible', 1, 'Habitación disponible nuevamente', '[\"WiFi\", \"TV\", \"Aire acondicionado\"]', '', '2025-11-18 15:24:33', '2026-01-28 22:28:09', '2026-01-28 22:28:09'),
 (7, '202', 'suite', 250000.00, 4, 'disponible', 2, 'Suite elegante con cama king, sala pequeña, minibar, jacuzzi y vista a la ciudad.', NULL, NULL, '2025-11-18 21:44:58', '2026-01-30 20:50:28', NULL),
 (8, '101', 'simple', 50000.00, 2, 'disponible', 1, 'Habitación de prueba', NULL, NULL, '2025-12-26 19:12:16', '2026-01-29 22:43:04', '2026-01-29 22:42:51'),
-(9, '105', 'simple', 100000.00, 2, 'disponible', 1, '', NULL, NULL, '2025-12-26 19:13:13', '2026-02-14 15:31:02', NULL),
-(10, '110', 'doble', 50000.00, 4, 'disponible', 2, 'PRUEBAAAA', NULL, '', '2026-01-14 16:46:14', '2026-01-30 20:22:03', NULL),
-(13, '107', 'doble', 250000.00, 2, 'disponible', 1, 'nueva', NULL, '', '2026-01-28 21:09:27', '2026-01-30 20:20:58', NULL),
+(9, '105', 'simple', 100000.00, 2, 'disponible', 1, '', NULL, NULL, '2025-12-26 19:13:13', '2026-02-16 22:11:10', NULL),
+(10, '110', 'doble', 50000.00, 4, 'disponible', 2, 'PRUEBAAAA', NULL, '', '2026-01-14 16:46:14', '2026-02-17 21:08:55', NULL),
+(13, '107', 'doble', 250000.00, 2, 'disponible', 1, 'nueva', NULL, '', '2026-01-28 21:09:27', '2026-02-16 22:11:10', NULL),
 (14, '305', 'simple', 50000.00, 1, 'disponible', 1, 'agua caliente ', NULL, '', '2026-01-28 21:32:24', '2026-01-28 22:27:11', '2026-01-28 22:27:11'),
 (17, '404', 'simple', 50000.00, 1, 'disponible', 1, '', NULL, '', '2026-01-29 22:48:52', '2026-01-29 22:48:52', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `hotel_config`
+--
+
+CREATE TABLE `hotel_config` (
+  `id` int(11) NOT NULL,
+  `clave` varchar(100) NOT NULL,
+  `valor` text DEFAULT NULL,
+  `descripcion` text DEFAULT NULL,
+  `tipo` varchar(20) DEFAULT 'string',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `hotel_config`
+--
+
+INSERT INTO `hotel_config` (`id`, `clave`, `valor`, `descripcion`, `tipo`, `created_at`, `updated_at`) VALUES
+(1, 'nombre_hotel', 'Hotel Tame', 'Nombre del hotel', 'string', '2026-03-03 02:55:52', '2026-03-03 02:55:52'),
+(2, 'direccion', 'Calle Principal #123', 'Dirección del hotel', 'string', '2026-03-03 02:55:52', '2026-03-03 02:55:52'),
+(3, 'telefono', '+57 1 234 5678', 'Teléfono principal', 'string', '2026-03-03 02:55:52', '2026-03-03 02:55:52'),
+(4, 'email', 'info@hotel-tame.com', 'Email principal', 'string', '2026-03-03 02:55:52', '2026-03-03 02:55:52'),
+(5, 'moneda', 'COP', 'Moneda por defecto', 'string', '2026-03-03 02:55:52', '2026-03-03 02:55:52'),
+(6, 'idioma', 'es', 'Idioma por defecto', 'string', '2026-03-03 02:55:52', '2026-03-03 02:55:52'),
+(7, 'timezone', 'America/Bogota', 'Zona horaria', 'string', '2026-03-03 02:55:52', '2026-03-03 02:55:52'),
+(8, 'checkin_time', '15:00', 'Hora de check-in', 'time', '2026-03-03 02:55:52', '2026-03-03 02:55:52'),
+(9, 'checkout_time', '12:00', 'Hora de check-out', 'time', '2026-03-03 02:55:52', '2026-03-03 02:55:52'),
+(10, 'max_huespedes_habitacion', '4', 'Máximo de huéspedes por habitación', 'integer', '2026-03-03 02:55:52', '2026-03-03 02:55:52'),
+(11, 'politica_cancelacion', '24', 'Horas de política de cancelación', 'integer', '2026-03-03 02:55:52', '2026-03-03 02:55:52'),
+(12, 'deposito_porcentaje', '20', 'Porcentaje de depósito requerido', 'decimal', '2026-03-03 02:55:52', '2026-03-03 02:55:52'),
+(13, 'impuesto_hospedaje', '19', 'Porcentaje de impuesto de alojamiento', 'decimal', '2026-03-03 02:55:52', '2026-03-03 02:55:52'),
+(14, 'servicios_incluidos', 'WiFi, Desayuno, Aire Acondicionado', 'Servicios incluidos', 'text', '2026-03-03 02:55:52', '2026-03-03 02:55:52'),
+(15, 'logo_url', 'assets/images/logo-hotel.png', 'URL del logo', 'string', '2026-03-03 02:55:52', '2026-03-03 02:55:52'),
+(16, 'activo', '1', 'Configuración activa', 'boolean', '2026-03-03 02:55:52', '2026-03-03 02:55:52');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `metas_hotel`
+--
+
+CREATE TABLE `metas_hotel` (
+  `id` int(11) NOT NULL,
+  `mes` int(11) NOT NULL,
+  `anio` int(11) NOT NULL,
+  `meta_revenue` decimal(12,2) DEFAULT NULL,
+  `meta_ocupacion` decimal(5,2) DEFAULT NULL,
+  `meta_reservas` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `metas_hotel`
+--
+
+INSERT INTO `metas_hotel` (`id`, `mes`, `anio`, `meta_revenue`, `meta_ocupacion`, `meta_reservas`, `created_at`, `updated_at`) VALUES
+(1, 3, 2026, 50000000.00, 75.00, 150, '2026-03-03 02:55:52', '2026-03-03 02:55:52');
 
 -- --------------------------------------------------------
 
@@ -553,6 +633,7 @@ CREATE TABLE `reservas` (
   `num_noches` int(11) NOT NULL,
   `precio_total` decimal(10,2) NOT NULL,
   `metodo_pago` enum('efectivo','tarjeta','transferencia') DEFAULT 'efectivo',
+  `motivo_viaje` varchar(50) DEFAULT 'turismo',
   `notas` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -563,71 +644,83 @@ CREATE TABLE `reservas` (
 -- Volcado de datos para la tabla `reservas`
 --
 
-INSERT INTO `reservas` (`id`, `cliente_id`, `habitacion_id`, `usuario_id`, `fecha_entrada`, `fecha_salida`, `num_huespedes`, `estado`, `precio_noche`, `num_noches`, `precio_total`, `metodo_pago`, `notas`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 1, 1, 2, '2025-12-26', '2025-12-27', 2, 'confirmada', 150000.00, 1, 150000.00, 'tarjeta', NULL, '2025-11-18 15:24:33', '2025-12-26 20:16:44', '2025-11-19 15:05:28'),
-(2, 2, 2, 2, '2025-01-14', '2025-01-16', 2, 'confirmada', 250000.00, 2, 500000.00, 'efectivo', NULL, '2025-11-18 15:24:33', '2025-12-27 16:23:42', '2025-12-27 16:23:42'),
-(3, 3, 5, 1, '2025-01-12', '2025-01-14', 1, 'confirmada', 150000.00, 2, 300000.00, 'transferencia', NULL, '2025-11-18 15:24:33', '2025-12-27 16:23:39', '2025-12-27 16:23:39'),
-(4, 4, 4, 1, '2025-01-15', '2025-01-18', 4, 'pendiente', 800000.00, 3, 2400000.00, 'tarjeta', NULL, '2025-11-18 15:24:33', '2025-11-19 15:16:30', '2025-11-19 15:16:30'),
-(5, 1, 2, NULL, '2025-12-01', '2025-12-03', 1, 'confirmada', 250000.00, 2, 500000.00, 'tarjeta', NULL, '2025-11-19 14:33:37', '2025-12-27 16:23:44', '2025-12-27 16:23:44'),
-(6, 5, 5, NULL, '2025-11-25', '2025-12-12', 1, 'confirmada', 150000.00, 17, 2550000.00, 'efectivo', NULL, '2025-11-19 14:36:40', '2025-12-27 16:23:47', '2025-12-27 16:23:47'),
-(7, 2, 7, NULL, '2025-11-28', '2025-12-20', 1, 'confirmada', 250000.00, 22, 5500000.00, 'transferencia', NULL, '2025-11-19 14:47:24', '2025-12-27 16:23:49', '2025-12-27 16:23:49'),
-(8, 4, 2, NULL, '2025-12-12', '2025-12-25', 1, 'completada', 250000.00, 13, 3250000.00, 'transferencia', NULL, '2025-11-19 14:54:24', '2025-12-27 16:23:52', '2025-12-27 16:23:52'),
-(9, 5, 2, NULL, '2025-12-09', '2025-12-10', 1, 'confirmada', 250000.00, 1, 250000.00, 'efectivo', NULL, '2025-12-09 16:15:54', '2025-12-27 16:24:10', '2025-12-27 16:24:10'),
-(10, 5, 8, NULL, '2025-12-26', '2025-12-28', 1, 'confirmada', 50000.00, 2, 100000.00, 'efectivo', NULL, '2025-12-26 19:53:00', '2025-12-27 16:24:13', '2025-12-27 16:24:13'),
-(11, 5, 9, NULL, '2025-12-26', '2025-12-31', 1, 'pendiente', 100000.00, 5, 500000.00, 'efectivo', NULL, '2025-12-26 23:41:05', '2025-12-27 16:24:16', '2025-12-27 16:24:16'),
-(12, 8, 8, NULL, '2025-12-27', '2025-12-28', 1, 'confirmada', 50000.00, 1, 50000.00, 'efectivo', NULL, '2025-12-27 16:32:15', '2025-12-27 16:38:22', '2025-12-27 16:38:22'),
-(13, 8, 2, NULL, '2025-12-27', '2025-12-28', 1, 'completada', 250000.00, 1, 250000.00, 'efectivo', NULL, '2025-12-27 16:33:02', '2025-12-29 23:49:39', '2025-12-29 23:49:39'),
-(14, 8, 5, NULL, '2025-12-27', '2025-12-28', 1, 'completada', 150000.00, 1, 150000.00, 'efectivo', NULL, '2025-12-27 16:33:44', '2025-12-29 23:50:16', '2025-12-29 23:50:16'),
-(15, 9, 8, NULL, '2025-12-29', '2026-01-08', 1, 'confirmada', 50000.00, 10, 500000.00, 'transferencia', NULL, '2025-12-29 22:56:19', '2025-12-29 23:51:00', '2025-12-29 23:51:00'),
-(16, 1, 2, NULL, '2025-12-30', '2025-12-31', 1, 'pendiente', 250000.00, 1, 250000.00, 'efectivo', NULL, '2025-12-29 23:30:13', '2025-12-29 23:48:14', '2025-12-29 23:48:14'),
-(17, 1, 3, NULL, '2025-12-29', '2025-12-30', 1, 'pendiente', 0.00, 1, 0.00, 'efectivo', NULL, '2025-12-29 23:31:09', '2025-12-29 23:50:53', '2025-12-29 23:50:53'),
-(18, 1, 4, NULL, '2026-01-15', '2026-01-16', 1, 'pendiente', 800000.00, 1, 800000.00, 'tarjeta', NULL, '2025-12-29 23:31:24', '2025-12-29 23:51:03', '2025-12-29 23:51:03'),
-(19, 6, 5, NULL, '2025-12-31', '2026-01-31', 1, 'pendiente', 150000.00, 31, 4650000.00, 'efectivo', NULL, '2025-12-29 23:35:44', '2025-12-29 23:51:05', '2025-12-29 23:51:05'),
-(20, 8, 8, NULL, '2025-12-29', '2025-12-30', 1, 'cancelada', 50000.00, 1, 50000.00, 'efectivo', NULL, '2025-12-29 23:52:04', '2025-12-30 16:58:31', NULL),
-(21, 1, 1, NULL, '2025-12-30', '2025-12-31', 1, 'cancelada', 150000.00, 1, 150000.00, 'efectivo', NULL, '2025-12-30 00:06:49', '2025-12-30 23:05:36', NULL),
-(22, 1, 2, NULL, '2025-12-30', '2025-12-31', 1, 'cancelada', 250000.00, 1, 250000.00, 'efectivo', NULL, '2025-12-30 00:13:08', '2025-12-30 17:03:19', NULL),
-(23, 3, 5, NULL, '2025-12-30', '2025-12-31', 1, 'completada', 150000.00, 1, 150000.00, 'tarjeta', NULL, '2025-12-30 00:15:25', '2026-01-13 23:12:04', NULL),
-(24, 4, 7, NULL, '2025-12-30', '2025-12-31', 1, 'cancelada', 250000.00, 1, 250000.00, 'efectivo', NULL, '2025-12-30 00:15:54', '2025-12-30 00:20:24', NULL),
-(25, 6, 7, NULL, '2025-12-30', '2025-12-31', 1, 'completada', 250000.00, 1, 250000.00, 'tarjeta', NULL, '2025-12-30 00:20:24', '2026-01-13 23:12:04', NULL),
-(26, 2, 6, NULL, '2025-12-30', '2025-12-31', 1, 'cancelada', 250000.00, 1, 250000.00, 'efectivo', NULL, '2025-12-30 00:23:29', '2025-12-30 23:05:36', NULL),
-(27, 7, 9, NULL, '2025-12-30', '2025-12-31', 1, 'cancelada', 100000.00, 1, 100000.00, 'efectivo', NULL, '2025-12-30 00:28:54', '2025-12-30 00:42:13', NULL),
-(28, 8, 9, NULL, '2025-12-30', '2025-12-31', 1, 'completada', 100000.00, 1, 100000.00, 'tarjeta', NULL, '2025-12-30 00:42:13', '2026-01-13 23:12:04', NULL),
-(29, 1, 8, NULL, '2025-12-30', '2025-12-31', 1, 'cancelada', 50000.00, 1, 50000.00, 'efectivo', NULL, '2025-12-30 00:46:47', '2025-12-30 23:05:36', NULL),
-(30, 1, 8, NULL, '2025-12-30', '2025-12-31', 1, 'cancelada', 50000.00, 1, 50000.00, 'efectivo', NULL, '2025-12-30 00:49:46', '2025-12-30 23:05:36', NULL),
-(31, 2, 4, NULL, '2025-12-30', '2025-12-31', 1, 'cancelada', 800000.00, 1, 800000.00, 'efectivo', NULL, '2025-12-30 00:50:55', '2025-12-30 23:05:36', NULL),
-(32, 3, 2, NULL, '2025-12-30', '2025-12-31', 1, 'completada', 250000.00, 1, 250000.00, 'tarjeta', NULL, '2025-12-30 17:03:19', '2026-01-13 23:12:04', NULL),
-(33, 8, 6, NULL, '2025-12-30', '2025-12-31', 1, 'cancelada', 250000.00, 1, 250000.00, 'efectivo', NULL, '2025-12-30 20:33:17', '2025-12-30 23:05:36', NULL),
-(34, 7, 8, NULL, '2026-01-14', '2026-01-15', 1, 'completada', 50000.00, 1, 50000.00, 'efectivo', NULL, '2026-01-14 16:26:47', '2026-01-16 16:46:49', NULL),
-(35, 11, 8, NULL, '2026-01-16', '2026-01-17', 1, 'completada', 50000.00, 1, 50000.00, 'transferencia', NULL, '2026-01-14 16:29:34', '2026-01-20 16:14:25', NULL),
-(36, 7, 2, NULL, '2026-01-14', '2026-01-15', 1, 'cancelada', 250000.00, 1, 250000.00, 'tarjeta', NULL, '2026-01-14 16:38:22', '2026-01-16 16:46:49', NULL),
-(37, 9, 2, NULL, '2026-01-16', '2026-01-18', 1, 'completada', 250000.00, 2, 500000.00, 'efectivo', NULL, '2026-01-16 16:47:41', '2026-01-20 16:14:25', NULL),
-(38, 6, 7, NULL, '2026-01-16', '2026-01-17', 1, 'completada', 250000.00, 1, 250000.00, 'transferencia', NULL, '2026-01-16 16:50:19', '2026-01-20 16:14:25', NULL),
-(39, 7, 2, NULL, '2026-01-28', '2026-01-30', 1, 'confirmada', 250000.00, 2, 500000.00, 'efectivo', NULL, '2026-01-28 17:01:10', '2026-01-28 17:18:38', '2026-01-28 17:18:38'),
-(40, 11, 6, NULL, '2026-01-28', '2026-01-30', 1, 'pendiente', 250000.00, 2, 500000.00, 'efectivo', NULL, '2026-01-28 17:07:56', '2026-01-28 17:18:34', '2026-01-28 17:18:34'),
-(41, 11, 2, NULL, '2026-01-28', '2026-01-30', 1, 'confirmada', 250000.00, 2, 500000.00, 'efectivo', NULL, '2026-01-28 17:18:59', '2026-01-28 17:24:09', '2026-01-28 17:24:09'),
-(42, 11, 2, NULL, '2026-01-28', '2026-01-30', 1, 'pendiente', 250000.00, 2, 500000.00, 'efectivo', NULL, '2026-01-28 17:28:46', '2026-01-28 17:33:43', '2026-01-28 17:33:43'),
-(43, 10, 2, NULL, '2026-01-28', '2026-01-30', 1, 'pendiente', 250000.00, 2, 500000.00, 'efectivo', NULL, '2026-01-28 17:35:11', '2026-01-28 17:42:34', '2026-01-28 17:42:34'),
-(44, 11, 2, NULL, '2026-01-28', '2026-01-30', 1, 'confirmada', 250000.00, 2, 500000.00, 'efectivo', NULL, '2026-01-28 17:43:31', '2026-01-28 18:11:20', '2026-01-28 18:11:20'),
-(45, 8, 2, NULL, '2026-01-28', '2026-01-30', 2, 'confirmada', 250000.00, 2, 500000.00, 'efectivo', NULL, '2026-01-28 18:12:25', '2026-01-28 18:17:06', '2026-01-28 18:17:06'),
-(46, 10, 2, NULL, '2026-01-28', '2026-01-30', 2, 'cancelada', 250000.00, 2, 500000.00, 'efectivo', NULL, '2026-01-28 18:21:24', '2026-01-28 18:24:03', NULL),
-(47, 11, 2, NULL, '2026-01-28', '2026-01-30', 2, 'confirmada', 250000.00, 2, 500000.00, 'efectivo', NULL, '2026-01-28 18:24:03', '2026-01-28 22:32:16', '2026-01-28 22:32:16'),
-(48, 4, 6, NULL, '2026-01-28', '2026-01-30', 2, 'completada', 250000.00, 2, 500000.00, 'efectivo', NULL, '2026-01-28 18:57:11', '2026-02-02 23:07:40', NULL),
-(49, 1, 13, NULL, '2026-01-28', '2026-01-29', 2, 'cancelada', 250000.00, 1, 250000.00, 'efectivo', NULL, '2026-01-28 22:01:47', '2026-01-28 23:04:56', NULL),
-(50, 3, 8, NULL, '2026-01-28', '2026-01-30', 1, 'confirmada', 50000.00, 2, 100000.00, 'efectivo', 'si\n\nACOMPANANTES:\n[]', '2026-01-28 22:23:00', '2026-01-29 22:43:04', '2026-01-29 22:43:04'),
-(51, 13, 5, NULL, '2026-01-28', '2026-01-30', 1, 'pendiente', 150000.00, 2, 300000.00, 'efectivo', '23RWEFWEF', '2026-01-28 22:53:41', '2026-01-28 22:55:22', '2026-01-28 22:55:22'),
-(52, 12, 13, NULL, '2026-01-28', '2026-01-29', 1, 'completada', 250000.00, 1, 250000.00, 'tarjeta', 'sdfgsdv e wr ftwrf gergre w4', '2026-01-28 23:04:56', '2026-01-29 23:05:40', NULL),
-(53, 12, 5, NULL, '2026-01-28', '2026-01-30', 1, 'cancelada', 150000.00, 2, 300000.00, 'efectivo', 'wef w fwer trth gertgh erg trhgetygethy rtyrt yrty tr rtyh', '2026-01-29 00:00:42', '2026-01-30 20:33:43', NULL),
-(54, 12, 9, NULL, '2026-01-29', '2026-01-31', 1, 'cancelada', 100000.00, 2, 50000.00, 'efectivo', 'owefwepof', '2026-01-29 23:20:48', '2026-01-30 20:33:51', NULL),
-(55, 8, 1, NULL, '2026-01-29', '2026-01-31', 1, 'cancelada', 150000.00, 2, 100000.00, 'efectivo', 'kjhjhjk', '2026-01-29 23:31:59', '2026-01-30 20:33:59', NULL),
-(56, 4, 13, NULL, '2026-01-30', '2026-01-31', 1, 'completada', 250000.00, 1, 250000.00, 'efectivo', 'Venia con un acompañante', '2026-01-30 20:20:45', '2026-02-02 23:07:40', NULL),
-(57, 14, 10, NULL, '2026-01-30', '2026-01-31', 1, 'completada', 50000.00, 1, 50000.00, 'tarjeta', 'Venia solo', '2026-01-30 20:21:46', '2026-02-02 23:07:40', NULL),
-(58, 14, 7, NULL, '2026-01-30', '2026-01-31', 3, 'completada', 250000.00, 1, 100000.00, 'efectivo', 'fghfgh', '2026-01-30 20:49:44', '2026-02-02 23:07:40', NULL),
-(59, 12, 9, NULL, '2026-02-10', '2026-02-12', NULL, 'cancelada', 100000.00, 2, 200000.00, 'efectivo', '', '2026-02-10 23:47:53', '2026-02-10 23:49:44', NULL),
-(60, 14, 5, NULL, '2026-02-11', '2026-02-13', 3, 'cancelada', 150000.00, 2, 300000.00, 'efectivo', 'anotacion de ejemplo\n\nACOMPANANTES:\n[{\"persona_id\":12,\"nombre\":\"juan\",\"apellido\":\"cardenas\",\"tipo_documento\":\"CC\",\"numero_documento\":\"342342342\",\"fecha_nacimiento\":null,\"parentesco\":\"\",\"email\":\"jcardenas.@gmail.com\",\"telefono\":\"320234234234\"},{\"persona_id\":11,\"nombre\":\"Juanito\",\"apellido\":\"Rodriguez\",\"tipo_documento\":\"CC\",\"numero_documento\":\"10985672\",\"fecha_nacimiento\":null,\"parentesco\":\"\",\"email\":\"juanito@gmail.com\",\"telefono\":\"312345867\"}]', '2026-02-11 16:05:48', '2026-02-12 21:41:50', NULL),
-(61, 8, 5, NULL, '2026-02-11', '2026-02-13', 3, 'confirmada', 150000.00, 2, 150000.00, 'efectivo', 'ACOMPANANTES:\n[{\"persona_id\":\"15\",\"nombre\":\"dell\",\"apellido\":\"APP\",\"tipo_documento\":\"Cedula\",\"numero_documento\":\"43324234\",\"fecha_nacimiento\":\"1993-12-12\",\"parentesco\":\"\",\"email\":\"DELL@hotel.com\",\"telefono\":\"123123123\"},{\"persona_id\":4,\"nombre\":\"Pedro\",\"apellido\":\"Mart\\u00ednez\",\"tipo_documento\":\"CC\",\"numero_documento\":\"5544332211\",\"fecha_nacimiento\":null,\"parentesco\":\"\",\"email\":\"pedro.martinez@email.com\",\"telefono\":\"3201239876\"}]', '2026-02-11 22:33:50', '2026-02-12 23:26:27', '2026-02-12 23:26:27'),
-(62, 17, 10, NULL, '2026-02-13', '2026-02-15', 2, 'confirmada', 50000.00, 2, 200000.00, 'efectivo', 'ACOMPANANTES:\n[{\"persona_id\":12,\"nombre\":\"juan\",\"apellido\":\"cardenas\",\"tipo_documento\":\"CC\",\"numero_documento\":\"342342342\",\"fecha_nacimiento\":null,\"parentesco\":\"\",\"email\":\"jcardenas.@gmail.com\",\"telefono\":\"320234234234\"}]', '2026-02-13 21:11:25', '2026-02-13 21:12:32', NULL),
-(63, 17, 5, NULL, '2026-02-13', '2026-02-14', 2, 'confirmada', 150000.00, 1, 150000.00, 'efectivo', 'ACOMPANANTES:\n[{\"persona_id\": 18, \"nombre\": \"dell\", \"apellido\": \"APP\", \"tipo_documento\": \"CC\", \"numero_documento\": \"12345678\", \"fecha_nacimiento\": \"1990-01-01\", \"parentesco\": \"amigo\", \"email\": \"dell@app.com\", \"telefono\": \"123456789\", \"es_menor\": false}]\n\nObservaciones adicionales del cliente', '2026-02-13 21:18:49', '2026-02-13 21:18:49', NULL),
-(64, 10, 9, NULL, '2026-02-14', '2026-02-15', 2, 'confirmada', 100000.00, 1, 100000.00, 'efectivo', 'ACOMPANANTES:\n[{\"persona_id\":3,\"nombre\":\"Ana\",\"apellido\":\"L\\u00f3pez\",\"tipo_documento\":\"CC\",\"numero_documento\":\"153051152\",\"fecha_nacimiento\":null,\"parentesco\":\"\",\"email\":\"ana.lopez@email.com\",\"telefono\":\"3159876543\"}]', '2026-02-14 15:30:48', '2026-02-14 15:31:59', NULL);
+INSERT INTO `reservas` (`id`, `cliente_id`, `habitacion_id`, `usuario_id`, `fecha_entrada`, `fecha_salida`, `num_huespedes`, `estado`, `precio_noche`, `num_noches`, `precio_total`, `metodo_pago`, `motivo_viaje`, `notas`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 1, 1, 2, '2025-12-26', '2025-12-27', 2, 'confirmada', 150000.00, 1, 150000.00, 'tarjeta', 'turismo', NULL, '2025-11-18 15:24:33', '2025-12-26 20:16:44', '2025-11-19 15:05:28'),
+(2, 2, 2, 2, '2025-01-14', '2025-01-16', 2, 'confirmada', 250000.00, 2, 500000.00, 'efectivo', 'turismo', NULL, '2025-11-18 15:24:33', '2025-12-27 16:23:42', '2025-12-27 16:23:42'),
+(3, 3, 5, 1, '2025-01-12', '2025-01-14', 1, 'confirmada', 150000.00, 2, 300000.00, 'transferencia', 'turismo', NULL, '2025-11-18 15:24:33', '2025-12-27 16:23:39', '2025-12-27 16:23:39'),
+(4, 4, 4, 1, '2025-01-15', '2025-01-18', 4, 'pendiente', 800000.00, 3, 2400000.00, 'tarjeta', 'turismo', NULL, '2025-11-18 15:24:33', '2025-11-19 15:16:30', '2025-11-19 15:16:30'),
+(5, 1, 2, NULL, '2025-12-01', '2025-12-03', 1, 'confirmada', 250000.00, 2, 500000.00, 'tarjeta', 'turismo', NULL, '2025-11-19 14:33:37', '2025-12-27 16:23:44', '2025-12-27 16:23:44'),
+(6, 5, 5, NULL, '2025-11-25', '2025-12-12', 1, 'confirmada', 150000.00, 17, 2550000.00, 'efectivo', 'turismo', NULL, '2025-11-19 14:36:40', '2025-12-27 16:23:47', '2025-12-27 16:23:47'),
+(7, 2, 7, NULL, '2025-11-28', '2025-12-20', 1, 'confirmada', 250000.00, 22, 5500000.00, 'transferencia', 'turismo', NULL, '2025-11-19 14:47:24', '2025-12-27 16:23:49', '2025-12-27 16:23:49'),
+(8, 4, 2, NULL, '2025-12-12', '2025-12-25', 1, 'completada', 250000.00, 13, 3250000.00, 'transferencia', 'turismo', NULL, '2025-11-19 14:54:24', '2025-12-27 16:23:52', '2025-12-27 16:23:52'),
+(9, 5, 2, NULL, '2025-12-09', '2025-12-10', 1, 'confirmada', 250000.00, 1, 250000.00, 'efectivo', 'turismo', NULL, '2025-12-09 16:15:54', '2025-12-27 16:24:10', '2025-12-27 16:24:10'),
+(10, 5, 8, NULL, '2025-12-26', '2025-12-28', 1, 'confirmada', 50000.00, 2, 100000.00, 'efectivo', 'turismo', NULL, '2025-12-26 19:53:00', '2025-12-27 16:24:13', '2025-12-27 16:24:13'),
+(11, 5, 9, NULL, '2025-12-26', '2025-12-31', 1, 'pendiente', 100000.00, 5, 500000.00, 'efectivo', 'turismo', NULL, '2025-12-26 23:41:05', '2025-12-27 16:24:16', '2025-12-27 16:24:16'),
+(12, 8, 8, NULL, '2025-12-27', '2025-12-28', 1, 'confirmada', 50000.00, 1, 50000.00, 'efectivo', 'turismo', NULL, '2025-12-27 16:32:15', '2025-12-27 16:38:22', '2025-12-27 16:38:22'),
+(13, 8, 2, NULL, '2025-12-27', '2025-12-28', 1, 'completada', 250000.00, 1, 250000.00, 'efectivo', 'turismo', NULL, '2025-12-27 16:33:02', '2025-12-29 23:49:39', '2025-12-29 23:49:39'),
+(14, 8, 5, NULL, '2025-12-27', '2025-12-28', 1, 'completada', 150000.00, 1, 150000.00, 'efectivo', 'turismo', NULL, '2025-12-27 16:33:44', '2025-12-29 23:50:16', '2025-12-29 23:50:16'),
+(15, 9, 8, NULL, '2025-12-29', '2026-01-08', 1, 'confirmada', 50000.00, 10, 500000.00, 'transferencia', 'turismo', NULL, '2025-12-29 22:56:19', '2025-12-29 23:51:00', '2025-12-29 23:51:00'),
+(16, 1, 2, NULL, '2025-12-30', '2025-12-31', 1, 'pendiente', 250000.00, 1, 250000.00, 'efectivo', 'turismo', NULL, '2025-12-29 23:30:13', '2025-12-29 23:48:14', '2025-12-29 23:48:14'),
+(17, 1, 3, NULL, '2025-12-29', '2025-12-30', 1, 'pendiente', 0.00, 1, 0.00, 'efectivo', 'turismo', NULL, '2025-12-29 23:31:09', '2025-12-29 23:50:53', '2025-12-29 23:50:53'),
+(18, 1, 4, NULL, '2026-01-15', '2026-01-16', 1, 'pendiente', 800000.00, 1, 800000.00, 'tarjeta', 'turismo', NULL, '2025-12-29 23:31:24', '2025-12-29 23:51:03', '2025-12-29 23:51:03'),
+(19, 6, 5, NULL, '2025-12-31', '2026-01-31', 1, 'pendiente', 150000.00, 31, 4650000.00, 'efectivo', 'turismo', NULL, '2025-12-29 23:35:44', '2025-12-29 23:51:05', '2025-12-29 23:51:05'),
+(20, 8, 8, NULL, '2025-12-29', '2025-12-30', 1, 'cancelada', 50000.00, 1, 50000.00, 'efectivo', 'turismo', NULL, '2025-12-29 23:52:04', '2025-12-30 16:58:31', NULL),
+(21, 1, 1, NULL, '2025-12-30', '2025-12-31', 1, 'cancelada', 150000.00, 1, 150000.00, 'efectivo', 'turismo', NULL, '2025-12-30 00:06:49', '2025-12-30 23:05:36', NULL),
+(22, 1, 2, NULL, '2025-12-30', '2025-12-31', 1, 'cancelada', 250000.00, 1, 250000.00, 'efectivo', 'turismo', NULL, '2025-12-30 00:13:08', '2025-12-30 17:03:19', NULL),
+(23, 3, 5, NULL, '2025-12-30', '2025-12-31', 1, 'completada', 150000.00, 1, 150000.00, 'tarjeta', 'turismo', NULL, '2025-12-30 00:15:25', '2026-01-13 23:12:04', NULL),
+(24, 4, 7, NULL, '2025-12-30', '2025-12-31', 1, 'cancelada', 250000.00, 1, 250000.00, 'efectivo', 'turismo', NULL, '2025-12-30 00:15:54', '2025-12-30 00:20:24', NULL),
+(25, 6, 7, NULL, '2025-12-30', '2025-12-31', 1, 'completada', 250000.00, 1, 250000.00, 'tarjeta', 'turismo', NULL, '2025-12-30 00:20:24', '2026-01-13 23:12:04', NULL),
+(26, 2, 6, NULL, '2025-12-30', '2025-12-31', 1, 'cancelada', 250000.00, 1, 250000.00, 'efectivo', 'turismo', NULL, '2025-12-30 00:23:29', '2025-12-30 23:05:36', NULL),
+(27, 7, 9, NULL, '2025-12-30', '2025-12-31', 1, 'cancelada', 100000.00, 1, 100000.00, 'efectivo', 'turismo', NULL, '2025-12-30 00:28:54', '2025-12-30 00:42:13', NULL),
+(28, 8, 9, NULL, '2025-12-30', '2025-12-31', 1, 'completada', 100000.00, 1, 100000.00, 'tarjeta', 'turismo', NULL, '2025-12-30 00:42:13', '2026-01-13 23:12:04', NULL),
+(29, 1, 8, NULL, '2025-12-30', '2025-12-31', 1, 'cancelada', 50000.00, 1, 50000.00, 'efectivo', 'turismo', NULL, '2025-12-30 00:46:47', '2025-12-30 23:05:36', NULL),
+(30, 1, 8, NULL, '2025-12-30', '2025-12-31', 1, 'cancelada', 50000.00, 1, 50000.00, 'efectivo', 'turismo', NULL, '2025-12-30 00:49:46', '2025-12-30 23:05:36', NULL),
+(31, 2, 4, NULL, '2025-12-30', '2025-12-31', 1, 'cancelada', 800000.00, 1, 800000.00, 'efectivo', 'turismo', NULL, '2025-12-30 00:50:55', '2025-12-30 23:05:36', NULL),
+(32, 3, 2, NULL, '2025-12-30', '2025-12-31', 1, 'completada', 250000.00, 1, 250000.00, 'tarjeta', 'turismo', NULL, '2025-12-30 17:03:19', '2026-01-13 23:12:04', NULL),
+(33, 8, 6, NULL, '2025-12-30', '2025-12-31', 1, 'cancelada', 250000.00, 1, 250000.00, 'efectivo', 'turismo', NULL, '2025-12-30 20:33:17', '2025-12-30 23:05:36', NULL),
+(34, 7, 8, NULL, '2026-01-14', '2026-01-15', 1, 'completada', 50000.00, 1, 50000.00, 'efectivo', 'turismo', NULL, '2026-01-14 16:26:47', '2026-01-16 16:46:49', NULL),
+(35, 11, 8, NULL, '2026-01-16', '2026-01-17', 1, 'completada', 50000.00, 1, 50000.00, 'transferencia', 'turismo', NULL, '2026-01-14 16:29:34', '2026-01-20 16:14:25', NULL),
+(36, 7, 2, NULL, '2026-01-14', '2026-01-15', 1, 'cancelada', 250000.00, 1, 250000.00, 'tarjeta', 'turismo', NULL, '2026-01-14 16:38:22', '2026-01-16 16:46:49', NULL),
+(37, 9, 2, NULL, '2026-01-16', '2026-01-18', 1, 'completada', 250000.00, 2, 500000.00, 'efectivo', 'turismo', NULL, '2026-01-16 16:47:41', '2026-01-20 16:14:25', NULL),
+(38, 6, 7, NULL, '2026-01-16', '2026-01-17', 1, 'completada', 250000.00, 1, 250000.00, 'transferencia', 'turismo', NULL, '2026-01-16 16:50:19', '2026-01-20 16:14:25', NULL),
+(39, 7, 2, NULL, '2026-01-28', '2026-01-30', 1, 'confirmada', 250000.00, 2, 500000.00, 'efectivo', 'turismo', NULL, '2026-01-28 17:01:10', '2026-01-28 17:18:38', '2026-01-28 17:18:38'),
+(40, 11, 6, NULL, '2026-01-28', '2026-01-30', 1, 'pendiente', 250000.00, 2, 500000.00, 'efectivo', 'turismo', NULL, '2026-01-28 17:07:56', '2026-01-28 17:18:34', '2026-01-28 17:18:34'),
+(41, 11, 2, NULL, '2026-01-28', '2026-01-30', 1, 'confirmada', 250000.00, 2, 500000.00, 'efectivo', 'turismo', NULL, '2026-01-28 17:18:59', '2026-01-28 17:24:09', '2026-01-28 17:24:09'),
+(42, 11, 2, NULL, '2026-01-28', '2026-01-30', 1, 'pendiente', 250000.00, 2, 500000.00, 'efectivo', 'turismo', NULL, '2026-01-28 17:28:46', '2026-01-28 17:33:43', '2026-01-28 17:33:43'),
+(43, 10, 2, NULL, '2026-01-28', '2026-01-30', 1, 'pendiente', 250000.00, 2, 500000.00, 'efectivo', 'turismo', NULL, '2026-01-28 17:35:11', '2026-01-28 17:42:34', '2026-01-28 17:42:34'),
+(44, 11, 2, NULL, '2026-01-28', '2026-01-30', 1, 'confirmada', 250000.00, 2, 500000.00, 'efectivo', 'turismo', NULL, '2026-01-28 17:43:31', '2026-01-28 18:11:20', '2026-01-28 18:11:20'),
+(45, 8, 2, NULL, '2026-01-28', '2026-01-30', 2, 'confirmada', 250000.00, 2, 500000.00, 'efectivo', 'turismo', NULL, '2026-01-28 18:12:25', '2026-01-28 18:17:06', '2026-01-28 18:17:06'),
+(46, 10, 2, NULL, '2026-01-28', '2026-01-30', 2, 'cancelada', 250000.00, 2, 500000.00, 'efectivo', 'turismo', NULL, '2026-01-28 18:21:24', '2026-01-28 18:24:03', NULL),
+(47, 11, 2, NULL, '2026-01-28', '2026-01-30', 2, 'confirmada', 250000.00, 2, 500000.00, 'efectivo', 'turismo', NULL, '2026-01-28 18:24:03', '2026-01-28 22:32:16', '2026-01-28 22:32:16'),
+(48, 4, 6, NULL, '2026-01-28', '2026-01-30', 2, 'completada', 250000.00, 2, 500000.00, 'efectivo', 'turismo', NULL, '2026-01-28 18:57:11', '2026-02-02 23:07:40', NULL),
+(49, 1, 13, NULL, '2026-01-28', '2026-01-29', 2, 'cancelada', 250000.00, 1, 250000.00, 'efectivo', 'turismo', NULL, '2026-01-28 22:01:47', '2026-01-28 23:04:56', NULL),
+(50, 3, 8, NULL, '2026-01-28', '2026-01-30', 1, 'confirmada', 50000.00, 2, 100000.00, 'efectivo', 'turismo', 'si\n\nACOMPANANTES:\n[]', '2026-01-28 22:23:00', '2026-01-29 22:43:04', '2026-01-29 22:43:04'),
+(51, 13, 5, NULL, '2026-01-28', '2026-01-30', 1, 'pendiente', 150000.00, 2, 300000.00, 'efectivo', 'turismo', '23RWEFWEF', '2026-01-28 22:53:41', '2026-01-28 22:55:22', '2026-01-28 22:55:22'),
+(52, 12, 13, NULL, '2026-01-28', '2026-01-29', 1, 'completada', 250000.00, 1, 250000.00, 'tarjeta', 'turismo', 'sdfgsdv e wr ftwrf gergre w4', '2026-01-28 23:04:56', '2026-01-29 23:05:40', NULL),
+(53, 12, 5, NULL, '2026-01-28', '2026-01-30', 1, 'cancelada', 150000.00, 2, 300000.00, 'efectivo', 'turismo', 'wef w fwer trth gertgh erg trhgetygethy rtyrt yrty tr rtyh', '2026-01-29 00:00:42', '2026-01-30 20:33:43', NULL),
+(54, 12, 9, NULL, '2026-01-29', '2026-01-31', 1, 'cancelada', 100000.00, 2, 50000.00, 'efectivo', 'turismo', 'owefwepof', '2026-01-29 23:20:48', '2026-01-30 20:33:51', NULL),
+(55, 8, 1, NULL, '2026-01-29', '2026-01-31', 1, 'cancelada', 150000.00, 2, 100000.00, 'efectivo', 'turismo', 'kjhjhjk', '2026-01-29 23:31:59', '2026-01-30 20:33:59', NULL),
+(56, 4, 13, NULL, '2026-01-30', '2026-01-31', 1, 'completada', 250000.00, 1, 250000.00, 'efectivo', 'turismo', 'Venia con un acompañante', '2026-01-30 20:20:45', '2026-02-02 23:07:40', NULL),
+(57, 14, 10, NULL, '2026-01-30', '2026-01-31', 1, 'completada', 50000.00, 1, 50000.00, 'tarjeta', 'turismo', 'Venia solo', '2026-01-30 20:21:46', '2026-02-02 23:07:40', NULL),
+(58, 14, 7, NULL, '2026-01-30', '2026-01-31', 3, 'completada', 250000.00, 1, 100000.00, 'efectivo', 'turismo', 'fghfgh', '2026-01-30 20:49:44', '2026-02-02 23:07:40', NULL),
+(59, 12, 9, NULL, '2026-02-10', '2026-02-12', NULL, 'cancelada', 100000.00, 2, 200000.00, 'efectivo', 'turismo', '', '2026-02-10 23:47:53', '2026-02-10 23:49:44', NULL),
+(60, 14, 5, NULL, '2026-02-11', '2026-02-13', 3, 'cancelada', 150000.00, 2, 300000.00, 'efectivo', 'turismo', 'anotacion de ejemplo\n\nACOMPANANTES:\n[{\"persona_id\":12,\"nombre\":\"juan\",\"apellido\":\"cardenas\",\"tipo_documento\":\"CC\",\"numero_documento\":\"342342342\",\"fecha_nacimiento\":\"2005-06-15\",\"parentesco\":\"\",\"email\":\"jcardenas.@gmail.com\",\"telefono\":\"320234234234\"},{\"persona_id\":11,\"nombre\":\"Juanito\",\"apellido\":\"Rodriguez\",\"tipo_documento\":\"CC\",\"numero_documento\":\"10985672\",\"fecha_nacimiento\":\"2010-03-20\",\"parentesco\":\"\",\"email\":\"juanito@gmail.com\",\"telefono\":\"312345867\"}]', '2026-02-11 16:05:48', '2026-03-03 02:21:15', NULL),
+(61, 8, 5, NULL, '2026-02-11', '2026-02-13', 3, 'confirmada', 150000.00, 2, 150000.00, 'efectivo', 'turismo', 'ACOMPANANTES:\n[{\"persona_id\":\"15\",\"nombre\":\"dell\",\"apellido\":\"APP\",\"tipo_documento\":\"Cedula\",\"numero_documento\":\"43324234\",\"fecha_nacimiento\":\"1993-12-12\",\"parentesco\":\"\",\"email\":\"DELL@hotel.com\",\"telefono\":\"123123123\"},{\"persona_id\":4,\"nombre\":\"Pedro\",\"apellido\":\"Mart\\u00ednez\",\"tipo_documento\":\"CC\",\"numero_documento\":\"5544332211\",\"fecha_nacimiento\":null,\"parentesco\":\"\",\"email\":\"pedro.martinez@email.com\",\"telefono\":\"3201239876\"}]', '2026-02-11 22:33:50', '2026-02-12 23:26:27', '2026-02-12 23:26:27'),
+(62, 17, 10, NULL, '2026-02-13', '2026-02-15', 2, 'completada', 50000.00, 2, 200000.00, 'efectivo', 'turismo', 'ACOMPANANTES:\n[{\"persona_id\":12,\"nombre\":\"juan\",\"apellido\":\"cardenas\",\"tipo_documento\":\"CC\",\"numero_documento\":\"342342342\",\"fecha_nacimiento\":null,\"parentesco\":\"\",\"email\":\"jcardenas.@gmail.com\",\"telefono\":\"320234234234\"}]', '2026-02-13 21:11:25', '2026-02-15 23:01:29', NULL),
+(63, 17, 5, NULL, '2026-02-13', '2026-02-14', 2, 'completada', 150000.00, 1, 150000.00, 'efectivo', 'turismo', 'ACOMPANANTES:\n[{\"persona_id\": 18, \"nombre\": \"dell\", \"apellido\": \"APP\", \"tipo_documento\": \"CC\", \"numero_documento\": \"12345678\", \"fecha_nacimiento\": \"1990-01-01\", \"parentesco\": \"amigo\", \"email\": \"dell@app.com\", \"telefono\": \"123456789\", \"es_menor\": false}]\n\nObservaciones adicionales del cliente', '2026-02-13 21:18:49', '2026-02-14 23:01:23', NULL),
+(64, 10, 9, NULL, '2026-02-14', '2026-02-15', 2, 'completada', 100000.00, 1, 100000.00, 'efectivo', 'turismo', 'ACOMPANANTES:\n[{\"persona_id\":3,\"nombre\":\"Ana\",\"apellido\":\"L\\u00f3pez\",\"tipo_documento\":\"CC\",\"numero_documento\":\"153051152\",\"fecha_nacimiento\":null,\"parentesco\":\"\",\"email\":\"ana.lopez@email.com\",\"telefono\":\"3159876543\"}]', '2026-02-14 15:30:48', '2026-02-15 23:01:29', NULL),
+(65, 17, 5, NULL, '2026-02-16', '2026-02-17', NULL, 'completada', 150000.00, 1, 150000.00, 'efectivo', 'turismo', '', '2026-02-16 22:06:56', '2026-02-18 19:20:56', NULL),
+(66, 15, 9, NULL, '2026-02-16', '2026-02-17', 1, 'completada', 100000.00, 1, 100000.00, 'efectivo', 'turismo', '', '2026-02-16 22:07:18', '2026-02-18 19:20:56', NULL),
+(67, 15, 1, NULL, '2026-02-16', '2026-02-17', 1, 'completada', 150000.00, 1, 250000.00, 'efectivo', 'turismo', '', '2026-02-16 22:08:01', '2026-02-18 19:20:56', NULL),
+(68, 14, 13, NULL, '2026-02-16', '2026-02-18', 1, 'completada', 250000.00, 2, 500000.00, 'efectivo', 'turismo', '', '2026-02-16 22:08:39', '2026-02-18 23:01:35', NULL),
+(69, 12, 5, NULL, '2026-02-18', '2026-02-20', NULL, 'completada', 150000.00, 2, 300000.00, 'efectivo', 'turismo', '', '2026-02-16 22:10:02', '2026-02-24 20:30:46', NULL),
+(70, 17, 10, NULL, '2026-02-17', '2026-02-18', 2, 'completada', 50000.00, 1, 50000.00, 'efectivo', 'turismo', 'wffrfgerg 4ert3retgregt\n\nACOMPANANTES:\n[{\"persona_id\":15,\"nombre\":\"dell\",\"apellido\":\"APP\",\"tipo_documento\":\"CC\",\"numero_documento\":\"43324234\",\"fecha_nacimiento\":null,\"parentesco\":\"\",\"email\":\"DELL@hotel.com\",\"telefono\":\"123123123\"}]', '2026-02-17 21:08:16', '2026-02-18 23:01:35', NULL),
+(71, 8, 4, NULL, '2026-02-17', '2026-02-18', NULL, 'confirmada', 800000.00, 1, 800000.00, 'efectivo', 'turismo', '', '2026-02-17 21:15:42', '2026-02-17 21:18:08', '2026-02-17 21:18:08'),
+(72, 4, 4, NULL, '2026-02-17', '2026-02-18', NULL, 'cancelada', 800000.00, 1, 800000.00, 'efectivo', 'turismo', 'ACOMPANANTES:\n[{\"persona_id\":3,\"nombre\":\"Ana\",\"apellido\":\"L\\u00f3pez\",\"tipo_documento\":\"CC\",\"numero_documento\":\"153051152\",\"fecha_nacimiento\":null,\"parentesco\":\"\",\"email\":\"ana.lopez@email.com\",\"telefono\":\"3159876543\"},{\"persona_id\":2,\"nombre\":\"Juan\",\"apellido\":\"P\\u00e9rez\",\"tipo_documento\":\"CC\",\"numero_documento\":\"0987654321\",\"fecha_nacimiento\":null,\"parentesco\":\"\",\"email\":\"juan.perez@email.com\",\"telefono\":\"3107654321\"}]', '2026-02-17 21:19:45', '2026-02-18 19:20:57', NULL),
+(73, 14, 5, NULL, '2026-03-03', '2026-03-04', NULL, 'confirmada', 150000.00, 1, 150000.00, 'efectivo', 'turismo', '', '2026-03-03 02:06:09', '2026-03-03 02:09:33', '2026-03-03 02:09:33'),
+(74, 4, 10, NULL, '2026-03-03', '2026-03-04', 3, 'completada', 50000.00, 1, 150000.00, 'efectivo', 'turismo', 'ACOMPANANTES:\n[{\"persona_id\":3,\"nombre\":\"Ana\",\"apellido\":\"L\\u00f3pez\",\"tipo_documento\":\"CC\",\"numero_documento\":\"153051152\",\"fecha_nacimiento\":null,\"parentesco\":\"\",\"email\":\"ana.lopez@email.com\",\"telefono\":\"3159876543\"},{\"persona_id\":2,\"nombre\":\"Juan\",\"apellido\":\"P\\u00e9rez\",\"tipo_documento\":\"CC\",\"numero_documento\":\"0987654321\",\"fecha_nacimiento\":null,\"parentesco\":\"\",\"email\":\"juan.perez@email.com\",\"telefono\":\"3107654321\"}]', '2026-03-03 02:10:07', '2026-03-08 15:12:11', NULL),
+(75, 2, 5, NULL, '2026-03-04', '2026-03-05', 2, 'completada', 150000.00, 1, 150000.00, 'efectivo', 'turismo', 'MOTIVO: trabajo\nOBSERVACIONES_GENERALES:\neeeeee\n\nNOTAS_RESERVA:\naaaaa\n\nACOMPANANTES:\n[{\"persona_id\":3,\"nombre\":\"Ana\",\"apellido\":\"L\\u00f3pez\",\"tipo_documento\":\"CC\",\"numero_documento\":\"153051152\",\"fecha_nacimiento\":null,\"parentesco\":\"\",\"email\":\"ana.lopez@email.com\",\"telefono\":\"3159876543\"}]', '2026-03-03 14:01:44', '2026-03-08 15:12:11', NULL),
+(76, 17, 5, NULL, '2026-03-10', '2026-03-11', NULL, 'confirmada', 150000.00, 1, 150000.00, 'efectivo', 'turismo', '', '2026-03-10 14:11:10', '2026-03-10 14:11:10', NULL);
 
 -- --------------------------------------------------------
 
@@ -764,6 +857,36 @@ INSERT INTO `roles_permisos` (`rol_id`, `permiso_id`, `created_at`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `settings`
+--
+
+CREATE TABLE `settings` (
+  `id` int(11) NOT NULL,
+  `setting_key` varchar(100) DEFAULT NULL,
+  `setting_value` text DEFAULT NULL,
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `sistema_logs`
+--
+
+CREATE TABLE `sistema_logs` (
+  `id` int(11) NOT NULL,
+  `nivel` varchar(20) NOT NULL,
+  `mensaje` text NOT NULL,
+  `contexto` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`contexto`)),
+  `usuario_id` int(11) DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `tipos_turno`
 --
 
@@ -870,6 +993,7 @@ CREATE TABLE `usuarios` (
   `rol` varchar(50) DEFAULT NULL,
   `password` varchar(255) NOT NULL,
   `telefono` varchar(20) DEFAULT NULL,
+  `nacionalidad` varchar(100) DEFAULT 'Colombia',
   `activo` tinyint(1) DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -880,17 +1004,17 @@ CREATE TABLE `usuarios` (
 -- Volcado de datos para la tabla `usuarios`
 --
 
-INSERT INTO `usuarios` (`id`, `nombre`, `apellido`, `email`, `rol`, `password`, `telefono`, `activo`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 'Marcos', 'Salazar', 'admin@hotel.com', 'admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '+573152123745', 1, '2025-11-18 15:24:33', '2026-01-29 22:23:29', NULL),
-(2, 'Maria', 'Recepcionista', 'recepcion@hotel.com', 'Recepcionista', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '3007654321', 1, '2025-11-18 15:24:33', '2026-01-29 22:09:41', '2026-01-29 22:09:41'),
-(3, 'Juan', 'Gerente', 'gerente@hotel.com', 'Gerente', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '3009876543', 1, '2025-11-18 15:24:33', '2026-01-29 22:09:31', '2026-01-29 22:09:31'),
-(4, 'Jhuliet Anghelica', 'Tibasosa Suescun', 'JhulietTibsosa30@gmail.com', 'Recepcionista', '$2y$10$745wuvbaYE2K3/erCt0zXueQQT50MdzwCE8CEFomy1jcXPQxglMGe', '+573224125100', 1, '2025-11-18 16:54:59', '2026-01-29 22:03:47', '2026-01-29 22:03:47'),
-(5, 'Ana', 'PEREZ', 'limpieza@hotel.com', 'limpieza', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '3007654322', 1, '2025-12-09 23:20:17', '2026-01-29 22:09:35', '2026-01-29 22:09:35'),
-(6, 'nuevo', 'new', 'new@hotel.com', 'recepcionista', '$2y$10$acb.c30uTI8eSY2krgMKz.6wouhjOIOzFexDOWyY6BSTGUzm1w.9O', '', 1, '2026-01-28 21:35:02', '2026-01-29 22:09:23', '2026-01-29 22:09:23'),
-(7, 'Juan', 'Perez', 'juan@hotel.com', 'auxiliar', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '555123456', 1, '2026-01-29 22:15:25', '2026-01-29 22:15:25', NULL),
-(8, 'admin2', 'prueba', 'adminprueba@hotel.com', 'admin', '$2y$10$4CgDNCso939kSq2ht1Rmt.vKH3h6sU4ICpcetqmyHX79gs3rb14yi', '23423423', 1, '2026-01-29 22:32:18', '2026-01-30 20:32:18', NULL),
-(9, 'axiliar2', 'prueba', 'auxiliar@hotel.com', 'auxiliar', '$2y$10$jhRr2zNKQ6YzeVAejx6fr.KE9Rv2EqcgK7QmT0G3DhVxCSr7BBWiW', '21432342', 1, '2026-01-29 22:33:19', '2026-01-29 22:33:19', NULL),
-(10, 'PEDRITO', 'ADSFADS', 'pedrito@gmail.com', 'auxiliar', '$2y$10$7zGWG0NPv5zhTPnc07JG/OFkYqdpqPLMoFMOfUxKYmQLfHxvM500i', '3203564489', 1, '2026-01-29 23:03:27', '2026-01-29 23:33:51', NULL);
+INSERT INTO `usuarios` (`id`, `nombre`, `apellido`, `email`, `rol`, `password`, `telefono`, `nacionalidad`, `activo`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 'Marcos', 'Salazar', 'admin@hotel.com', 'admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '+573152123745', 'Colombia', 1, '2025-11-18 15:24:33', '2026-03-08 13:44:23', NULL),
+(2, 'Maria', 'Recepcionista', 'recepcion@hotel.com', 'Recepcionista', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '3007654321', 'Colombia', 1, '2025-11-18 15:24:33', '2026-01-29 22:09:41', '2026-01-29 22:09:41'),
+(3, 'Juan', 'Gerente', 'gerente@hotel.com', 'Gerente', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '3009876543', 'Colombia', 1, '2025-11-18 15:24:33', '2026-01-29 22:09:31', '2026-01-29 22:09:31'),
+(4, 'Jhuliet Anghelica', 'Tibasosa Suescun', 'JhulietTibsosa30@gmail.com', 'Recepcionista', '$2y$10$745wuvbaYE2K3/erCt0zXueQQT50MdzwCE8CEFomy1jcXPQxglMGe', '+573224125100', 'Colombia', 1, '2025-11-18 16:54:59', '2026-01-29 22:03:47', '2026-01-29 22:03:47'),
+(5, 'Ana', 'PEREZ', 'limpieza@hotel.com', 'limpieza', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '3007654322', 'Colombia', 1, '2025-12-09 23:20:17', '2026-01-29 22:09:35', '2026-01-29 22:09:35'),
+(6, 'nuevo', 'new', 'new@hotel.com', 'recepcionista', '$2y$10$acb.c30uTI8eSY2krgMKz.6wouhjOIOzFexDOWyY6BSTGUzm1w.9O', '', 'Colombia', 1, '2026-01-28 21:35:02', '2026-01-29 22:09:23', '2026-01-29 22:09:23'),
+(7, 'Juan', 'Perez', 'juan@hotel.com', 'auxiliar', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '555123456', 'Colombia', 1, '2026-01-29 22:15:25', '2026-01-29 22:15:25', NULL),
+(8, 'admin2', 'prueba', 'adminprueba@hotel.com', 'admin', '$2y$10$4CgDNCso939kSq2ht1Rmt.vKH3h6sU4ICpcetqmyHX79gs3rb14yi', '23423423', 'Colombia', 1, '2026-01-29 22:32:18', '2026-01-30 20:32:18', NULL),
+(9, 'axiliar2', 'prueba', 'auxiliar@hotel.com', 'auxiliar', '$2y$10$jhRr2zNKQ6YzeVAejx6fr.KE9Rv2EqcgK7QmT0G3DhVxCSr7BBWiW', '21432342', 'Colombia', 1, '2026-01-29 22:33:19', '2026-03-02 21:41:48', NULL),
+(10, 'PEDRITO', 'ADSFADS', 'pedrito@gmail.com', 'auxiliar', '$2y$10$7zGWG0NPv5zhTPnc07JG/OFkYqdpqPLMoFMOfUxKYmQLfHxvM500i', '3203564489', 'CO', 1, '2026-01-29 23:03:27', '2026-03-02 22:38:30', NULL);
 
 -- --------------------------------------------------------
 
@@ -919,6 +1043,12 @@ INSERT INTO `usuarios_roles` (`usuario_id`, `rol_id`, `asignado_por`, `fecha_asi
 --
 -- Índices para tablas volcadas
 --
+
+--
+-- Indices de la tabla `backups`
+--
+ALTER TABLE `backups`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indices de la tabla `clientes`
@@ -958,6 +1088,22 @@ ALTER TABLE `habitaciones`
   ADD KEY `idx_numero` (`numero`),
   ADD KEY `idx_tipo` (`tipo`),
   ADD KEY `idx_estado` (`estado`);
+
+--
+-- Indices de la tabla `hotel_config`
+--
+ALTER TABLE `hotel_config`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `clave` (`clave`),
+  ADD KEY `idx_clave` (`clave`);
+
+--
+-- Indices de la tabla `metas_hotel`
+--
+ALTER TABLE `metas_hotel`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_mes_anio` (`mes`,`anio`),
+  ADD KEY `idx_periodo` (`mes`,`anio`);
 
 --
 -- Indices de la tabla `modulos`
@@ -1039,6 +1185,22 @@ ALTER TABLE `roles_permisos`
   ADD KEY `permiso_id` (`permiso_id`);
 
 --
+-- Indices de la tabla `settings`
+--
+ALTER TABLE `settings`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `setting_key` (`setting_key`);
+
+--
+-- Indices de la tabla `sistema_logs`
+--
+ALTER TABLE `sistema_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_nivel` (`nivel`),
+  ADD KEY `idx_usuario` (`usuario_id`),
+  ADD KEY `idx_created` (`created_at`);
+
+--
 -- Indices de la tabla `tipos_turno`
 --
 ALTER TABLE `tipos_turno`
@@ -1092,6 +1254,12 @@ ALTER TABLE `usuarios_roles`
 --
 
 --
+-- AUTO_INCREMENT de la tabla `backups`
+--
+ALTER TABLE `backups`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `clientes`
 --
 ALTER TABLE `clientes`
@@ -1120,6 +1288,18 @@ ALTER TABLE `eventos`
 --
 ALTER TABLE `habitaciones`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+
+--
+-- AUTO_INCREMENT de la tabla `hotel_config`
+--
+ALTER TABLE `hotel_config`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+
+--
+-- AUTO_INCREMENT de la tabla `metas_hotel`
+--
+ALTER TABLE `metas_hotel`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `modulos`
@@ -1161,7 +1341,7 @@ ALTER TABLE `productos`
 -- AUTO_INCREMENT de la tabla `reservas`
 --
 ALTER TABLE `reservas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
 
 --
 -- AUTO_INCREMENT de la tabla `reservas_eventos`
@@ -1174,6 +1354,18 @@ ALTER TABLE `reservas_eventos`
 --
 ALTER TABLE `roles`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT de la tabla `settings`
+--
+ALTER TABLE `settings`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `sistema_logs`
+--
+ALTER TABLE `sistema_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `tipos_turno`
@@ -1263,6 +1455,12 @@ ALTER TABLE `reservas_eventos`
 ALTER TABLE `roles_permisos`
   ADD CONSTRAINT `roles_permisos_ibfk_1` FOREIGN KEY (`rol_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `roles_permisos_ibfk_2` FOREIGN KEY (`permiso_id`) REFERENCES `permisos` (`id`) ON DELETE CASCADE;
+
+--
+-- Filtros para la tabla `sistema_logs`
+--
+ALTER TABLE `sistema_logs`
+  ADD CONSTRAINT `sistema_logs_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
 
 --
 -- Filtros para la tabla `transacciones_contables`
