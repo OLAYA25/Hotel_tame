@@ -201,20 +201,67 @@ include __DIR__ . '/../../../backend/includes/sidebar.php';
                         </div>
                     </div>
 
+                    <!-- Sección de Acompañantes -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">
+                                <i class="fas fa-users me-2"></i>Acompañantes de la Reserva
+                                <span class="badge bg-secondary ms-2" id="contadorAcompanantes">0</span>
+                            </h6>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-outline-info" onclick="abrirModalBusquedaPersonas()">
+                                    <i class="fas fa-search me-1"></i>Buscar personas
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Información de capacidad -->
+                        <div class="alert alert-info py-2 mb-3" id="capacidadAlert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <span id="textoCapacidad">Seleccione una habitación para ver la capacidad</span>
+                        </div>
+                        
+                        <!-- Lista de acompañantes -->
+                        <div id="acompanantesReservaContainer" class="border rounded p-3 bg-light" style="max-height: 300px; overflow-y: auto;">
+                            <p class="text-muted mb-0 text-center">No hay acompañantes registrados</p>
+                        </div>
+                        
+                        <div class="small text-muted mt-2">
+                            <i class="fas fa-lightbulb"></i> 
+                            Los acompañantes son personas registradas como clientes. Puede buscar personas existentes o crear nuevas.
+                            La capacidad máxima de la habitación no debe ser excedida.
+                        </div>
+                    </div>
+
                     <div class="row">
                         <div class="col-md-4 mb-3">
-                            <label class="form-label">Número de Huéspedes *</label>
-                            <input type="number" class="form-control" id="numero_huespedes" required min="1" max="10" onchange="validarCapacidad(); actualizarDistribucionHuespedes()">
+                            <label class="form-label">
+                                <i class="fas fa-users me-1"></i>Número de Huéspedes *
+                            </label>
+                            <div class="form-control bg-light" style="border: 1px solid #dee2e6;">
+                                <span id="numero_huespedes_display">1</span>
+                            </div>
+                            <input type="hidden" id="numero_huespedes" required min="1" max="10" value="1" onchange="validarCapacidad(); actualizarDistribucionHuespedes()">
                             <small class="text-muted d-block">No debe exceder la capacidad de la habitación seleccionada</small>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label class="form-label">Adultos *</label>
-                            <input type="number" class="form-control" id="numero_adultos" required min="1" max="10" value="1" onchange="validarDistribucionHuespedes()">
+                            <label class="form-label">
+                                <i class="fas fa-user me-1"></i>Adultos *
+                            </label>
+                            <div class="form-control bg-light" style="border: 1px solid #dee2e6;">
+                                <span id="numero_adultos_display">1</span>
+                            </div>
+                            <input type="hidden" id="numero_adultos" required min="1" max="10" value="1" onchange="validarDistribucionHuespedes()">
                             <small class="text-muted d-block">Mayores de 18 años</small>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label class="form-label">Niños</label>
-                            <input type="number" class="form-control" id="numero_ninos" min="0" max="10" value="0" onchange="validarDistribucionHuespedes()">
+                            <label class="form-label">
+                                <i class="fas fa-child me-1"></i>Niños
+                            </label>
+                            <div class="form-control bg-light" style="border: 1px solid #dee2e6;">
+                                <span id="numero_ninos_display">0</span>
+                            </div>
+                            <input type="hidden" id="numero_ninos" min="0" max="10" value="0" onchange="validarDistribucionHuespedes()">
                             <small class="text-muted d-block">Menores de 18 años</small>
                         </div>
                     </div>
@@ -290,40 +337,6 @@ include __DIR__ . '/../../../backend/includes/sidebar.php';
                         </div>
                     </div>
 
-                    <hr>
-                    
-                    <!-- Sección de Acompañantes -->
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="mb-0">
-                                <i class="fas fa-users me-2"></i>Acompañantes de la Reserva
-                                <span class="badge bg-secondary ms-2" id="contadorAcompanantes">0</span>
-                            </h6>
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-sm btn-outline-info" onclick="abrirModalBusquedaPersonas()">
-                                    <i class="fas fa-search me-1"></i>Buscar Persona
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Información de capacidad -->
-                        <div class="alert alert-info py-2 mb-3" id="capacidadAlert">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <span id="textoCapacidad">Seleccione una habitación para ver la capacidad</span>
-                        </div>
-                        
-                        <!-- Lista de acompañantes -->
-                        <div id="acompanantesReservaContainer" class="border rounded p-3 bg-light" style="max-height: 300px; overflow-y: auto;">
-                            <p class="text-muted mb-0 text-center">No hay acompañantes registrados</p>
-                        </div>
-                        
-                        <div class="small text-muted mt-2">
-                            <i class="fas fa-lightbulb"></i> 
-                            Los acompañantes son personas registradas como clientes. Puede buscar personas existentes o crear nuevas.
-                            La capacidad máxima de la habitación no debe ser excedida.
-                        </div>
-                    </div>
-
                     <div class="mb-3">
                         <label class="form-label">Estado *</label>
                         <select class="form-select" id="estado" required>
@@ -336,11 +349,79 @@ include __DIR__ . '/../../../backend/includes/sidebar.php';
 
                     <div class="mb-3">
                         <label class="form-label">Método de Pago *</label>
-                        <select class="form-select" id="metodo_pago" required>
+                        <select class="form-select" id="metodo_pago" required onchange="actualizarCamposCaja()">
                             <option value="efectivo">Efectivo</option>
                             <option value="tarjeta">Tarjeta de crédito</option>
                             <option value="transferencia">Transferencia</option>
                         </select>
+                    </div>
+
+                    <!-- Sistema de Caja -->
+                    <div id="sistemaCaja" class="mb-3" style="display: none;">
+                        <div class="card border-primary">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-cash-register me-2"></i>Sistema de Caja
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-money-bill-wave me-1"></i>Dinero Recibido *
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="dinero_recibido" step="0.01" min="0" placeholder="0.00" onchange="calcularCambio()">
+                                        </div>
+                                        <small class="text-muted d-block">Ingrese el monto recibido del cliente</small>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-exchange-alt me-1"></i>Cambio a Devolver
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="cambio_devolver" readonly value="0.00" style="background-color: #f8f9fa; font-weight: bold; color: #28a745;">
+                                        </div>
+                                        <small class="text-muted d-block">Cambio calculado automáticamente</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-calculator me-1"></i>Total a Pagar
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="total_a_pagar" readonly value="0.00" style="background-color: #f8f9fa; font-weight: bold;">
+                                        </div>
+                                        <small class="text-muted d-block">Total de la reserva</small>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-piggy-bank me-1"></i>Saldo Restante
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="saldo_restante" readonly value="0.00" style="background-color: #f8f9fa;">
+                                        </div>
+                                        <small class="text-muted d-block">Por pagar si el dinero recibido es insuficiente</small>
+                                    </div>
+                                </div>
+
+                                <!-- Indicadores visuales -->
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div id="indicadorCaja" class="alert alert-info mb-0">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            <span id="mensajeCaja">Ingrese el dinero recibido para calcular el cambio</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -513,10 +594,7 @@ include __DIR__ . '/../../../backend/includes/sidebar.php';
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-search me-2"></i>
-                    Buscar Persona para Acompañante
-                </h5>
+                <h5 class="modal-title">Buscar Persona para Acompañante</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -526,35 +604,27 @@ include __DIR__ . '/../../../backend/includes/sidebar.php';
                         <option value="">Buscar por nombre, apellido o documento...</option>
                     </select>
                     <small class="text-muted">
-                        <i class="fas fa-info-circle me-1"></i>
-                        Comience a escribir para buscar personas existentes en el sistema
+                        Busca entre las personas existentes o crea una nueva
                     </small>
                 </div>
                 
-                <div id="infoPersonaSeleccionada" class="mt-3" style="display: none;">
-                    <div class="alert alert-info">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong id="nombrePersonaSeleccionada"></strong>
-                                <div class="small text-muted" id="detallesPersonaSeleccionada"></div>
-                            </div>
-                            <button type="button" class="btn btn-success btn-sm" onclick="confirmarPersonaSeleccionada()">
-                                <i class="fas fa-plus me-1"></i>Agregar como Acompañante
-                            </button>
-                        </div>
+                <div id="infoPersonaSeleccionada" class="alert alert-info" style="display: none;">
+                    <h6>Persona seleccionada:</h6>
+                    <div id="detallesPersonaSeleccionada"></div>
+                    <div class="mt-2">
+                        <button type="button" class="btn btn-success btn-sm" onclick="confirmarAcompananteSeleccionado()">
+                            <i class="fas fa-check me-1"></i>Confirmar como Acompañante
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-sm ms-2" onclick="cancelarSeleccionAcompanante()">
+                            <i class="fas fa-times me-1"></i>Cancelar
+                        </button>
                     </div>
-                </div>
-                
-                <hr>
-                
-                <div class="text-center">
-                    <button type="button" class="btn btn-outline-primary" onclick="crearNuevaPersonaAcompanante()">
-                        <i class="fas fa-user-plus me-2"></i>
-                        Crear Nueva Persona
-                    </button>
                 </div>
             </div>
             <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary" onclick="crearNuevaPersonaAcompanante()">
+                    <i class="fas fa-user-plus me-1"></i>Crear Nueva Persona
+                </button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
             </div>
         </div>
@@ -580,6 +650,8 @@ let acompanantesTemporales = [];
 let capacidadMaximaHabitacion = 0;
 let habitacionSeleccionada = null;
 let modoAcompanante = false; // Para saber si el modal cliente se usa para acompañante
+let esModoEdicion = false; // Para saber si estamos editando una reserva existente
+let valorOriginalHuespedes = 1; // Guardar el valor original de num_huespedes
 
 function verificarActualizacionesAutomaticas() {
     // Refrescar la página
@@ -1403,9 +1475,112 @@ function calcularPrecio() {
             if (valorActual === 0) {
                 $('#precio_total').val(precioTotal.toFixed(2));
             }
+            
+            // Actualizar el total a pagar en el sistema de caja
+            actualizarTotalPagar();
         }
     }
 }
+
+// Funciones del Sistema de Caja
+function actualizarCamposCaja() {
+    console.log('actualizarCamposCaja() llamada');
+    const metodoPago = $('#metodo_pago').val();
+    const sistemaCaja = $('#sistemaCaja');
+    
+    console.log('Método de pago:', metodoPago);
+    console.log('Elemento sistemaCaja encontrado:', sistemaCaja.length > 0);
+    
+    if (metodoPago === 'efectivo') {
+        console.log('Mostrando sistema de caja');
+        sistemaCaja.show();
+        actualizarTotalPagar();
+    } else {
+        console.log('Ocultando sistema de caja');
+        sistemaCaja.hide();
+        // Limpiar campos de caja
+        $('#dinero_recibido').val('');
+        $('#cambio_devolver').val('0.00');
+        $('#saldo_restante').val('0.00');
+        $('#total_a_pagar').val('0.00');
+    }
+}
+
+function actualizarTotalPagar() {
+    const precioTotal = parseFloat($('#precio_total').val()) || 0;
+    $('#total_a_pagar').val(precioTotal.toFixed(2));
+    
+    // Recalcular el cambio si ya hay dinero recibido
+    const dineroRecibido = parseFloat($('#dinero_recibido').val()) || 0;
+    if (dineroRecibido > 0) {
+        calcularCambio();
+    }
+}
+
+function calcularCambio() {
+    const totalPagar = parseFloat($('#total_a_pagar').val()) || 0;
+    const dineroRecibido = parseFloat($('#dinero_recibido').val()) || 0;
+    
+    const cambio = dineroRecibido - totalPagar;
+    const saldoRestante = totalPagar - dineroRecibido;
+    
+    // Actualizar campos
+    $('#cambio_devolver').val(Math.max(0, cambio).toFixed(2));
+    $('#saldo_restante').val(Math.max(0, saldoRestante).toFixed(2));
+    
+    // Actualizar indicador visual
+    const indicador = $('#indicadorCaja');
+    const mensaje = $('#mensajeCaja');
+    
+    if (dineroRecibido === 0) {
+        indicador.removeClass('alert-success alert-warning alert-danger').addClass('alert-info');
+        mensaje.text('Ingrese el dinero recibido para calcular el cambio');
+    } else if (cambio >= 0) {
+        indicador.removeClass('alert-info alert-warning alert-danger').addClass('alert-success');
+        mensaje.html(`<i class="fas fa-check-circle me-2"></i>Cambio a devolver: <strong>$${cambio.toFixed(2)}</strong>`);
+    } else {
+        indicador.removeClass('alert-info alert-success alert-danger').addClass('alert-warning');
+        mensaje.html(`<i class="fas fa-exclamation-triangle me-2"></i>Saldo pendiente: <strong>$${saldoRestante.toFixed(2)}</strong>`);
+    }
+    
+    // Validar para el formulario
+    return cambio >= 0;
+}
+
+function validarCajaParaGuardar() {
+    const metodoPago = $('#metodo_pago').val();
+    
+    if (metodoPago === 'efectivo') {
+        const totalPagar = parseFloat($('#total_a_pagar').val()) || 0;
+        const dineroRecibido = parseFloat($('#dinero_recibido').val()) || 0;
+        
+        if (dineroRecibido < totalPagar) {
+            showNotification('El dinero recibido es insuficiente para cubrir el total de la reserva', 'error');
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+// Event listener para el método de pago
+$(document).ready(function() {
+    $('#metodo_pago').on('change', function() {
+        console.log('Método de pago cambiado a:', $(this).val());
+        actualizarCamposCaja();
+    });
+    
+    // 🔍 Debug: Detectar cambios en numero_huespedes
+    $('#numero_huespedes').on('change', function() {
+        console.log('numero_huespedes cambiado a:', $(this).val());
+    });
+    
+    // También llamar la función cuando se abre el modal
+    $('#modalReserva').on('shown.bs.modal', function() {
+        console.log('Modal abierto, verificando método de pago');
+        actualizarCamposCaja();
+    });
+});
 
 function validarCapacidad() {
     const habitacionId = $('#habitacion_id').val();
@@ -1443,6 +1618,14 @@ function validarCapacidad() {
 
 function abrirModalNuevo() {
     console.log('Abriendo modal de nueva reserva...');
+    
+    // Resetear modo edición
+    esModoEdicion = false;
+    valorOriginalHuespedes = 1;
+    
+    // 🎯 Limpiar acompañantes temporales
+    acompanantesTemporales = [];
+    
     $('#modalTitle').text('Nueva Reserva');
     $('#formReserva')[0].reset();
     $('#reserva_id').val('');
@@ -1597,10 +1780,20 @@ function editarReserva(id) {
         // Guardar el valor correcto para establecerlo después de que todo cargue
         const valorHuespedesCorrecto = reserva.numero_huespedes ?? reserva.num_huespedes ?? 1;
         
+        console.log('Cargando reserva - valorHuespedesCorrecto:', valorHuespedesCorrecto);
+        
+        // Establecer modo edición y guardar valor original
+        esModoEdicion = true;
+        valorOriginalHuespedes = valorHuespedesCorrecto;
+        
+        console.log('Establecido - esModoEdicion:', esModoEdicion, 'valorOriginalHuespedes:', valorOriginalHuespedes);
+        
         // Establecer valores de adultos/niños (por defecto todos adultos)
         $('#numero_adultos').val(valorHuespedesCorrecto);
         $('#numero_ninos').val(0);
         $('#numero_huespedes').val(valorHuespedesCorrecto);
+        
+        console.log('Valores establecidos en formulario - numero_huespedes:', $('#numero_huespedes').val());
         
         // Abrir el modal PRIMERO
         console.log('Abriendo modal de edición...');
@@ -1635,9 +1828,9 @@ function editarReserva(id) {
                         actualizarDistribucionNacionalidad();
                     }, 100);
                     
-                    // Cargar acompañantes existentes en el formulario
+                    // Cargar acompañantes desde la BD (nueva lógica)
                     setTimeout(() => {
-                        cargarAcompanantesReservaEnFormularioDesdeObservaciones(reserva);
+                        cargarAcompanantesDesdeBD(reserva.id);
                     }, 300);
                 }, 200);
             }).fail(function(xhr, status, error) {
@@ -1665,33 +1858,33 @@ function resetAcompanantesReservaForm() {
 function cargarAcompanantesReservaEnFormularioDesdeObservaciones(reserva) {
     // Limpiar primero
     resetAcompanantesReservaForm();
-    
+        
     console.log('Cargando acompañantes desde observaciones para reserva:', reserva.id);
-    
+        
     if (!reserva.observaciones) {
         console.log('No hay observaciones para cargar acompañantes');
         // Actualizar contador aunque no haya acompañantes
         actualizarListaAcompanantes();
         return;
     }
-    
+        
     try {
         // Buscar el JSON de acompañantes en las observaciones
         const obsText = reserva.observaciones;
         const acompanantesMatch = obsText.match(/ACOMPANANTES:\s*(\[.*?\])/s);
-        
+            
         if (acompanantesMatch && acompanantesMatch[1]) {
             const acompanantesJSON = acompanantesMatch[1];
             const acompanantesData = JSON.parse(acompanantesJSON);
-            
+                
             console.log('Acompañantes encontrados:', acompanantesData);
-            
+                
             // Obtener el ID del cliente principal para excluirlo
             const clientePrincipalId = reserva.cliente_id;
-            
+                
             // Filtrar y cargar solo los que no sean el cliente principal
             const acompanantesFiltrados = acompanantesData.filter(a => a.persona_id != clientePrincipalId);
-            
+                
             if (acompanantesFiltrados.length === 0) {
                 console.log('No hay acompañantes adicionales (solo cliente principal)');
                 // Limpiar el contenedor y actualizar contador
@@ -1702,34 +1895,34 @@ function cargarAcompanantesReservaEnFormularioDesdeObservaciones(reserva) {
                 actualizarListaAcompanantes();
                 return;
             }
-            
+                
             // Limpiar el contenedor antes de agregar
             const container = document.getElementById('acompanantesReservaContainer');
             if (container) {
                 container.innerHTML = '';
             }
-            
+                
             // Cargar cada acompañante en el formulario
             acompanantesFiltrados.forEach((acompanante, idx) => {
                 agregarFormularioAcompananteVacio();
                 const n = acompananteReservaCount; // Usar el contador actualizado
-                
+                    
                 console.log(`Cargando acompañante ${n}:`, acompanante);
-                
+                    
                 // Actualizar spans visibles (solo lectura)
                 $(`#acompanante_nombre_${n}`).text(acompanante.nombre || '[Nombre]');
                 $(`#acompanante_apellido_${n}`).text(acompanante.apellido || '[Apellido]');
                 $(`#acompanante_documento_${n}`).text(`${acompanante.tipo_documento || 'CC'}: ${acompanante.numero_documento || '[Documento]'}`);
-                
+                    
                 // Actualizar campos ocultos (para guardar)
                 $(`#hidden_acompanante_nombre_${n}`).val(acompanante.nombre || '');
                 $(`#hidden_acompanante_apellido_${n}`).val(acompanante.apellido || '');
                 $(`#hidden_acompanante_tipo_doc_${n}`).val(acompanante.tipo_documento || 'CC');
                 $(`#hidden_acompanante_num_doc_${n}`).val(acompanante.numero_documento || '');
             });
-            
+                
             console.log(`Se cargaron ${acompanantesFiltrados.length} acompañantes en el formulario`);
-            
+                
             // Actualizar contador después de cargar
             actualizarListaAcompanantes();
         } else {
@@ -1742,6 +1935,55 @@ function cargarAcompanantesReservaEnFormularioDesdeObservaciones(reserva) {
         // Actualizar contador en caso de error
         actualizarListaAcompanantes();
     }
+}
+
+function cargarAcompanantesDesdeBD(reservaId) {
+    console.log('Cargando acompañantes desde BD para reserva:', reservaId);
+    
+    $.ajax({
+        url: `api/endpoints/reserva_huespedes.php?reserva_id=${reservaId}`,
+        method: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            console.log('Respuesta de reserva_huespedes:', response);
+            
+            if (response.records && response.records.length > 0) {
+                // Limpiar array temporal
+                acompanantesTemporales = [];
+                
+                // Agregar cada huésped al array temporal
+                response.records.forEach(huesped => {
+                    const acompanante = {
+                        id: huesped.id,
+                        nombre: huesped.nombre,
+                        apellido: huesped.apellido,
+                        documento: huesped.documento,
+                        telefono: huesped.telefono,
+                        email: huesped.email
+                    };
+                    acompanantesTemporales.push(acompanante);
+                });
+                
+                console.log('Acompañantes cargados desde BD:', acompanantesTemporales);
+                
+                // Actualizar la lista visual
+                actualizarListaAcompanantes();
+                
+                showNotification(`Se cargaron ${response.records.length} acompañantes`, 'success');
+            } else {
+                console.log('No hay acompañantes en la BD para esta reserva');
+                // Limpiar array temporal
+                acompanantesTemporales = [];
+                // Actualizar lista para mostrar "No hay acompañantes"
+                actualizarListaAcompanantes();
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error cargando acompañantes desde BD:', error);
+            const response = xhr.responseJSON;
+            showNotification(response?.message || 'Error al cargar acompañantes', 'error');
+        }
+    });
 }
 
 function cargarAcompanantesReserva(reservaId) {
@@ -1830,15 +2072,33 @@ function guardarReserva(e) {
         return;
     }
     
+    // Validar sistema de caja si el método de pago es efectivo
+    if (!validarCajaParaGuardar()) {
+        return;
+    }
+    
     const id = $('#reserva_id').val();
 
     const clienteId = $('#cliente_id').val();
     const habitacionId = $('#habitacion_id').val();
     const fechaEntrada = $('#fecha_entrada').val();
     const fechaSalida = $('#fecha_salida').val();
+    
+    // 🔍 Debug: Verificar el valor de numero_huespedes antes de guardar
+    console.log('Valor de #numero_huespedes antes de guardar:', $('#numero_huespedes').val());
+    console.log('Valor de #numero_huespedes_display:', $('#numero_huespedes_display').text());
+    
     const numeroHuespedes = $('#numero_huespedes').val();
     const motivoViaje = $('#motivo_viaje').val();
     const notasReserva = $('#notas_reserva').val();
+    const metodoPago = $('#metodo_pago').val();
+    const estado = $('#estado').val();
+    const observaciones = $('#observaciones').val();
+
+    // Datos del sistema de caja
+    const dineroRecibido = parseFloat($('#dinero_recibido').val()) || 0;
+    const cambioDevolver = parseFloat($('#cambio_devolver').val()) || 0;
+    const totalPagar = parseFloat($('#total_a_pagar').val()) || 0;
 
     console.log('Datos del formulario:');
     console.log('cliente_id:', clienteId);
@@ -1848,9 +2108,15 @@ function guardarReserva(e) {
     console.log('numero_huespedes:', numeroHuespedes);
     console.log('motivo_viaje:', motivoViaje);
     console.log('notas_reserva:', notasReserva);
+    console.log('metodo_pago:', metodoPago);
+    console.log('estado:', estado);
+    console.log('observaciones:', observaciones);
+    console.log('dinero_recibido:', dineroRecibido);
+    console.log('cambio_devolver:', cambioDevolver);
+    console.log('total_pagar:', totalPagar);
 
     // Validar campos requeridos
-    if (!clienteId || !habitacionId || !fechaEntrada || !fechaSalida) {
+    if (!clienteId || !habitacionId || !fechaEntrada || !fechaSalida || !metodoPago || !estado) {
         showNotification('Por favor complete todos los campos obligatorios', 'error');
         return;
     }
@@ -1892,15 +2158,48 @@ function guardarReserva(e) {
         }
     }
     
-    // Agregar JSON de acompañantes si hay
-    if (acompanantes.length > 0) {
-        const jsonAcompanantes = JSON.stringify(acompanantes, null, 2);
-        if (observacionesLimpias) {
-            observacionesLimpias += '\n\nACOMPANANTES:\n' + jsonAcompanantes;
+    // 🎯 Guardar acompañantes en reserva_huespedes
+        if (acompanantes.length > 0) {
+            const huespedesIds = acompanantes.map(a => a.id);
+            
+            $.ajax({
+                url: 'api/endpoints/reserva_huespedes.php',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    reserva_id: id,
+                    huespedes: huespedesIds.map(id => ({ id: id }))
+                }),
+                success: function(response) {
+                    console.log('Acompañantes guardados:', response);
+                    if (response.success) {
+                        showNotification(response.message || 'Acompañantes guardados correctamente', 'success');
+                    } else {
+                        showNotification(response.message || 'Error al guardar acompañantes', 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error guardando acompañantes:', error);
+                    const response = xhr.responseJSON;
+                    showNotification(response?.message || 'Error al guardar acompañantes', 'error');
+                }
+            });
         } else {
-            observacionesLimpias = 'ACOMPANANTES:\n' + jsonAcompanantes;
+            // Si no hay acompañantes, eliminar los existentes
+            $.ajax({
+                url: `api/endpoints/reserva_huespedes.php?reserva_id=${id}`,
+                method: 'DELETE',
+                success: function(response) {
+                    console.log('Acompañantes eliminados:', response);
+                    if (response.success) {
+                        showNotification('Acompañantes eliminados correctamente', 'success');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error eliminando acompañantes:', error);
+                }
+            });
         }
-    }
 
     // Agregar motivo de viaje a las observaciones solo si se seleccionó uno válido
     if (motivoViaje && motivoViaje !== '') {
@@ -1921,7 +2220,11 @@ function guardarReserva(e) {
         metodo_pago: $('#metodo_pago').val() || 'efectivo',
         observaciones: observacionesLimpias,
         noches: noches,
-        acompanantes: acompanantes // Agregar acompañantes al envío
+        acompanantes: acompanantes, // Agregar acompañantes al envío
+        // Datos del sistema de caja
+        dinero_recibido: dineroRecibido,
+        cambio_devolver: cambioDevolver,
+        total_pagar: totalPagar
     };
     
     if (id) data.id = parseInt(id);
@@ -2740,15 +3043,17 @@ function abrirModalBusquedaPersonas() {
     // Limpiar selección anterior
     $('#busquedaPersonaSelect').val('').trigger('change');
     $('#infoPersonaSeleccionada').hide();
-    const modalElement = document.getElementById('modalBusquedaPersonas');
-    const modal = new bootstrap.Modal(modalElement, {
-        backdrop: 'static',
-        keyboard: true
-    });
-    modal.show();
     
-    // Cargar personas e inicializar Select2
-    cargarPersonasParaSelect2();
+    // Usar el modal de Bootstrap directamente
+    $('#modalBusquedaPersonas').modal('show');
+    
+    // Cargar personas si no están cargadas
+    if (!window.personasDataList || window.personasDataList.length === 0) {
+        cargarPersonasParaSelect2();
+    } else {
+        // Inicializar Select2 si no está inicializado
+        inicializarSelect2BusquedaPersonas();
+    }
 }
 
 function cargarPersonasParaSelect2() {
@@ -2949,18 +3254,17 @@ function cargarPersonasParaSelect2() {
 }
 
 function agregarPersonaComoAcompananteDirecto(persona) {
+    console.log('Agregando persona como acompañante:', persona);
+    
     // Validar capacidad antes de agregar
-    const totalActual = 1 + document.querySelectorAll('.acompanante-reserva-item').length;
+    const totalActual = 1 + acompanantesTemporales.length;
     if (totalActual >= capacidadMaximaHabitacion) {
         showNotification('Ha alcanzado la capacidad máxima de la habitación', 'warning');
         return;
     }
     
     // Verificar si ya está agregado
-    const yaExiste = Array.from(document.querySelectorAll('.acompanante-reserva-item')).some(item => {
-        const hiddenId = item.querySelector('[name^="hidden_acompanante_nombre_"]');
-        return hiddenId && hiddenId.value === persona.nombre;
-    });
+    const yaExiste = acompanantesTemporales.some(a => a.id == persona.id);
     if (yaExiste) {
         showNotification('Esta persona ya está agregada como acompañante', 'warning');
         return;
@@ -2973,20 +3277,18 @@ function agregarPersonaComoAcompananteDirecto(persona) {
         return;
     }
     
-    // Agregar formulario de acompañante con los datos
-    agregarFormularioAcompananteVacio();
-    const n = acompananteReservaCount;
+    // 🎯 AGREGAR A acompanantesTemporales
+    const acompanante = {
+        id: persona.id,
+        nombre: persona.nombre,
+        apellido: persona.apellido,
+        documento: persona.documento,
+        telefono: persona.telefono,
+        email: persona.email
+    };
     
-    // Actualizar spans visibles (solo lectura)
-    $(`#acompanante_nombre_${n}`).text(persona.nombre || '[Nombre]');
-    $(`#acompanante_apellido_${n}`).text(persona.apellido || '[Apellido]');
-    $(`#acompanante_documento_${n}`).text(`CC: ${persona.documento || '[Documento]'}`);
-    
-    // Actualizar campos ocultos (para guardar)
-    $(`#hidden_acompanante_nombre_${n}`).val(persona.nombre || '');
-    $(`#hidden_acompanante_apellido_${n}`).val(persona.apellido || '');
-    $(`#hidden_acompanante_tipo_doc_${n}`).val('CC');
-    $(`#hidden_acompanante_num_doc_${n}`).val(persona.documento || '');
+    acompanantesTemporales.push(acompanante);
+    console.log('Acompañante agregado a acompanantesTemporales:', acompanantesTemporales);
     
     // Actualizar interfaz
     actualizarListaAcompanantes();
@@ -3096,16 +3398,36 @@ function actualizarListaAcompanantes() {
     const container = $('#acompanantesReservaContainer');
     const contador = $('#contadorAcompanantes');
     
-    // Contar los formularios de acompañantes con la clase correcta
-    const formulariosAcompanantes = container.find('.acompanante-reserva-item').length;
-    contador.text(formulariosAcompanantes);
+    console.log('Actualizando lista de acompañantes:', acompanantesTemporales);
     
-    if (formulariosAcompanantes === 0) {
+    // Usar acompanantesTemporales en lugar de contar elementos del DOM
+    const numAcompanantes = acompanantesTemporales.length;
+    contador.text(numAcompanantes);
+    
+    if (numAcompanantes === 0) {
         container.html('<p class="text-muted mb-0 text-center">No hay acompañantes registrados</p>');
+    } else {
+        // Renderizar los acompañantes desde acompanantesTemporales
+        let html = '';
+        acompanantesTemporales.forEach((acompanante, index) => {
+            html += `
+                <div class="d-flex justify-content-between align-items-center p-2 border-bottom acompanante-item" data-index="${index}">
+                    <div>
+                        <strong>${acompanante.nombre} ${acompanante.apellido || ''}</strong>
+                        ${acompanante.documento ? `<br><small class="text-muted">Doc: ${acompanante.documento}</small>` : ''}
+                        ${acompanante.telefono ? `<br><small class="text-muted">Tel: ${acompanante.telefono}</small>` : ''}
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="eliminarAcompanante(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+        });
+        container.html(html);
     }
     
     // Actualizar totales de huéspedes
-    actualizarTotalHuespedes();
+    actualizarDistribucionHuespedes();
 }
 
 function eliminarAcompananteReserva(numero) {
@@ -3125,9 +3447,13 @@ function eliminarAcompananteReserva(numero) {
 
 function eliminarAcompanante(index) {
     if (confirm('¿Está seguro de eliminar este acompañante?')) {
-        acompanantesTemporales = acompanantesTemporales.filter(a => a.index != index);
+        console.log('Eliminando acompañante en índice:', index);
+        acompanantesTemporales = acompanantesTemporales.filter((a, i) => i !== index);
+        
+        // Actualizar interfaz
         actualizarListaAcompanantes();
         actualizarCapacidadInfo();
+        
         showNotification('Acompañante eliminado', 'info');
     }
 }
@@ -3838,13 +4164,91 @@ $(document).ready(function() {
 
 <script>
 // Funciones para manejar la distribución de huéspedes
-function actualizarDistribucionHuespedes() {
-    const numAdultos = parseInt($('#numero_adultos').val()) || 1;
-    const numNinos = parseInt($('#numero_ninos').val()) || 0;
-    const totalHuespedes = numAdultos + numNinos;
+function cambiarHuespedes(tipo, cambio) {
+    let valorActual;
+    let minimo;
+    let maximo = 10;
     
-    // Actualizar el campo total
+    switch(tipo) {
+        case 'total':
+            valorActual = parseInt($('#numero_huespedes').val()) || 1;
+            minimo = 1;
+            break;
+        case 'adultos':
+            valorActual = parseInt($('#numero_adultos').val()) || 1;
+            minimo = 1;
+            break;
+        case 'ninos':
+            valorActual = parseInt($('#numero_ninos').val()) || 0;
+            minimo = 0;
+            break;
+    }
+    
+    const nuevoValor = Math.max(minimo, Math.min(maximo, valorActual + cambio));
+    
+    switch(tipo) {
+        case 'total':
+            $('#numero_huespedes').val(nuevoValor);
+            break;
+        case 'adultos':
+            $('#numero_adultos').val(nuevoValor);
+            break;
+        case 'ninos':
+            $('#numero_ninos').val(nuevoValor);
+            break;
+    }
+    
+    // Actualizar displays y distribución
+    actualizarDistribucionHuespedes();
+}
+
+function actualizarDistribucionHuespedes() {
+    console.log('actualizarDistribucionHuespedes() llamada');
+    console.log('esModoEdicion:', esModoEdicion);
+    console.log('valorOriginalHuespedes:', valorOriginalHuespedes);
+    console.log('acompanantesTemporales:', acompanantesTemporales);
+    
+    // Obtener número de acompañantes
+    const numAcompanantes = acompanantesTemporales.length || 0;
+    
+    let totalHuespedes;
+    let numAdultos;
+    let numNinos;
+    
+    if (numAcompanantes > 0) {
+        // Si hay acompañantes, calcular automáticamente
+        totalHuespedes = 1 + numAcompanantes;
+        numAdultos = totalHuespedes;
+        numNinos = 0;
+        console.log('Calculando con acompañantes:', totalHuespedes);
+    } else {
+        // Si no hay acompañantes
+        if (esModoEdicion) {
+            // En modo edición, usar el valor original de la BD
+            totalHuespedes = valorOriginalHuespedes;
+            numAdultos = totalHuespedes;
+            numNinos = 0;
+            console.log('Modo edición, usando valor original:', totalHuespedes);
+        } else {
+            // En modo nueva reserva, usar 1 (cliente principal)
+            totalHuespedes = 1;
+            numAdultos = 1;
+            numNinos = 0;
+            console.log('Modo nueva reserva, usando 1');
+        }
+    }
+    
+    console.log('Final - totalHuespedes:', totalHuespedes);
+    
+    // Actualizar los campos hidden
     $('#numero_huespedes').val(totalHuespedes);
+    $('#numero_adultos').val(numAdultos);
+    $('#numero_ninos').val(numNinos);
+    
+    // Actualizar los displays visuales
+    $('#numero_huespedes_display').text(totalHuespedes);
+    $('#numero_adultos_display').text(numAdultos);
+    $('#numero_ninos_display').text(numNinos);
     
     // Validar capacidad
     validarCapacidad();
