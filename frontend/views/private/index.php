@@ -145,7 +145,7 @@ include __DIR__ . '/../../../backend/includes/sidebar.php';
     <div class="row">
         <div class="col-12">
             <div class="table-container">
-                <h4 class="mb-4">Actividad Reciente</h4>
+                <h4 class="mb-4">Actividad Reciente de Reservaciones</h4>
                 <div class="table-responsive">
                     <table class="table">
                         <thead>

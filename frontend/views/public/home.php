@@ -52,6 +52,51 @@ try {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+        /* Forzar colores del footer con máxima prioridad */
+        footer {
+            background-color: #1a1a1a !important;
+        }
+        
+        footer h5 {
+            color: #ffffff !important;
+        }
+        
+        footer p {
+            color: #ffffff !important;
+        }
+        
+        footer a {
+            color: #ffffff !important;
+        }
+        
+        footer .text-white {
+            color: #ffffff !important;
+        }
+        
+        footer .text-white-50 {
+            color: #ffffff !important;
+        }
+        
+        footer .text-muted {
+            color: #ffffff !important;
+        }
+        
+        /* Asegurar que todos los elementos en footer sean blancos */
+        footer * {
+            color: #ffffff !important;
+        }
+        
+        /* Excepción para los iconos que ya son blancos */
+        footer i {
+            color: #ffffff !important;
+        }
+        
+        /* Forzar fondo oscuro */
+        .bg-dark {
+            background-color: #1a1a1a !important;
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation -->
@@ -81,10 +126,10 @@ try {
                         <a class="nav-link" href="#contacto">Contacto</a>
                     </li>
                     <li class="nav-item ms-3">
-                        <a href="reservas_online.php" class="btn btn-primary-custom btn-sm">Reservar Ahora</a>
+                        <a href="/Hotel_tame/reservas-online" class="btn btn-primary-custom btn-sm">Reservar Ahora</a>
                     </li>
                     <li class="nav-item ms-2">
-                        <a href="portal_cliente.php" class="btn btn-outline-custom btn-sm">Mi Portal</a>
+                        <a href="/Hotel_tame/portal-cliente" class="btn btn-outline-custom btn-sm">Mi Portal</a>
                     </li>
                 </ul>
             </div>
@@ -98,7 +143,7 @@ try {
                 <h1 class="hero-title">Bienvenidos a Hotel Tame</h1>
                 <p class="hero-subtitle">Experimenta el lujo, la comodidad y el servicio excepcional en nuestro hotel de primera categoría</p>
                 <div class="d-flex gap-3 justify-content-center flex-wrap">
-                    <a href="reservas_online.php" class="btn btn-light btn-lg px-4">
+                    <a href="/Hotel_tame/reservas-online" class="btn btn-light btn-lg px-4">
                         <i class="fas fa-calendar-check me-2"></i>Reservar Ahora
                     </a>
                     <a href="#habitaciones" class="btn btn-outline-light btn-lg px-4">
@@ -136,18 +181,18 @@ try {
         <div class="container">
             <div class="booking-form">
                 <h3 class="text-center mb-4 fw-bold">Reserva Rápida</h3>
-                <form action="reservas_online.php" method="GET" class="row g-3">
+                <form action="/Hotel_tame/reservas-online" method="GET" class="row g-3">
                     <div class="col-md-3">
                         <label class="form-label-custom">Check-in</label>
-                        <input type="date" name="fecha_entrada" class="form-control form-control-custom" required>
+                        <input type="date" name="checkin" class="form-control form-control-custom" required>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label-custom">Check-out</label>
-                        <input type="date" name="fecha_salida" class="form-control form-control-custom" required>
+                        <input type="date" name="checkout" class="form-control form-control-custom" required>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label-custom">Huéspedes</label>
-                        <select name="huespedes" class="form-control form-control-custom">
+                        <select name="adults" class="form-control form-control-custom">
                             <option value="1">1 Huésped</option>
                             <option value="2">2 Huéspedes</option>
                             <option value="3">3 Huéspedes</option>
@@ -267,7 +312,7 @@ try {
                                         </div>
                                     </div>
                                     
-                                    <a href="reservas_online.php?habitacion_id=<?= $habitacion['id'] ?>" 
+                                    <a href="/Hotel_tame/reservas-online?room_id=<?= $habitacion['id'] ?>" 
                                        class="btn btn-primary-custom w-100">
                                         <i class="fas fa-calendar-check me-2"></i>Reservar Ahora
                                     </a>
@@ -284,7 +329,7 @@ try {
             <?php endif; ?>
             
             <div class="text-center mt-5">
-                <a href="reservas_online.php" class="btn btn-outline-custom btn-lg">
+                <a href="/Hotel_tame/reservas-online" class="btn btn-outline-custom btn-lg">
                     <i class="fas fa-th-large me-2"></i>Ver Todas las Habitaciones
                 </a>
             </div>
