@@ -6,6 +6,49 @@ if (!isset($_SESSION['usuario'])) {
     header('Location: /Hotel_tame/login');
     exit;
 }
+
+// Obtener categorías desde la base de datos
+$categorias = [];
+try {
+    $database = new Database();
+    $db = $database->getConnection();
+    
+    // Verificar si existe la tabla de categorías
+    $stmt = $db->query("SHOW TABLES LIKE 'categorias'");
+    if ($stmt->rowCount() == 0) {
+        // Crear tabla de categorías si no existe
+        $db->exec("CREATE TABLE IF NOT EXISTS categorias (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            nombre VARCHAR(100) NOT NULL,
+            icono VARCHAR(50) DEFAULT 'fas fa-box',
+            color VARCHAR(20) DEFAULT '#007bff',
+            activo BOOLEAN DEFAULT TRUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+        
+        // Insertar categorías por defecto
+        $categorias_default = [
+            ['comida', 'fas fa-utensils', '#28a745'],
+            ['bebida', 'fas fa-coffee', '#17a2b8'],
+            ['snack', 'fas fa-cookie', '#ffc107'],
+            ['higiene', 'fas fa-soap', '#6f42c1'],
+            ['otros', 'fas fa-box', '#6c757d']
+        ];
+        
+        foreach ($categorias_default as $cat) {
+            $stmt = $db->prepare("INSERT INTO categorias (nombre, icono, color) VALUES (?, ?, ?)");
+            $stmt->execute($cat);
+        }
+    }
+    
+    // Cargar categorías activas
+    $stmt = $db->query("SELECT * FROM categorias WHERE activo = TRUE ORDER BY nombre");
+    $categorias = $stmt->fetchAll();
+    
+} catch (Exception $e) {
+    error_log("Error al cargar categorías: " . $e->getMessage());
+}
+
 include __DIR__ . '/../../../backend/includes/header.php';
 include __DIR__ . '/../../../backend/includes/sidebar.php';
 ?>
@@ -31,14 +74,17 @@ include __DIR__ . '/../../../backend/includes/sidebar.php';
             <div class="row g-3">
                 <div class="col-md-4">
                     <label class="form-label">Categoría</label>
-                    <select class="form-select" id="filtroCategoria" onchange="cargarProductos()">
-                        <option value="">Todas las categorías</option>
-                        <option value="comida">Comida</option>
-                        <option value="bebida">Bebida</option>
-                        <option value="snack">Snack</option>
-                        <option value="higiene">Higiene</option>
-                        <option value="otros">Otros</option>
-                    </select>
+                    <div class="input-group">
+                        <select class="form-select" id="filtroCategoria" onchange="cargarProductos()">
+                            <option value="">Todas las categorías</option>
+                            <?php foreach ($categorias as $categoria): ?>
+                                <option value="<?= $categoria['nombre'] ?>"><?= ucfirst($categoria['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <button class="btn btn-outline-primary" type="button" onclick="abrirModalCategoria()" title="Nueva Categoría">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Estado</label>
@@ -81,14 +127,17 @@ include __DIR__ . '/../../../backend/includes/sidebar.php';
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Categoría *</label>
-                            <select class="form-select" id="categoria" required>
-                                <option value="">Seleccione...</option>
-                                <option value="comida">Comida</option>
-                                <option value="bebida">Bebida</option>
-                                <option value="snack">Snack</option>
-                                <option value="higiene">Higiene</option>
-                                <option value="otros">Otros</option>
-                            </select>
+                            <div class="input-group">
+                                <select class="form-select" id="categoria" required>
+                                    <option value="">Seleccione...</option>
+                                    <?php foreach ($categorias as $categoria): ?>
+                                        <option value="<?= $categoria['nombre'] ?>"><?= ucfirst($categoria['nombre']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <button class="btn btn-outline-primary" type="button" onclick="abrirModalCategoria()" title="Nueva Categoría">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -140,6 +189,81 @@ include __DIR__ . '/../../../backend/includes/sidebar.php';
                     <button type="submit" class="btn btn-primary">Guardar</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Categoría -->
+<div class="modal fade" id="modalCategoria" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nueva Categoría</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formCategoria" onsubmit="guardarCategoria(event)">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre de la Categoría *</label>
+                        <input type="text" class="form-control" id="catNombre" required placeholder="Ej: Postres">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Icono</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="catIcono" placeholder="fas fa-ice-cream">
+                            <button class="btn btn-outline-secondary" type="button" onclick="abrirSelectorIconos()">
+                                <i class="fas fa-icons"></i> Seleccionar
+                            </button>
+                        </div>
+                        <small class="text-muted">Clases de Font Awesome (ej: fas fa-ice-cream)</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Color</label>
+                        <div class="input-group">
+                            <input type="color" class="form-control form-control-color" id="catColor" value="#007bff">
+                            <input type="text" class="form-control" id="catColorText" value="#007bff">
+                        </div>
+                        <small class="text-muted">Color para identificar la categoría</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Vista Previa</label>
+                        <div class="border rounded p-3 text-center">
+                            <div id="categoriaPreview" style="display: inline-block; padding: 8px 16px; border-radius: 20px; background-color: #007bff; color: white;">
+                                <i class="fas fa-box me-2"></i>
+                                <span id="previewNombre">Nueva Categoría</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Categoría</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Selector de Iconos -->
+<div class="modal fade" id="modalIconos" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Seleccionar Icono</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row" id="iconosGrid">
+                    <!-- Iconos se cargarán dinámicamente -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="seleccionarIcono()">Seleccionar</button>
+            </div>
         </div>
     </div>
 </div>
@@ -457,11 +581,14 @@ function openCamera() {
 }
 
 function showNotification(message, type) {
+    // Asegurar que el mensaje sea un string
+    const messageStr = typeof message === 'object' ? JSON.stringify(message) : String(message);
+    
     // Simple notification system
     const alertClass = type === 'error' ? 'alert-danger' : 'alert-success';
     const notification = $(`
         <div class="alert ${alertClass} alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 1050;">
-            ${message}
+            ${messageStr}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     `);
@@ -587,6 +714,216 @@ function eliminarProducto(id) {
         });
     }
 }
+
+// Funciones para manejo de categorías
+let iconoSeleccionado = '';
+
+function abrirModalCategoria() {
+    $('#formCategoria')[0].reset();
+    $('#catNombre').val('');
+    $('#catIcono').val('fas fa-box');
+    $('#catColor').val('#007bff');
+    $('#catColorText').val('#007bff');
+    actualizarPreview();
+    
+    const modal = new bootstrap.Modal(document.getElementById('modalCategoria'));
+    modal.show();
+}
+
+function abrirSelectorIconos() {
+    cargarIconos();
+    const modal = new bootstrap.Modal(document.getElementById('modalIconos'));
+    modal.show();
+}
+
+function cargarIconos() {
+    const iconos = [
+        'fas fa-utensils', 'fas fa-coffee', 'fas fa-cookie', 'fas fa-ice-cream', 'fas fa-pizza-slice',
+        'fas fa-hamburger', 'fas fa-hotdog', 'fas fa-drumstick-bite', 'fas fa-fish', 'fas fa-carrot',
+        'fas fa-apple-alt', 'fas fa-lemon', 'fas fa-pepper-hot', 'fas fa-cheese', 'fas fa-bacon',
+        'fas fa-glass-martini', 'fas fa-wine-glass', 'fas fa-beer', 'fas fa-cocktail', 'fas fa-mug-hot',
+        'fas fa-bread-slice', 'fas fa-birthday-cake', 'fas fa-candy-cane', 'fas fa-cookie-bite',
+        'fas fa-soap', 'fas fa-pump-soap', 'fas fa-bath', 'fas fa-shower', 'fas fa-toilet-paper',
+        'fas fa-box', 'fas fa-boxes', 'fas fa-archive', 'fas fa-inventory', 'fas fa-warehouse',
+        'fas fa-shopping-bag', 'fas fa-shopping-cart', 'fas fa-shopping-basket', 'fas fa-store',
+        'fas fa-tshirt', 'fas fa-socks', 'fas fa-shoe-prints', 'fas fa-hat-cowboy', 'fas fa-glasses',
+        'fas fa-book', 'fas fa-bookmark', 'fas fa-newspaper', 'fas fa-palette', 'fas fa-pen',
+        'fas fa-gamepad', 'fas fa-dice', 'fas fa-chess', 'fas fa-puzzle-piece', 'fas fa-dragon',
+        'fas fa-heart', 'fas fa-star', 'fas fa-gem', 'fas fa-crown', 'fas fa-trophy',
+        'fas fa-home', 'fas fa-building', 'fas fa-store-alt', 'fas fa-warehouse', 'fas fa-garage',
+        'fas fa-car', 'fas fa-truck', 'fas fa-motorcycle', 'fas fa-bicycle', 'fas fa-plane',
+        'fas fa-tree', 'fas fa-leaf', 'fas fa-seedling', 'fas fa-spa', 'fas fa-flower',
+        'fas fa-sun', 'fas fa-moon', 'fas fa-cloud', 'fas fa-cloud-sun', 'fas fa-snowflake',
+        'fas fa-bolt', 'fas fa-fire', 'fas fa-water', 'fas fa-wind', 'fas fa-rainbow'
+    ];
+    
+    const grid = $('#iconosGrid');
+    grid.empty();
+    
+    iconos.forEach(icono => {
+        const col = $(`
+            <div class="col-md-2 col-sm-3 col-4 mb-3">
+                <div class="icon-option text-center p-3 border rounded cursor-pointer" data-icono="${icono}">
+                    <i class="${icono} fa-2x mb-2"></i>
+                    <div class="small">${icono.replace('fas fa-', '')}</div>
+                </div>
+            </div>
+        `);
+        grid.append(col);
+    });
+    
+    // Evento de selección
+    $('.icon-option').click(function() {
+        $('.icon-option').removeClass('border-primary bg-light');
+        $(this).addClass('border-primary bg-light');
+        iconoSeleccionado = $(this).data('icono');
+    });
+}
+
+function seleccionarIcono() {
+    if (iconoSeleccionado) {
+        $('#catIcono').val(iconoSeleccionado);
+        actualizarPreview();
+        bootstrap.Modal.getInstance(document.getElementById('modalIconos')).hide();
+    }
+}
+
+function actualizarPreview() {
+    const nombre = $('#catNombre').val() || 'Nueva Categoría';
+    const icono = $('#catIcono').val() || 'fas fa-box';
+    const color = $('#catColor').val() || '#007bff';
+    
+    $('#previewNombre').text(nombre);
+    $('#categoriaPreview').css('background-color', color);
+    $('#categoriaPreview').html(`<i class="${icono} me-2"></i><span id="previewNombre">${nombre}</span>`);
+}
+
+function guardarCategoria(e) {
+    e.preventDefault();
+    
+    const categoria = {
+        nombre: $('#catNombre').val(),
+        icono: $('#catIcono').val(),
+        color: $('#catColor').val()
+    };
+    
+    console.log('Enviando categoría:', categoria);
+    
+    $.ajax({
+        url: '/Hotel_tame/api/endpoints/categorias.php',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(categoria),
+        success: function(response) {
+            console.log('Respuesta exitosa:', response);
+            showNotification('Categoría guardada exitosamente', 'success');
+            
+            // Cerrar modal de categoría
+            bootstrap.Modal.getInstance(document.getElementById('modalCategoria')).hide();
+            
+            // Actualizar categorías y seleccionar la nueva categoría
+            actualizarCategoriasYSeleccionar(categoria.nombre);
+        },
+        error: function(xhr) {
+            console.error('Error completo:', xhr);
+            console.error('Status:', xhr.status);
+            console.error('Response Text:', xhr.responseText);
+            
+            let errorMessage = 'Error al guardar categoría';
+            
+            try {
+                const response = JSON.parse(xhr.responseText);
+                errorMessage = response.message || errorMessage;
+            } catch (e) {
+                console.error('Error parsing JSON:', e);
+                errorMessage = xhr.responseText || errorMessage;
+            }
+            
+            showNotification(errorMessage, 'error');
+        }
+    });
+}
+
+function actualizarCategoriasYSeleccionar(nuevaCategoria = null) {
+    // Cargar categorías actualizadas desde la API
+    $.get('/Hotel_tame/api/endpoints/categorias.php', function(response) {
+        if (response.success && response.data) {
+            // Actualizar el select del filtro
+            const filtroSelect = $('#filtroCategoria');
+            const filtroCurrentValue = filtroSelect.val();
+            
+            filtroSelect.find('option:not(:first)').remove();
+            
+            response.data.forEach(categoria => {
+                const option = $('<option></option>')
+                    .val(categoria.nombre)
+                    .text(ucfirst(categoria.nombre));
+                filtroSelect.append(option);
+            });
+            
+            // Restaurar la selección anterior
+            filtroSelect.val(filtroCurrentValue);
+            
+            // Actualizar el select del modal de producto
+            const modalSelect = $('#categoria');
+            const modalCurrentValue = modalSelect.val();
+            
+            // Guardar el HTML actual del select
+            const modalHTML = modalSelect.html();
+            
+            // Limpiar y actualizar opciones
+            modalSelect.find('option:not(:first)').remove();
+            
+            response.data.forEach(categoria => {
+                const option = $('<option></option>')
+                    .val(categoria.nombre)
+                    .text(ucfirst(categoria.nombre));
+                modalSelect.append(option);
+            });
+            
+            // Si se especificó una nueva categoría, seleccionarla
+            if (nuevaCategoria) {
+                modalSelect.val(nuevaCategoria);
+                showNotification(`Categoría "${nuevaCategoria}" seleccionada`, 'success');
+            } else {
+                // Restaurar la selección anterior si existe
+                if (modalCurrentValue && response.data.find(c => c.nombre === modalCurrentValue)) {
+                    modalSelect.val(modalCurrentValue);
+                }
+            }
+            
+            // Forzar la actualización del select en Bootstrap
+            modalSelect.trigger('change');
+            
+            console.log('Categorías actualizadas en el modal:', response.data.map(c => c.nombre));
+        }
+    }).fail(function() {
+        showNotification('Error al actualizar categorías', 'error');
+    });
+}
+
+function actualizarCategorias() {
+    actualizarCategoriasYSeleccionar();
+}
+
+function recargarCategorias() {
+    // Ya no recarga la página, solo actualiza las categorías
+    actualizarCategorias();
+}
+
+// Event listeners para actualización en tiempo real del preview
+$(document).ready(function() {
+    $('#catNombre').on('input', actualizarPreview);
+    $('#catIcono').on('input', actualizarPreview);
+    $('#catColor').on('input', function() {
+        $('#catColorText').val($(this).val());
+        actualizarPreview();
+    });
+    $('#catColorText').on('input', function() {
+        $('#catColor').val($(this).val());
+        actualizarPreview();
+    });
+});
 </script>
 
 <?php include __DIR__ . '/../../../backend/includes/footer.php'; ?>
