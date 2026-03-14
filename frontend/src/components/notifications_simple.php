@@ -19,12 +19,16 @@ if (file_exists(__DIR__ . '/../lib/NotificationManager.php')) {
         $notificationManager = NotificationManager::getInstance();
         $notificationManager->loadFromSession();
         
+        // 🚨 GENERACIÓN AUTOMÁTICA DE NOTIFICACIONES DESACTIVADA TEMPORALMENTE
+// Para evitar notificaciones flotantes molestas en todas las vistas
+/*
         // Generar notificaciones automáticas al cargar
         if (!isset($_SESSION['last_notification_check']) || 
             (time() - $_SESSION['last_notification_check']) > 300) { // 5 minutos
             $notificationManager->generateSystemNotifications();
             $_SESSION['last_notification_check'] = time();
         }
+        */
         
         $notifications = $notificationManager->getAllNotifications();
         $unread_count = $notificationManager->getUnreadCount();

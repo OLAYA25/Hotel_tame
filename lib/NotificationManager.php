@@ -167,16 +167,20 @@ class NotificationManager {
      */
     private function checkMaintenanceRooms() {
         try {
+            // 🚨 NOTIFICACIÓN DE MANTENIMIENTO DESACTIVADA TEMPORALMENTE
+            // Para evitar notificaciones flotantes molestas
+            return;
+            
             $database = new Database();
             $db = $database->getConnection();
             
-            $stmt = $db->query("
-                SELECT COUNT(*) as count, GROUP_CONCAT(numero SEPARATOR ', ') as rooms
-                FROM habitaciones 
-                WHERE estado = 'mantenimiento'
-                AND deleted_at IS NULL
-            ");
-            $result = $stmt->fetch();
+            $query = "SELECT GROUP_CONCAT(numero SEPARATOR ', ') as rooms, COUNT(*) as count 
+                     FROM habitaciones 
+                     WHERE estado = 'mantenimiento' AND deleted_at IS NULL";
+            
+            $stmt = $db->prepare($query);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if ($result['count'] > 0) {
                 $this->addNotification(

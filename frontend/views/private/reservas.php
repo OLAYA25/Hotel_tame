@@ -497,7 +497,9 @@ include __DIR__ . '/../../../backend/includes/sidebar.php';
                                 <option value="">Seleccione...</option>
                                 <option value="DNI">DNI</option>
                                 <option value="Pasaporte">Pasaporte</option>
-                                <option value="Cedula">Cedula</option>
+                                <option value="Cedula">Cédula</option>
+                                <option value="TI">Tarjeta de Identidad (TI)</option>
+                                <option value="Registro Civil">Registro Civil</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
@@ -654,8 +656,19 @@ let esModoEdicion = false; // Para saber si estamos editando una reserva existen
 let valorOriginalHuespedes = 1; // Guardar el valor original de num_huespedes
 
 function verificarActualizacionesAutomaticas() {
-    // Refrescar la página
-    location.reload();
+    // 🚨 RECARGA AUTOMÁTICA DESACTIVADA TEMPORALMENTE
+    // Evita que se cierren los modales abiertos
+    
+    // Si hay un modal abierto, no recargar
+    if ($('.modal.show').length > 0) {
+        console.log('Modal abierto, omitiendo recarga automática');
+        return;
+    }
+    
+    // Opcional: mostrar notificación en consola en lugar de recargar
+    console.log('Verificación automática omitida para no interrumpir modales');
+    
+    // Antes hacía: location.reload(); // Esto cerraba todos los modales
 }
 
 $(document).ready(function() {
@@ -698,8 +711,9 @@ $(document).ready(function() {
         aplicarFiltros();
     });
     
-    // Verificar cada 5 minutos si hay reservas que necesitan actualizarse
-    setInterval(verificarActualizacionesAutomaticas, 300000); // 5 minutos = 300000 ms
+    // 🚨 VERIFICACIÓN AUTOMÁTICA CADA 5 MINUTOS DESACTIVADA
+    // Evita que se cierren los modales abiertos por recargas automáticas
+    // setInterval(verificarActualizacionesAutomaticas, 300000); // 5 minutos = 300000 ms
 });
 
 function cargarReservas(callback) {
@@ -1165,18 +1179,8 @@ function cargarClientes() {
                 }
             });
             
-            // Abrir dropdown automáticamente al hacer clic en el contenedor
-            setTimeout(() => {
-                const select2Container = select.next('.select2-container');
-                if (select2Container.length > 0) {
-                    select2Container.on('click', function(e) {
-                        // Solo abrir si no está ya abierto
-                        if (!select2Container.hasClass('select2-container--open')) {
-                            select.select2('open');
-                        }
-                    });
-                }
-            }, 200);
+            // 🚨 NO abrir automáticamente el dropdown al hacer clic
+            // El usuario debe hacer clic en la flecha para abrirlo
             
         } catch (e) {
             console.error('Error al inicializar Select2:', e);
@@ -1969,7 +1973,7 @@ function cargarAcompanantesDesdeBD(reservaId) {
                 // Actualizar la lista visual
                 actualizarListaAcompanantes();
                 
-                showNotification(`Se cargaron ${response.records.length} acompañantes`, 'success');
+                // No mostrar notificación para no ser intrusivo
             } else {
                 console.log('No hay acompañantes en la BD para esta reserva');
                 // Limpiar array temporal
@@ -2172,9 +2176,8 @@ function guardarReserva(e) {
                 }),
                 success: function(response) {
                     console.log('Acompañantes guardados:', response);
-                    if (response.success) {
-                        showNotification(response.message || 'Acompañantes guardados correctamente', 'success');
-                    } else {
+                    // Solo mostrar notificación si hay error o si es importante
+                    if (!response.success) {
                         showNotification(response.message || 'Error al guardar acompañantes', 'error');
                     }
                 },
@@ -2191,9 +2194,7 @@ function guardarReserva(e) {
                 method: 'DELETE',
                 success: function(response) {
                     console.log('Acompañantes eliminados:', response);
-                    if (response.success) {
-                        showNotification('Acompañantes eliminados correctamente', 'success');
-                    }
+                    // No mostrar notificación de éxito para no ser intrusivo
                 },
                 error: function(xhr, status, error) {
                     console.error('Error eliminando acompañantes:', error);
@@ -2449,23 +2450,9 @@ function toggleDocumentoVisibility() {
 }
 
 function showNotification(message, type) {
-    // Simple notification system
-    const alertClass = type === 'error' ? 'alert-danger' : 'alert-success';
-    const notification = $(`
-        <div class="alert ${alertClass} alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 1050;">
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    `);
-    
-    $('body').append(notification);
-    
-    // Auto-remove after 3 seconds
-    setTimeout(function() {
-        notification.fadeOut(300, function() {
-            $(this).remove();
-        });
-    }, 3000);
+    // NOTIFICACIONES DESACTIVADAS TEMPORALMENTE
+    // Todas las notificaciones flotantes están desactivadas por el momento
+    console.log(`NOTIFICACIÓN DESACTIVADA - ${type}: ${message}`);
 }
 
 // Funciones para manejar acompañantes en reservas
@@ -2525,7 +2512,9 @@ function agregarAcompananteReserva() {
                         <option value="">Seleccione...</option>
                         <option value="DNI">DNI</option>
                         <option value="Pasaporte">Pasaporte</option>
-                        <option value="Cedula">Cedula</option>
+                        <option value="Cedula">Cédula</option>
+                        <option value="TI">Tarjeta de Identidad (TI)</option>
+                        <option value="Registro Civil">Registro Civil</option>
                     </select>
                 </div>
                 <div class="col-md-3 mb-2">
@@ -2842,7 +2831,9 @@ function agregarAcompanante() {
                         <option value="">Seleccione...</option>
                         <option value="DNI">DNI</option>
                         <option value="Pasaporte">Pasaporte</option>
-                        <option value="Cedula">Cedula</option>
+                        <option value="Cedula">Cédula</option>
+                        <option value="TI">Tarjeta de Identidad (TI)</option>
+                        <option value="Registro Civil">Registro Civil</option>
                     </select>
                 </div>
                 <div class="col-md-3 mb-2">
@@ -3207,26 +3198,12 @@ function cargarPersonasParaSelect2() {
                 }, 100);
             });
             
-            // Abrir automáticamente el dropdown al hacer clic en el campo
+            // Abrir después de seleccionar (no cerrar automáticamente)
             select.on('select2:select', function() {
-                // Cerrar después de seleccionar
-                setTimeout(() => {
-                    select.select2('close');
-                }, 100);
+                // No cerrar automáticamente, dejar que el usuario decida
             });
             
-            // Abrir dropdown automáticamente al hacer clic en el contenedor
-            setTimeout(() => {
-                const select2Container = select.next('.select2-container');
-                if (select2Container.length > 0) {
-                    select2Container.on('click', function(e) {
-                        // Solo abrir si no está ya abierto
-                        if (!select2Container.hasClass('select2-container--open')) {
-                            select.select2('open');
-                        }
-                    });
-                }
-            }, 200);
+            // No abrir automáticamente el dropdown al hacer clic
             
             // Evento change para mostrar información de la persona seleccionada
             select.on('change', function() {
@@ -3297,7 +3274,7 @@ function agregarPersonaComoAcompananteDirecto(persona) {
     // Cerrar modal
     $('#modalBusquedaPersonas').modal('hide');
     
-    showNotification('Acompañante agregado correctamente', 'success');
+    // No mostrar notificación para no ser intrusivo
 }
 
 function mostrarInfoPersonaSeleccionada(persona) {
@@ -3369,7 +3346,7 @@ function confirmarPersonaSeleccionada() {
     // Cerrar modal
     $('#modalBusquedaPersonas').modal('hide');
     
-    showNotification('Acompañante agregado correctamente', 'success');
+    // No mostrar notificación para no ser intrusivo
 }
 
 function crearNuevaPersonaAcompanante() {
@@ -3453,8 +3430,6 @@ function eliminarAcompanante(index) {
         // Actualizar interfaz
         actualizarListaAcompanantes();
         actualizarCapacidadInfo();
-        
-        showNotification('Acompañante eliminado', 'info');
     }
 }
 
