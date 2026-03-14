@@ -131,15 +131,16 @@ switch($method) {
         error_log("POST: " . print_r($_POST, true));
         
         // Manejar subida de archivos - usar la ruta correcta
-        $upload = new FileUpload('../../assets/images/products');
+        $upload = new FileUpload('../../uploads/products');
         $imagen_url = '';
         
         if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
             error_log("Processing file upload");
             $uploadResult = $upload->uploadFile($_FILES['imagen'], 'producto');
             if ($uploadResult['success']) {
-                $imagen_url = 'assets/images/products/' . $uploadResult['fileName'];
+                $imagen_url = 'uploads/products/' . $uploadResult['fileName'];
                 error_log("File uploaded successfully: " . $imagen_url);
+                error_log("Converted to WebP: " . ($uploadResult['convertedToWebP'] ? 'Yes' : 'No'));
             } else {
                 error_log("File upload failed: " . $uploadResult['message']);
                 http_response_code(400);
@@ -158,71 +159,15 @@ switch($method) {
             error_log("Using POST data: " . print_r($data, true));
         }
         
-        if(!empty($data->nombre) && !empty($data->categoria) && !empty($data->precio)) {
-            $producto->nombre = $data->nombre;
-            $producto->descripcion = $data->descripcion ?? "";
-            $producto->categoria = $data->categoria;
-            $producto->precio = $data->precio;
-            $producto->imagen_url = $imagen_url ?: ($data->imagen_url ?? "");
-            $producto->stock = $data->stock ?? 0;
-            $producto->activo = isset($data->activo) ? $data->activo : true;
+        // Verificar si es una actualización con _method=PUT
+        $isUpdate = isset($data->_method) && $data->_method === 'PUT';
+        $id = $_GET['id'] ?? ($data->id ?? null);
+        
+        if ($isUpdate && !empty($id)) {
+            // Procesar como actualización
+            error_log("Processing as UPDATE with _method=PUT");
             
-            error_log("Creating product with data: " . print_r([
-                'nombre' => $producto->nombre,
-                'categoria' => $producto->categoria,
-                'precio' => $producto->precio,
-                'imagen_url' => $producto->imagen_url
-            ], true));
-            
-            if($producto->create()) {
-                http_response_code(201);
-                echo json_encode(array(
-                    "message" => "Producto creado exitosamente.",
-                    "imagen_url" => $imagen_url
-                ));
-            } else {
-                error_log("Failed to create product");
-                http_response_code(503);
-                echo json_encode(array("message" => "No se pudo crear el producto."));
-            }
-        } else {
-            error_log("Missing required fields");
-            error_log("nombre: " . ($data->nombre ?? 'empty'));
-            error_log("categoria: " . ($data->categoria ?? 'empty'));
-            error_log("precio: " . ($data->precio ?? 'empty'));
-            http_response_code(400);
-            echo json_encode(array("message" => "Datos incompletos. Se requiere: nombre, categoria y precio"));
-        }
-        break;
-        
-    case 'PUT':
-        // Debug: log de datos recibidos
-        error_log("PUT request received");
-        error_log("FILES: " . print_r($_FILES, true));
-        error_log("POST: " . print_r($_POST, true));
-        error_log("GET: " . print_r($_GET, true));
-        
-        // Manejar subida de archivos - usar la ruta correcta
-        $upload = new FileUpload('../../assets/images/products');
-        $imagen_url = '';
-        
-        if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
-            $uploadResult = $upload->uploadFile($_FILES['imagen'], 'producto');
-            if ($uploadResult['success']) {
-                $imagen_url = 'assets/images/products/' . $uploadResult['fileName'];
-            } else {
-                http_response_code(400);
-                echo json_encode(array("message" => $uploadResult['message']));
-                break;
-            }
-        }
-        
-        // Para PUT con FormData, usar $_POST en lugar de JSON
-        $data = (object)$_POST;
-        error_log("Using POST data for PUT: " . print_r($data, true));
-        
-        if(!empty($data->id)) {
-            $producto->id = $data->id;
+            $producto->id = $id;
             $producto->nombre = $data->nombre ?? "";
             $producto->descripcion = $data->descripcion ?? "";
             $producto->categoria = $data->categoria ?? "";
@@ -251,9 +196,44 @@ switch($method) {
                 echo json_encode(array("message" => "No se pudo actualizar el producto."));
             }
         } else {
-            error_log("Missing ID for PUT request");
-            http_response_code(400);
-            echo json_encode(array("message" => "Datos incompletos. Se requiere ID."));
+            // Procesar como creación
+            error_log("Processing as CREATE");
+            
+            if(!empty($data->nombre) && !empty($data->categoria) && !empty($data->precio)) {
+                $producto->nombre = $data->nombre;
+                $producto->descripcion = $data->descripcion ?? "";
+                $producto->categoria = $data->categoria;
+                $producto->precio = $data->precio;
+                $producto->imagen_url = $imagen_url ?: ($data->imagen_url ?? "");
+                $producto->stock = $data->stock ?? 0;
+                $producto->activo = isset($data->activo) ? $data->activo : true;
+                
+                error_log("Creating product with data: " . print_r([
+                    'nombre' => $producto->nombre,
+                    'categoria' => $producto->categoria,
+                    'precio' => $producto->precio,
+                    'imagen_url' => $producto->imagen_url
+                ], true));
+                
+                if($producto->create()) {
+                    http_response_code(201);
+                    echo json_encode(array(
+                        "message" => "Producto creado exitosamente.",
+                        "imagen_url" => $imagen_url
+                    ));
+                } else {
+                    error_log("Failed to create product");
+                    http_response_code(503);
+                    echo json_encode(array("message" => "No se pudo crear el producto."));
+                }
+            } else {
+                error_log("Missing required fields");
+                error_log("nombre: " . ($data->nombre ?? 'empty'));
+                error_log("categoria: " . ($data->categoria ?? 'empty'));
+                error_log("precio: " . ($data->precio ?? 'empty'));
+                http_response_code(400);
+                echo json_encode(array("message" => "Datos incompletos. Se requiere: nombre, categoria y precio"));
+            }
         }
         break;
         

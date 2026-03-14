@@ -614,6 +614,21 @@ function editarProducto(id) {
         $('#imagen_url').val(producto.imagen_url);
         $('#stock').val(producto.stock);
         $('#activo').prop('checked', producto.activo);
+        
+        // Mostrar imagen actual si existe
+        if (producto.imagen_url) {
+            $('#imagePreview').html(`
+                <div class="mt-3">
+                    <p class="text-muted small mb-2">Imagen actual:</p>
+                    <img src="${producto.imagen_url}" alt="${producto.nombre}" 
+                         class="img-fluid rounded border" 
+                         style="max-height: 200px; width: 100%; object-fit: cover;">
+                </div>
+            `);
+        } else {
+            $('#imagePreview').html('');
+        }
+        
         $('#modalProducto').modal('show');
     });
 }
@@ -649,6 +664,7 @@ function guardarProducto(e) {
     
     if (id) {
         formData.append('id', id);
+        formData.append('_method', 'PUT'); // Método override para PUT con FormData
     }
     
     // Agregar archivo si existe
@@ -671,7 +687,7 @@ function guardarProducto(e) {
     
     $.ajax({
         url: id ? `api/endpoints/productos.php?id=${id}` : 'api/endpoints/productos.php',
-        type: id ? 'PUT' : 'POST', // Usar PUT cuando hay ID
+        type: 'POST', // Siempre usar POST con _method override
         data: formData,
         processData: false,
         contentType: false,
