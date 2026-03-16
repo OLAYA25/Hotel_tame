@@ -137,14 +137,16 @@ switch($method) {
         if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
             error_log("Processing file upload");
             $uploadResult = $upload->uploadFile($_FILES['imagen'], 'producto');
-            if ($uploadResult['success']) {
-                $imagen_url = 'uploads/products/' . $uploadResult['fileName'];
+            if ($uploadResult && $uploadResult['success']) {
+                $imagen_url = 'uploads/products/' . $uploadResult['filename'];
                 error_log("File uploaded successfully: " . $imagen_url);
-                error_log("Converted to WebP: " . ($uploadResult['convertedToWebP'] ? 'Yes' : 'No'));
+                error_log("Format: " . ($uploadResult['format'] ?? 'unknown'));
+                error_log("Compression: " . ($uploadResult['compression_ratio'] ?? 0) . "%");
             } else {
-                error_log("File upload failed: " . $uploadResult['message']);
+                $errorMsg = $uploadResult['message'] ?? 'Error desconocido al subir imagen';
+                error_log("File upload failed: " . $errorMsg);
                 http_response_code(400);
-                echo json_encode(array("message" => $uploadResult['message']));
+                echo json_encode(array("message" => $errorMsg));
                 break;
             }
         }
@@ -158,6 +160,10 @@ switch($method) {
             $data = (object)$_POST;
             error_log("Using POST data: " . print_r($data, true));
         }
+        
+        // Debug: Verificar imagen_url
+        error_log("imagen_url from data: " . ($data->imagen_url ?? 'NULL_OR_EMPTY'));
+        error_log("imagen_url from upload: " . ($imagen_url ?? 'NULL_OR_EMPTY'));
         
         // Verificar si es una actualización con _method=PUT
         $isUpdate = isset($data->_method) && $data->_method === 'PUT';

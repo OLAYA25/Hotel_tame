@@ -39,45 +39,6 @@ switch($method) {
             break;
         }
         
-        if(isset($_GET['accion']) && $_GET['accion'] === 'distribucion_huespedes') {
-            // Obtener distribución de adultos/niños de una reserva específica
-            $reserva_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-            
-            if ($reserva_id <= 0) {
-                http_response_code(400);
-                echo json_encode(array("message" => "ID de reserva no proporcionado o inválido"));
-                break;
-            }
-            
-            // Obtener datos de la reserva
-            $stmt = $db->prepare("SELECT num_huespedes FROM reservas WHERE id = ?");
-            $stmt->execute([$reserva_id]);
-            $reserva_data = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if (!$reserva_data) {
-                http_response_code(404);
-                echo json_encode(array("message" => "Reserva no encontrada"));
-                break;
-            }
-            
-            $adultos = $reserva_data['num_huespedes'] ?? 1;
-            $ninos = 0;
-            
-            // Por ahora, asumimos que todos son adultos
-            // TODO: Implementar distribución real cuando se tenga la estructura correcta
-            
-            http_response_code(200);
-            echo json_encode(array(
-                "success" => true,
-                "data" => array(
-                    "adultos" => (int)$adultos,
-                    "ninos" => (int)$ninos,
-                    "total" => (int)$adultos + (int)$ninos
-                )
-            ));
-            break;
-        }
-        
         elseif(isset($_GET['accion']) && $_GET['accion'] === 'distribucion_nacionalidad') {
             // Obtener distribución por nacionalidad de una reserva específica
             $reserva_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
@@ -524,104 +485,258 @@ switch($method) {
                                     $json_actual = '';
                                     if ($tiene_json_acompanantes) {
                                         preg_match("/ACOMPANANTES:\s*(\[.*?\])/s", $observaciones, $matches);
-                                        $json_actual = $matches[1] ?? '';
-                                    }
-                                    
-                                    $json_nuevo = json_encode($data->acompanantes);
-                                    
-                                    // Solo actualizar si el JSON ha cambiado
-                                    if ($json_actual !== $json_nuevo) {
-                                        // eliminar bloque previo ACOMPANANTES si existe
-                                        $observaciones = preg_replace("/\\n\\n?ACOMPANANTES:\\n[\\s\\S]*$/", "", $observaciones);
-                                        $observaciones = trim($observaciones);
-                                        
-                                        if (!empty($observaciones)) {
-                                            $observaciones .= "\n\n";
+    case 'GET':
+        // Manejar acciones especiales primero
+        if (isset($_GET['accion'])) {
+            $accion = $_GET['accion'];
+            
+            switch ($accion) {
+                case 'distribucion_huespedes':
+                    // Obtener distribución de adultos/niños de una reserva
+                    if (isset($_GET['id'])) {
+                        $reserva_id = $_GET['id'];
+                        
+                        // Obtener datos de la reserva
+                        $stmt = $db->prepare("SELECT numero_huespedes, num_huespedes, observaciones FROM reservas WHERE id = ?");
+                        $stmt->execute([$reserva_id]);
+                        $reserva_data = $stmt->fetch(PDO::FETCH_ASSOC);
+                        
+                        if ($reserva_data) {
+                            $adultos = $reserva_data['numero_huespedes'] ?? $reserva_data['num_huespedes'] ?? 1;
+                            $ninos = 0;
+                            
+                            // Intentar obtener distribución desde observaciones
+                            if (!empty($reserva_data['observaciones'])) {
+                                if (preg_match('/DISTRIBUCION_HUESPEDES:\s*(\{.*?\})/s', $reserva_data['observaciones'], $matches)) {
+                                    try {
+                                        $distribucion = json_decode($matches[1], true);
+                                        if ($distribucion) {
+                                            $adultos = $distribucion['adultos'] ?? $adultos;
+                                            $ninos = $distribucion['ninos'] ?? 0;
                                         }
-                                        $observaciones .= "ACOMPANANTES:\n" . $json_nuevo;
-
-                                        $update_stmt = $db->prepare("UPDATE reservas SET notas = ? WHERE id = ?");
-                                        $update_stmt->execute([$observaciones, $reserva->id]);
-                                        
-                                        error_log("Acompañantes actualizados en observaciones de reserva $reserva->id (cambios detectados)");
-                                    } else {
-                                        error_log("Acompañantes sin cambios, no se actualiza observaciones de reserva $reserva->id");
+                                    } catch (Exception $e) {
+                                        error_log("Error parsing distribucion_huespedes: " . $e->getMessage());
                                     }
-                                } else {
-                                    // Si no hay acompañantes, limpiar JSON existente
-                                    if ($tiene_json_acompanantes) {
-                                        $observaciones = preg_replace("/\\n\\n?ACOMPANANTES:\\n[\\s\\S]*$/", "", $observaciones);
-                                        $observaciones = trim($observaciones);
-                                        
-                                        $update_stmt = $db->prepare("UPDATE reservas SET notas = ? WHERE id = ?");
-                                        $update_stmt->execute([$observaciones, $reserva->id]);
-                                        
-                                        error_log("JSON de acompañantes eliminado de observaciones de reserva $reserva->id");
+                                }
+                            }
+                            
+                            echo json_encode([
+                                'success' => true,
+                                'data' => [
+                                    'adultos' => (int)$adultos,
+                                    'ninos' => (int)$ninos,
+                                    'total' => (int)$adultos + (int)$ninos
+                                ]
+                            ]);
+                        } else {
+                            echo json_encode(['success' => false, 'message' => 'Reserva no encontrada']);
+                        }
+                    } else {
+                        echo json_encode(['success' => false, 'message' => 'ID no proporcionado']);
+                    }
+                    exit;
+                    
+                case 'distribucion_nacionalidad':
+                    // Endpoint para distribución por nacionalidad
+                    if (isset($_GET['id'])) {
+                        $reserva_id = $_GET['id'];
+                        
+                        // Obtener información de nacionalidades
+                        $nacionalidades = array();
+                        
+                        // Nacionalidad del cliente principal
+                        $stmt = $db->prepare("SELECT cliente_pais FROM reservas WHERE id = ?");
+                        $stmt->execute([$reserva_id]);
+                        $reserva = $stmt->fetch(PDO::FETCH_ASSOC);
+                        
+                        if ($reserva && !empty($reserva['cliente_pais'])) {
+                            $pais = $reserva['cliente_pais'];
+                            $nacionalidades[$pais] = 1;
+                        }
+                        
+                        // Nacionalidades de acompañantes
+                        try {
+                            $stmt = $db->prepare("SHOW TABLES LIKE 'acompanantes'");
+                            $stmt->execute();
+                            $tableExists = $stmt->rowCount() > 0;
+                            
+                            if ($tableExists) {
+                                $stmt = $db->prepare("
+                                    SELECT DISTINCT c.pais, COUNT(*) as count
+                                    FROM acompanantes a
+                                    JOIN personas p ON a.persona_id = p.id
+                                    JOIN clientes c ON p.id = c.persona_id
+                                    WHERE a.reserva_id = ? AND c.pais IS NOT NULL AND c.pais != ''
+                                    GROUP BY c.pais
+                                ");
+                                $stmt->execute([$reserva_id]);
+                                $acompanantes_nacionalidades = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                
+                                foreach ($acompanantes_nacionalidades as $row) {
+                                    $pais = $row['pais'];
+                                    $nacionalidades[$pais] = ($nacionalidades[$pais] ?? 0) + $row['count'];
+                                }
+                            } else {
+                                // Buscar en observaciones
+                                $stmt = $db->prepare("SELECT observaciones FROM reservas WHERE id = ?");
+                                $stmt->execute([$reserva_id]);
+                                $reserva = $stmt->fetch(PDO::FETCH_ASSOC);
+                                
+                                if ($reserva && !empty($reserva['observaciones'])) {
+                                    if (preg_match('/ACOMPANANTES:\s*(\[.*?\])/s', $reserva['observaciones'], $matches)) {
+                                        $acompanantes = json_decode($matches[1], true);
+                                        if (is_array($acompanantes)) {
+                                            foreach ($acompanantes as $acompanante) {
+                                                if (isset($acompanante['pais']) && !empty($acompanante['pais'])) {
+                                                    $pais = $acompanante['pais'];
+                                                    $nacionalidades[$pais] = ($nacionalidades[$pais] ?? 0) + 1;
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
                         } catch (Exception $e) {
-                            error_log("Error al procesar acompañantes en PUT: " . $e->getMessage());
+                            error_log("Error obteniendo nacionalidades: " . $e->getMessage());
+                        }
+                        
+                        echo json_encode([
+                            'success' => true,
+                            'data' => $nacionalidades
+                        ]);
+                    } else {
+                        echo json_encode(['success' => false, 'message' => 'ID no proporcionado']);
+                    }
+                    exit;
+                    
+                case 'actualizar_completadas':
+                    // Endpoint específico para actualizar reservas completadas
+                    $pendientes = $reserva->getReservasPendientesActualizacion();
+                    $actualizadas = $reserva->actualizarReservasCompletadas();
+                    
+                    echo json_encode([
+                        "success" => true,
+                        "message" => "Reservas completadas actualizadas",
+                        "actualizadas" => $actualizadas,
+                        "pendientes" => count($pendientes)
+                    ]);
+                    exit;
+            }
+        }
+        
+        // Actualizar automáticamente reservas completadas antes de cualquier consulta
+        $actualizadas = $reserva->actualizarReservasCompletadas();
+        
+        // Logging para debugging (opcional)
+        if ($actualizadas > 0) {
+            error_log("Reservas actualizadas automáticamente: " . $actualizadas);
+        }
+        
+        // Si hay ID, obtener reserva específica
+        if(isset($_GET['id'])) {
+            $reserva->id = $_GET['id'];
+            
+            $stmt = $db->prepare("
+                SELECT r.*, h.numero as habitacion_numero, h.tipo as habitacion_tipo,
+                       c.nombre as cliente_nombre, c.pais as cliente_pais
+                FROM reservas r
+                LEFT JOIN habitaciones h ON r.habitacion_id = h.id
+                LEFT JOIN clientes c ON r.cliente_id = c.id
+                WHERE r.id = ?
+            ");
+            $stmt->execute([$reserva->id]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if($row) {
+                // Intentar obtener acompañantes de las observaciones (JSON)
+                if (!empty($row['notas'])) {
+                    // Buscar JSON de acompañantes en las observaciones
+                    if (preg_match('/ACOMPANANTES:\s*(\[.*?\])/s', $row['notas'], $matches)) {
+                        $acompanantes_json = $matches[1];
+                        $acompanantes = json_decode($acompanantes_json, true);
+                        
+                        if (is_array($acompanantes)) {
+                            foreach ($acompanantes as $acompanante) {
+                                // Obtener nacionalidad del cliente si existe persona_id
+                                if (isset($acompanante['persona_id'])) {
+                                    $stmt_persona = $db->prepare("
+                                        SELECT c.pais 
+                                        FROM clientes c 
+                                        JOIN personas p ON c.persona_id = p.id 
+                                        WHERE p.id = ?
+                                    ");
+                                    $stmt_persona->execute([$acompanante['persona_id']]);
+                                    $pais_persona = $stmt_persona->fetchColumn();
+                                    
+                                    if ($pais_persona) {
+                                        $acompanante['pais'] = $pais_persona;
+                                    }
+                                }
+                            }
+                            
+                            // Actualizar el JSON con las nacionalidades encontradas
+                            $acompanantes_json_actualizado = json_encode($acompanantes);
+                            $row['notas'] = str_replace($acompanantes_json, $acompanantes_json_actualizado, $row['notas']);
                         }
                     }
-
-                    http_response_code(200);
-                    $resp = array("message" => "Reserva actualizada exitosamente.");
-                    if (isset($data->acompanantes) && is_array($data->acompanantes)) {
-                        $resp["acompanantes_registrados"] = count($data->acompanantes);
-                    }
-                    echo json_encode($resp);
-                } else {
-                    http_response_code(503);
-                    echo json_encode(array("message" => "No se pudo actualizar la reserva."));
-                }
-            }
-        } else {
-            http_response_code(400);
-            $missing_fields = [];
-            if (empty($data->cliente_id)) $missing_fields[] = "cliente_id";
-            if (empty($data->habitacion_id)) $missing_fields[] = "habitacion_id";
-            if (empty($data->fecha_entrada)) $missing_fields[] = "fecha_entrada";
-            if (empty($data->fecha_salida)) $missing_fields[] = "fecha_salida";
-            
-            echo json_encode(array(
-                "message" => "Datos incompletos. Campos requeridos: " . implode(", ", $missing_fields),
-                "missing_fields" => $missing_fields,
-                "received_data" => $data
-            ));
-        }
-        break;
-        
-    case 'DELETE':
-        $data = json_decode(file_get_contents("php://input"));
-        
-        if(!empty($data->id)) {
-            $reserva->id = $data->id;
-            
-            // Obtener ID de habitación antes de eliminar
-            $stmt = $db->prepare('SELECT habitacion_id FROM reservas WHERE id = :id');
-            $stmt->bindParam(':id', $data->id);
-            $stmt->execute();
-            $habitacion_id = $stmt->fetchColumn();
-            
-            if($reserva->delete()) {
-                // Actualizar estado de la habitación a 'disponible'
-                if ($habitacion_id) {
-                    $habitacion = new Habitacion($db);
-                    $habitacion->id = $habitacion_id;
-                    $habitacion->estado = 'disponible';
-                    $habitacion->cambiarEstado();
                 }
                 
-                http_response_code(200);
-                echo json_encode(array("message" => "Reserva eliminada exitosamente."));
+                echo json_encode([
+                    "id" => $row['id'],
+                    "cliente_id" => $row['cliente_id'],
+                    "habitacion_id" => $row['habitacion_id'],
+                    "fecha_inicio" => $row['fecha_inicio'],
+                    "fecha_fin" => $row['fecha_fin'],
+                    "precio_total" => $row['precio_total'],
+                    "metodo_pago" => $row['metodo_pago'],
+                    "noches" => $row['noches'],
+                    "num_huespedes" => $row['num_huespedes'],
+                    "numero_huespedes" => $row['numero_huespedes'],
+                    "observaciones" => $row['notas'],
+                    "cliente_nombre" => $row['cliente_nombre'],
+                    "cliente_pais" => $row['cliente_pais'],
+                    "habitacion_numero" => $row['habitacion_numero'],
+                    "habitacion_tipo" => $row['habitacion_tipo'],
+                    "estado" => $row['estado'],
+                    "created_at" => $row['created_at']
+                ]);
             } else {
-                http_response_code(503);
-                echo json_encode(array("message" => "No se pudo eliminar la reserva."));
+                http_response_code(404);
+                echo json_encode(array("message" => "Reserva no encontrada."));
             }
         } else {
-            http_response_code(400);
-            echo json_encode(array("message" => "ID no proporcionado."));
+            // Obtener todas las reservas
+            $stmt = $db->query("
+                SELECT r.*, h.numero as habitacion_numero, h.tipo as habitacion_tipo,
+                       c.nombre as cliente_nombre, c.pais as cliente_pais
+                FROM reservas r
+                LEFT JOIN habitaciones h ON r.habitacion_id = h.id
+                LEFT JOIN clientes c ON r.cliente_id = c.id
+                ORDER BY r.fecha_inicio DESC
+            ");
+            
+            $reservas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            $reservas_array = array();
+            
+            foreach($reservas as $row) {
+                $reservas_array[] = array(
+                    "id" => $row['id'],
+                    "cliente_id" => $row['cliente_id'],
+                    "habitacion_id" => $row['habitacion_id'],
+                    "fecha_inicio" => $row['fecha_inicio'],
+                    "fecha_fin" => $row['fecha_fin'],
+                    "precio_total" => $row['precio_total'],
+                    "metodo_pago" => $row['metodo_pago'],
+                    "noches" => $row['noches'],
+                    "num_huespedes" => $row['num_huespedes'],
+                    "numero_huespedes" => $row['numero_huespedes'],
+                    "cliente_pais" => $row['cliente_pais'] ?? null,
+                    "created_at" => $row['created_at']
+                );
+            }
+            
+            echo json_encode($reservas_array);
         }
         break;
         
@@ -629,5 +744,4 @@ switch($method) {
         http_response_code(405);
         echo json_encode(array("message" => "Método no permitido."));
         break;
-}
 ?>

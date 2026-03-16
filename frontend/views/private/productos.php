@@ -269,8 +269,56 @@ include __DIR__ . '/../../../backend/includes/sidebar.php';
 </div>
 
 <script>
+// Función global para lazy loading
+function initializeLazyLoading() {
+    if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    const src = img.dataset.src;
+                    
+                    if (src) {
+                        img.src = src;
+                        img.onload = () => {
+                            img.style.opacity = '1';
+                            img.classList.remove('lazy-image');
+                        };
+                        img.onerror = () => {
+                            img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"%3E%3Crect width="400" height="300" fill="%23dc3545"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="14" fill="white"%3EError imagen%3C/text%3E%3C/svg%3E';
+                            img.style.opacity = '1';
+                        };
+                        
+                        observer.unobserve(img);
+                    }
+                }
+            });
+        });
+        
+        // Observar todas las imágenes con clase lazy-image
+        document.querySelectorAll('.lazy-image').forEach(img => {
+            imageObserver.observe(img);
+        });
+    } else {
+        // Fallback para navegadores que no soportan IntersectionObserver
+        document.querySelectorAll('.lazy-image').forEach(img => {
+            const src = img.dataset.src;
+            if (src) {
+                img.src = src;
+                img.onload = () => {
+                    img.style.opacity = '1';
+                    img.classList.remove('lazy-image');
+                };
+            }
+        });
+    }
+}
+
 $(document).ready(function() {
     cargarProductos();
+    
+    // Inicializar lazy loading al cargar la página
+    initializeLazyLoading();
 });
 
 function cargarProductos() {
@@ -375,7 +423,12 @@ function cargarProductos() {
                             
                             ${producto.imagen_url ? `
                                 <div class="mb-3">
-                                    <img src="${producto.imagen_url}" alt="${producto.nombre}" class="img-fluid rounded" style="max-height: 150px; width: 100%; object-fit: cover;">
+                                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f8f9fa'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='14' fill='%236c757d'%3ECargando...%3C/text%3E%3C/svg%3E" 
+                                         data-src="${producto.imagen_url}" 
+                                         alt="${producto.nombre}" 
+                                         class="img-fluid rounded lazy-image" 
+                                         style="max-height: 150px; width: 100%; object-fit: cover; transition: opacity 0.3s ease-in-out;"
+                                         loading="lazy">
                                 </div>
                             ` : ''}
                             
@@ -392,6 +445,9 @@ function cargarProductos() {
                 </div>
             `);
         });
+        
+        // Inicializar lazy loading para las nuevas imágenes
+        initializeLazyLoading();
     });
 }
 
@@ -417,15 +473,37 @@ function previewImage(input) {
     const preview = document.getElementById('imagePreview');
     
     if (input.files && input.files[0]) {
+        const file = input.files[0];
         const reader = new FileReader();
         
         reader.onload = function(e) {
+            // Mostrar vista previa con información del archivo
+            const fileSize = (file.size / 1024).toFixed(2) + ' KB';
+            const fileName = file.name;
+            
             preview.innerHTML = `
-                <img src="${e.target.result}" alt="Vista previa" class="img-fluid rounded" style="max-height: 200px; max-width: 100%;">
-                <div class="mt-2">
-                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeImage()">
-                        <i class="fas fa-times"></i> Quitar imagen
-                    </button>
+                <div class="border rounded p-2 bg-light">
+                    <div class="mb-2">
+                        <small class="text-muted d-block">Archivo: ${fileName}</small>
+                        <small class="text-muted d-block">Tamaño: ${fileSize}</small>
+                    </div>
+                    <img src="${e.target.result}" alt="Vista previa" 
+                         class="img-fluid rounded border" 
+                         style="max-height: 200px; width: 100%; object-fit: cover;">
+                    <div class="mt-2">
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeImage()">
+                            <i class="fas fa-times"></i> Quitar imagen
+                        </button>
+                    </div>
+                </div>
+            `;
+        };
+        
+        reader.onerror = function() {
+            preview.innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> 
+                    Error al leer el archivo. Intenta nuevamente.
                 </div>
             `;
         };
@@ -434,10 +512,53 @@ function previewImage(input) {
     }
 }
 
+// Función para manejar imágenes de cámara
+function previewCameraImage(imageData) {
+    const preview = document.getElementById('imagePreview');
+    
+    if (imageData) {
+        preview.innerHTML = `
+            <div class="border rounded p-2 bg-light">
+                <div class="mb-2">
+                    <small class="text-muted d-block">Imagen de cámara</small>
+                    <small class="text-muted d-block">Fecha: ${new Date().toLocaleString()}</small>
+                </div>
+                <img src="${imageData}" alt="Vista previa de cámara" 
+                     class="img-fluid rounded border" 
+                     style="max-height: 200px; width: 100%; object-fit: cover;">
+                <div class="mt-2">
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeImage()">
+                        <i class="fas fa-times"></i> Quitar imagen
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// Función para quitar imagen seleccionada
 function removeImage() {
-    document.getElementById('imagen').value = '';
-    document.getElementById('imagePreview').innerHTML = '';
-    $('#imagen_url').val('');
+    const preview = document.getElementById('imagePreview');
+    const fileInput = document.getElementById('imagen');
+    
+    preview.innerHTML = '';
+    fileInput.value = '';
+    
+    // Si estamos editando, mostrar la imagen original nuevamente
+    const productId = $('#producto_id').val();
+    if (productId) {
+        const currentImageUrl = $('#imagen_url').val();
+        if (currentImageUrl) {
+            preview.innerHTML = `
+                <div class="mt-3">
+                    <p class="text-muted small mb-2">Imagen actual:</p>
+                    <img src="${currentImageUrl}" alt="Imagen actual" 
+                         class="img-fluid rounded border" 
+                         style="max-height: 200px; width: 100%; object-fit: cover;">
+                </div>
+            `;
+        }
+    }
 }
 
 function openCamera() {

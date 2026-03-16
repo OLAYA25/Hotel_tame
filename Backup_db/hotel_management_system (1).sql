@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: localhost
--- Tiempo de generación: 14-03-2026 a las 21:21:32
+-- Tiempo de generación: 16-03-2026 a las 17:22:57
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -694,12 +694,15 @@ INSERT INTO `productos` (`id`, `nombre`, `descripcion`, `categoria`, `motivo_via
 (20, 'jabónPlus', 'SANDWICH', 'higiene', NULL, 5000.00, 'assets/images/products/producto_1766787972_7189.webp', 4, 1, '2025-12-26 22:57:23', '2025-12-26 23:07:59', '2025-12-26 23:07:59'),
 (21, 'PERRITO CALIENTE', 'CON QUESO, CHORIZO Y DEMÀS', 'comida', NULL, 23000.00, 'assets/images/products/producto_1766790017_1117.webp', 9, 1, '2025-12-26 23:00:17', '2026-03-13 16:23:54', '2026-03-13 16:23:54'),
 (29, 'CERVEZA AGUILA', '', 'bebida', NULL, 4000.00, '', 39, 1, '2026-01-14 16:42:54', '2026-03-13 16:23:59', '2026-03-13 16:23:59'),
-(30, 'JABÓN AROMA', 'JABÓN PERSONAL PARA HABITACIÓN', 'higiene', NULL, 2500.00, 'uploads/products/producto_1773459101_2623.webp', 20, 1, '2026-03-13 16:27:34', '2026-03-14 03:31:41', NULL),
-(31, '', '', 'otros', NULL, 0.00, '', 0, 1, '2026-03-13 16:34:45', '2026-03-14 01:46:35', NULL),
+(30, 'JABÓN AROMAS', 'JABÓN PERSONAL PARA HABITACIÓN', 'higiene', NULL, 2500.00, 'uploads/products/producto_1773522926_5110.jpg', 20, 1, '2026-03-13 16:27:34', '2026-03-14 21:20:08', NULL),
+(31, '', '', 'otros', NULL, 0.00, '', 0, 1, '2026-03-13 16:34:45', '2026-03-14 21:13:04', '2026-03-14 21:13:04'),
 (32, 'AFDFJLASDF', 'fakdfjlaksdf', 'comida', NULL, 19000.00, 'assets/images/products/producto_1773419822_4221.jpg', 20, 1, '2026-03-13 16:37:02', '2026-03-13 16:37:14', '2026-03-13 16:37:14'),
-(33, '', '', 'otros', NULL, 0.00, '', 0, 1, '2026-03-13 20:36:53', '2026-03-14 01:53:31', NULL),
+(33, '', '', 'otros', NULL, 0.00, '', 0, 1, '2026-03-13 20:36:53', '2026-03-14 21:13:06', '2026-03-14 21:13:06'),
 (34, 'JABÓN AROMA', 'JABÓN PERSONAL PARA HABITACIÓN', 'higiene', NULL, 2500.00, 'uploads/products/producto_1773454728_4224.jpg', 20, 1, '2026-03-14 02:18:48', '2026-03-14 03:17:28', '2026-03-14 03:17:28'),
-(35, 'JABÓN AROMA', 'JABÓN PERSONAL PARA HABITACIÓN', 'higiene', NULL, 2500.00, 'uploads/products/producto_1773455698_4407.jpg', 20, 1, '2026-03-14 02:34:58', '2026-03-14 03:17:23', '2026-03-14 03:17:23');
+(35, 'JABÓN AROMA', 'JABÓN PERSONAL PARA HABITACIÓN', 'higiene', NULL, 2500.00, 'uploads/products/producto_1773455698_4407.jpg', 20, 1, '2026-03-14 02:34:58', '2026-03-14 03:17:23', '2026-03-14 03:17:23'),
+(36, 'Helado', 'Helado casero', 'otros', NULL, 50000.00, 'uploads/products/producto_1773675854_7853.jpg', 20, 1, '2026-03-16 15:25:04', '2026-03-16 15:44:37', NULL),
+(37, 'frgrdg', 'sdfgsdxfv', 'otros', NULL, 435435.00, 'uploads/products/producto_1773677796_7812.jpg', 43, 1, '2026-03-16 15:49:26', '2026-03-16 16:16:36', NULL),
+(38, 'rgdfg', 'fghbfgh 5ty45 ', 'otros', NULL, 456456.00, 'uploads/products/producto_1773678036_4364.jpg', 345646, 1, '2026-03-16 16:20:36', '2026-03-16 16:20:36', NULL);
 
 -- --------------------------------------------------------
 
@@ -808,8 +811,8 @@ INSERT INTO `reservas` (`id`, `cliente_id`, `habitacion_id`, `usuario_id`, `fech
 (74, 4, 10, NULL, '2026-03-03', '2026-03-04', 3, 'completada', 50000.00, 1, 150000.00, 'efectivo', 'turismo', 'ACOMPANANTES:\n[{\"persona_id\":3,\"nombre\":\"Ana\",\"apellido\":\"L\\u00f3pez\",\"tipo_documento\":\"CC\",\"numero_documento\":\"153051152\",\"fecha_nacimiento\":null,\"parentesco\":\"\",\"email\":\"ana.lopez@email.com\",\"telefono\":\"3159876543\"},{\"persona_id\":2,\"nombre\":\"Juan\",\"apellido\":\"P\\u00e9rez\",\"tipo_documento\":\"CC\",\"numero_documento\":\"0987654321\",\"fecha_nacimiento\":null,\"parentesco\":\"\",\"email\":\"juan.perez@email.com\",\"telefono\":\"3107654321\"}]', '2026-03-03 02:10:07', '2026-03-08 15:12:11', NULL),
 (75, 2, 5, NULL, '2026-03-04', '2026-03-05', 2, 'completada', 150000.00, 1, 150000.00, 'efectivo', 'turismo', 'MOTIVO: trabajo\nOBSERVACIONES_GENERALES:\neeeeee\n\nNOTAS_RESERVA:\naaaaa\n\nACOMPANANTES:\n[{\"persona_id\":3,\"nombre\":\"Ana\",\"apellido\":\"L\\u00f3pez\",\"tipo_documento\":\"CC\",\"numero_documento\":\"153051152\",\"fecha_nacimiento\":null,\"parentesco\":\"\",\"email\":\"ana.lopez@email.com\",\"telefono\":\"3159876543\"}]', '2026-03-03 14:01:44', '2026-03-08 15:12:11', NULL),
 (76, 17, 5, NULL, '2026-03-10', '2026-03-11', NULL, 'completada', 150000.00, 1, 150000.00, 'efectivo', 'turismo', '', '2026-03-10 14:11:10', '2026-03-13 09:52:39', NULL),
-(77, 20, 5, NULL, '2026-03-13', '2026-03-14', NULL, 'confirmada', 150000.00, 1, 150000.00, 'efectivo', 'turismo', 'MOTIVO: negocios\nOBSERVACIONES_GENERALES:\nobservaciones\n\nNOTAS_RESERVA:\nestas son notas adicionales', '2026-03-13 16:46:41', '2026-03-13 16:46:41', NULL),
-(78, 21, 13, NULL, '2026-03-13', '2026-03-14', 1, 'confirmada', 250000.00, 1, 150000.00, 'tarjeta', 'turismo', 'MOTIVO: trabajo\n\nACOMPANANTES:\n[{\"nombre\":\"PEDRO\",\"apellido\":\"PERRITO\",\"email\":\"pedroperrito@gmail.com\",\"telefono\":\"31456788987\"}]', '2026-03-13 21:55:01', '2026-03-13 23:27:44', NULL);
+(77, 20, 5, NULL, '2026-03-13', '2026-03-14', NULL, 'completada', 150000.00, 1, 150000.00, 'efectivo', 'turismo', 'MOTIVO: negocios\nOBSERVACIONES_GENERALES:\nobservaciones\n\nNOTAS_RESERVA:\nestas son notas adicionales', '2026-03-13 16:46:41', '2026-03-15 00:34:59', NULL),
+(78, 21, 13, NULL, '2026-03-13', '2026-03-14', 1, 'completada', 250000.00, 1, 150000.00, 'tarjeta', 'turismo', 'MOTIVO: trabajo\n\nACOMPANANTES:\n[{\"nombre\":\"PEDRO\",\"apellido\":\"PERRITO\",\"email\":\"pedroperrito@gmail.com\",\"telefono\":\"31456788987\"}]', '2026-03-13 21:55:01', '2026-03-15 00:34:59', NULL);
 
 -- --------------------------------------------------------
 
@@ -1471,7 +1474,7 @@ ALTER TABLE `permisos`
 -- AUTO_INCREMENT de la tabla `productos`
 --
 ALTER TABLE `productos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- AUTO_INCREMENT de la tabla `reservas`

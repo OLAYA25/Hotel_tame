@@ -4357,31 +4357,45 @@ function cargarDetallesHuespedes(reservaId) {
     // Obtener información detallada de la reserva
     $.get(`api/endpoints/reservas.php?id=${reservaId}`, function(reserva) {
         // Contar huéspedes desde observaciones si num_huespedes es null
-        let numHuespedes = reserva.numero_huespedes || reserva.num_huespedes || 1;
+        let numHuespedes = reserva.numero_huespedes || reserva.num_huespedes;
         
-        // Si es null, contar desde el JSON de acompañantes
-        if (!reserva.numero_huespedes && !reserva.num_huespedes && reserva.observaciones) {
+        // Si es null, contar desde observaciones
+        if (!numHuespedes && reserva.observaciones) {
             try {
-                // Buscar JSON de acompañantes
                 if (reserva.observaciones.includes('ACOMPANANTES:')) {
                     const acompanantesMatch = reserva.observaciones.match(/ACOMPANANTES:\s*(\[.*?\])/s);
                     if (acompanantesMatch) {
                         const acompanantes = JSON.parse(acompanantesMatch[1]);
-                        numHuespedes = (acompanantes?.length || 0) + 1; // +1 por el cliente principal
+                        numHuespedes = (acompanantes?.length || 0) + 1;
                     }
                 }
             } catch (e) {
-                console.error('Error parsing acompañantes:', e);
+                console.error('Error parsing acompanantes:', e);
                 numHuespedes = 1;
             }
         }
         
-        // Por defecto, asumimos que todos son adultos si no hay datos específicos
-        const adultos = numHuespedes;
-        const ninos = 0;
+        if (!numHuespedes) {
+            numHuespedes = 1;
+        }
         
-        // Actualizar detalles de huéspedes
-        $(`#adultos-ninos-${reservaId}`).text(`${adultos} adulto${adultos > 1 ? 's' : ''}, ${ninos} niño${ninos > 1 ? 's' : ''}`);
+        // Obtener distribución real de huéspedes (adultos/niños)
+        $.get(`api/endpoints/reservas.php?accion=distribucion_huespedes&id=${reservaId}`, function(distribucion) {
+            let adultos = numHuespedes; // Por defecto todos adultos
+            let ninos = 0;
+            
+            if (distribucion.success && distribucion.data) {
+                adultos = distribucion.data.adultos || numHuespedes;
+                ninos = distribucion.data.ninos || 0;
+            }
+            
+            // Actualizar detalles de huéspedes con datos reales
+            $(`#adultos-ninos-${reservaId}`).text(`${adultos} adulto${adultos !== 1 ? 's' : ''}, ${ninos} niño${ninos !== 1 ? 's' : ''}`);
+            
+        }).fail(function() {
+            // Fallback: mostrar todos como adultos
+            $(`#adultos-ninos-${reservaId}`).text(`${numHuespedes} adulto${numHuespedes !== 1 ? 's' : ''}, 0 niños`);
+        });
         
         // Mostrar nacionalidad del cliente principal directamente
         const nacionalidadText = reserva.cliente_pais || 'No especificada';
@@ -4392,11 +4406,7 @@ function cargarDetallesHuespedes(reservaId) {
             if (distribucion.success && distribucion.data && Object.keys(distribucion.data).length > 1) {
                 let nacionalidadText = '';
                 for (const [pais, count] of Object.entries(distribucion.data)) {
-                    if (count > 1) {
-                        nacionalidadText += `${count} de ${pais}, `;
-                    } else {
-                        nacionalidadText += `1 de ${pais}, `;
-                    }
+                    nacionalidadText += `${count} ${pais}, `;
                 }
                 nacionalidadText = nacionalidadText.slice(0, -2); // Quitar última coma
                 
@@ -4404,7 +4414,11 @@ function cargarDetallesHuespedes(reservaId) {
             }
         }).fail(function() {
             // Silenciosamente fallback a nacionalidad del cliente
+            // Ya se mostró arriba
         });
+    }).fail(function() {
+        $(`#adultos-ninos-${reservaId}`).text('Error cargando datos');
+        $(`#nacionalidad-detalle-${reservaId}`).text('Error');
     });
 }
 

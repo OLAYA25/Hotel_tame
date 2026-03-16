@@ -1,0 +1,75 @@
+/* Optimizaciones generales para la aplicación */
+
+/* Lazy loading para imágenes */
+.lazy-image {
+    opacity: 0.6;
+    filter: blur(2px);
+    transition: opacity 0.3s ease-in-out, filter 0.3s ease-in-out;
+}
+
+.lazy-image.loaded {
+    opacity: 1;
+    filter: blur(0);
+}
+
+/* Optimizaciones de rendimiento */
+.img-fluid {
+    will-change: transform;
+}
+
+/* Animaciones suaves */
+.card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Optimización para scroll */
+.table-container {
+    scroll-behavior: smooth;
+}
+
+/* Placeholder para imágenes cargando */
+.image-placeholder {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Optimización para dispositivos móviles */
+@media (max-width: 768px) {
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .lazy-image {
+        max-width: 100%;
+        height: auto;
+    }
+}
+
+/* Mejoras de accesibilidad */
+.lazy-image:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+/* Optimización para impresión */
+@media print {
+    .lazy-image {
+        opacity: 1 !important;
+        filter: none !important;
+    }
+    
+    .card {
+        break-inside: avoid;
+    }
+}
