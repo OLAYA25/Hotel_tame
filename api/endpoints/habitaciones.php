@@ -6,7 +6,7 @@ header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
 
 include_once '../../backend/config/database.php';
 include_once '../models/Habitacion.php';
-include_once '../utils/FileUpload.php';
+include_once '../utils/RoomFileUpload.php';
 
 $database = new Database();
 $db = $database->getConnection();
@@ -27,13 +27,14 @@ switch($method) {
                     "estado" => $habitacion->estado,
                     "piso" => $habitacion->piso,
                     "capacidad" => $habitacion->capacidad,
-                    "descripcion" => $habitacion->descripcion
+                    "descripcion" => $habitacion->descripcion,
+                    "imagen_url" => $habitacion->imagen_url
                 );
                 http_response_code(200);
                 echo json_encode($habitacion_arr);
             } else {
                 http_response_code(404);
-                echo json_encode(array("message" => "Habitación no encontrada."));
+                echo json_encode(array("message" => "Habitación no encontrada"));
             }
         } elseif(isset($_GET['disponibles'])) {
             $stmt = $habitacion->getDisponibles();
@@ -53,7 +54,8 @@ switch($method) {
                         "estado" => isset($row['estado_real']) ? $row['estado_real'] : $row['estado'],
                         "piso" => $row['piso'],
                         "capacidad" => $row['capacidad'],
-                        "descripcion" => $row['descripcion']
+                        "descripcion" => $row['descripcion'],
+                        "imagen_url" => $row['imagen_url'] ?? null
                     );
                     array_push($habitaciones_arr["records"], $habitacion_item);
                 }
@@ -82,7 +84,8 @@ switch($method) {
                         "estado" => $row['estado_real'],
                         "piso" => $row['piso'],
                         "capacidad" => $row['capacidad'],
-                        "descripcion" => $row['descripcion']
+                        "descripcion" => $row['descripcion'],
+                        "imagen_url" => $row['imagen_url'] ?? null
                     );
                     array_push($habitaciones_arr["records"], $habitacion_item);
                 }
@@ -110,7 +113,8 @@ switch($method) {
                         "estado" => $row['estado'],
                         "piso" => $row['piso'],
                         "capacidad" => $row['capacidad'],
-                        "descripcion" => $row['descripcion']
+                        "descripcion" => $row['descripcion'],
+                        "imagen_url" => $row['imagen_url'] ?? null
                     );
                     array_push($habitaciones_arr["records"], $habitacion_item);
                 }
@@ -126,16 +130,22 @@ switch($method) {
         
     case 'POST':
         // Soporte para ambos formatos: FormData y JSON
-        $upload = new FileUpload('../../uploads/habitaciones');
+        $upload = new RoomFileUpload('../../uploads/rooms');
         $imagen_url = '';
         
         if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
+            error_log("Processing room image upload");
             $uploadResult = $upload->uploadFile($_FILES['imagen'], 'habitacion');
-            if ($uploadResult['success']) {
-                $imagen_url = 'uploads/habitaciones/' . $uploadResult['fileName'];
+            if ($uploadResult && $uploadResult['success']) {
+                $imagen_url = 'uploads/rooms/' . $uploadResult['filename'];
+                error_log("Room image uploaded successfully: " . $imagen_url);
+                error_log("Format: " . ($uploadResult['format'] ?? 'unknown'));
+                error_log("Compression: " . ($uploadResult['compression_ratio'] ?? 0) . "%");
             } else {
+                $errorMsg = $uploadResult['message'] ?? 'Error desconocido al subir imagen';
+                error_log("Room image upload failed: " . $errorMsg);
                 http_response_code(400);
-                echo json_encode(array("message" => $uploadResult['message']));
+                echo json_encode(array("message" => $errorMsg));
                 break;
             }
         }
@@ -200,16 +210,21 @@ switch($method) {
         
     case 'PUT':
         // Manejar subida de archivos y FormData
-        $upload = new FileUpload('../../uploads/habitaciones');
+        $upload = new RoomFileUpload('../../uploads/rooms');
         $imagen_url = '';
+        $imagenAnterior = '';
         
         if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
+            error_log("Processing room image upload for UPDATE");
             $uploadResult = $upload->uploadFile($_FILES['imagen'], 'habitacion');
-            if ($uploadResult['success']) {
-                $imagen_url = 'uploads/habitaciones/' . $uploadResult['fileName'];
+            if ($uploadResult && $uploadResult['success']) {
+                $imagen_url = 'uploads/rooms/' . $uploadResult['filename'];
+                error_log("Room image uploaded successfully: " . $imagen_url);
             } else {
+                $errorMsg = $uploadResult['message'] ?? 'Error desconocido al subir imagen';
+                error_log("Room image upload failed: " . $errorMsg);
                 http_response_code(400);
-                echo json_encode(array("message" => $uploadResult['message']));
+                echo json_encode(array("message" => $errorMsg));
                 break;
             }
         }
@@ -227,13 +242,15 @@ switch($method) {
             $data->piso = $_POST['piso'] ?? 1;
             $data->capacidad = $_POST['capacidad'] ?? 1;
             $data->descripcion = $_POST['descripcion'] ?? "";
-            $data->imagen_url = $imagen_url ?: ($_POST['imagen_url'] ?? "");
+            $imagenAnterior = $_POST['imagen_url'] ?? "";
+            $data->imagen_url = $imagen_url ?: $imagenAnterior;
         } else {
             // Si no hay $_POST, intentar con JSON
             $json_input = file_get_contents('php://input');
             if (!empty($json_input)) {
                 $data = json_decode($json_input);
-                $data->imagen_url = $imagen_url;
+                $imagenAnterior = $data->imagen_url ?? "";
+                $data->imagen_url = $imagen_url ?: $imagenAnterior;
             }
         }
         
@@ -248,7 +265,16 @@ switch($method) {
             $habitacion->descripcion = $data->descripcion;
             $habitacion->imagen_url = $data->imagen_url;
             
+            // Obtener imagen anterior antes de actualizar
+            $habitacion->getById();
+            $imagenAnteriorPath = $habitacion->imagen_url;
+            
             if($habitacion->update()) {
+                // Eliminar imagen anterior si se subió una nueva
+                if (!empty($imagen_url) && !empty($imagenAnteriorPath) && $imagen_url !== $imagenAnteriorPath) {
+                    $upload->deletePreviousImage($imagenAnteriorPath);
+                }
+                
                 http_response_code(200);
                 echo json_encode(array(
                     "message" => "Habitación actualizada exitosamente.",

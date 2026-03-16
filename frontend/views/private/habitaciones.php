@@ -1,13 +1,14 @@
 <?php
-require_once __DIR__ . '/../../../backend/config/database.php';
+require_once 'config/database.php';
 
 // Verificar sesión de usuario
+session_start();
 if (!isset($_SESSION['usuario'])) {
-    header('Location: /Hotel_tame/login');
+    header('Location: login.php');
     exit;
 }
-include __DIR__ . '/../../../backend/includes/header.php';
-include __DIR__ . '/../../../backend/includes/sidebar.php';
+include 'includes/header.php';
+include 'includes/sidebar.php';
 ?>
 
 <div class="main-content">
@@ -19,7 +20,7 @@ include __DIR__ . '/../../../backend/includes/sidebar.php';
                 <h1>Habitaciones</h1>
                 <p class="text-muted mb-0">Gestiona las habitaciones del hotel</p>
             </div>
-            <button class="btn btn-primary" onclick="abrirModalNuevo()">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalHabitacion" onclick="abrirModalNuevo()">
                 <i class="fas fa-plus me-2"></i>Nueva Habitación
             </button>
         </div>
@@ -187,18 +188,11 @@ function cargarHabitaciones() {
 }
 
 function abrirModalNuevo() {
-    console.log('Abriendo modal de nueva habitación...');
     $('#modalTitle').text('Nueva Habitación');
     $('#formHabitacion')[0].reset();
     $('#habitacion_id').val('');
-    
-    // Abrir el modal con la API de Bootstrap 5
-    const modalElement = document.getElementById('modalHabitacion');
-    const modal = new bootstrap.Modal(modalElement, {
-        backdrop: 'static',
-        keyboard: true
-    });
-    modal.show();
+    $('#imagePreviewHabitacion').html('');
+    $('#imagen_url').val('');
 }
 
 function previewImageHabitacion(input) {
@@ -406,45 +400,104 @@ function editarHabitacion(id) {
     });
 }
 
-function guardarHabitacion(event) {
-    event.preventDefault();
+function guardarHabitacion(e) {
+    e.preventDefault();
     
-    // Prevenir envíos múltiples
+    // Evitar múltiples envíos
     if ($(this).data('submitting')) {
         return false;
     }
     
     const id = $('#habitacion_id').val();
     
-    const data = {
-        numero: $('#numero').val(),
-        tipo: $('#tipo').val(),
-        piso: $('#piso').val(),
-        precio_noche: $('#precio_noche').val(),
-        precio: $('#precio_noche').val(), // compatibilidad
-        capacidad: $('#capacidad').val(),
-        estado: $('#estado').val(),
-        descripcion: $('#descripcion').val()
-    };
+    // Si hay archivo, usar FormData; si no, usar form data normal
+    const fileInput = document.getElementById('imagen');
+    const hasFile = fileInput.files && fileInput.files[0];
     
-    if (id) {
-        data.id = parseInt(id);
-    }
-    
-    $.ajax({
-        url: 'api/endpoints/habitaciones.php',
+    let ajaxConfig = {
+        url: 'api/endpoints/habitaciones.php?estado_real=1',
         type: id ? 'PUT' : 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify(data),
         success: function(response) {
+            console.log('Respuesta del servidor:', response);
             $('#modalHabitacion').modal('hide');
             showNotification(response.message || 'Habitación guardada exitosamente', 'success');
             cargarHabitaciones();
         },
         error: function(xhr) {
-            showNotification(xhr.responseJSON?.message || 'Error al guardar habitación', 'error');
+            console.error('Error al guardar habitación:', xhr);
+            console.error('Respuesta del servidor:', xhr.responseJSON);
+            const errorMsg = xhr.responseJSON?.message || 'Error al guardar habitación';
+            showNotification(errorMsg, 'error');
+        },
+        complete: function() {
+            // Restaurar botón
+            $('#formHabitacion').data('submitting', false);
+            $('button[type="submit"]').prop('disabled', false).html('Guardar');
         }
-    });
+    };
+    
+    if (hasFile) {
+        // Usar FormData para archivos
+        const formData = new FormData();
+        formData.append('numero', $('#numero').val());
+        formData.append('tipo', $('#tipo').val());
+        formData.append('piso', $('#piso').val());
+        formData.append('precio_noche', $('#precio_noche').val());
+        formData.append('precio', $('#precio_noche').val()); // compatibilidad
+        formData.append('capacidad', $('#capacidad').val());
+        formData.append('estado', $('#estado').val());
+        formData.append('descripcion', $('#descripcion').val());
+        formData.append('imagen_url', $('#imagen_url').val());
+        
+        if (id) {
+            formData.append('id', id);
+        }
+        
+        formData.append('imagen', fileInput.files[0]);
+        
+        ajaxConfig.data = formData;
+        ajaxConfig.processData = false;
+        ajaxConfig.contentType = false;
+        
+        console.log('Enviando con FormData:', {
+            id: id,
+            estado: $('#estado').val(),
+            hasFile: true
+        });
+    } else {
+        // Usar application/x-www-form-urlencoded para datos simples
+        const data = {
+            numero: $('#numero').val(),
+            tipo: $('#tipo').val(),
+            piso: $('#piso').val(),
+            precio_noche: $('#precio_noche').val(),
+            precio: $('#precio_noche').val(), // compatibilidad
+            capacidad: $('#capacidad').val(),
+            estado: $('#estado').val(),
+            descripcion: $('#descripcion').val(),
+            imagen_url: $('#imagen_url').val()
+        };
+        
+        if (id) {
+            data.id = id;
+        }
+        
+        ajaxConfig.data = data;
+        ajaxConfig.contentType = 'application/x-www-form-urlencoded';
+        
+        console.log('Enviando con form data:', {
+            id: id,
+            estado: $('#estado').val(),
+            hasFile: false,
+            data: data
+        });
+    }
+    
+    // Marcar formulario como enviando
+    $('#formHabitacion').data('submitting', true);
+    $('button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
+    
+    $.ajax(ajaxConfig);
 }
 
 function eliminarHabitacion(id) {
@@ -466,4 +519,4 @@ function eliminarHabitacion(id) {
 }
 </script>
 
-<?php include __DIR__ . '/../../../backend/includes/footer.php'; ?>
+<?php include 'includes/footer.php'; ?>
