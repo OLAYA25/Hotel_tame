@@ -1,14 +1,19 @@
 <?php
-require_once 'config/database.php';
+// Iniciar sesión si no está activa (para acceso directo)
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+require_once __DIR__ . '/../../../backend/config/database.php';
 
 // Verificar sesión de usuario
-session_start();
 if (!isset($_SESSION['usuario'])) {
-    header('Location: login.php');
+    header('Location: /Hotel_tame/login');
     exit;
 }
-include 'includes/header.php';
-include 'includes/sidebar.php';
+
+include __DIR__ . '/../../../backend/includes/header.php';
+include __DIR__ . '/../../../backend/includes/sidebar.php';
 ?>
 
 <div class="main-content">
@@ -20,8 +25,11 @@ include 'includes/sidebar.php';
                 <h1>Habitaciones</h1>
                 <p class="text-muted mb-0">Gestiona las habitaciones del hotel</p>
             </div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalHabitacion" onclick="abrirModalNuevo()">
+            <button class="btn btn-primary" onclick="abrirModalNuevo()">
                 <i class="fas fa-plus me-2"></i>Nueva Habitación
+            </button>
+            <button class="btn btn-success ms-2" onclick="testBootstrap()">
+                <i class="fas fa-test me-2"></i>Test Bootstrap
             </button>
         </div>
     </div>
@@ -40,7 +48,7 @@ include 'includes/sidebar.php';
                 <h5 class="modal-title" id="modalTitle">Nueva Habitación</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="formHabitacion" onsubmit="guardarHabitacion(event)" enctype="multipart/form-data">
+            <form id="formHabitacion" onsubmit="guardarHabitacion(event)">
                 <div class="modal-body">
                     <input type="hidden" id="habitacion_id">
                     
@@ -92,7 +100,7 @@ include 'includes/sidebar.php';
                     <div class="mb-3">
                         <label class="form-label">Imagen de la Habitación</label>
                         <div class="border rounded p-3 bg-light">
-                            <input type="file" class="form-control mb-2" id="imagen" name="imagen" accept="image/*" onchange="previewImageHabitacion(this)">
+                            <input type="file" class="form-control mb-2" id="imagen" accept="image/jpeg,image/jpg,image/png" onchange="previewImageHabitacion(this)">
                             <div class="d-flex gap-2 mb-2">
                                 <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('imagen').click()">
                                     <i class="fas fa-upload me-1"></i> Subir Archivo
@@ -117,6 +125,39 @@ include 'includes/sidebar.php';
 
 <script>
 $(document).ready(function() {
+    console.log("=== DOCUMENT READY ===");
+    console.log("jQuery cargado:", typeof $ !== 'undefined');
+    console.log("Formulario encontrado:", $('#formHabitacion').length > 0);
+    console.log("Input de imagen encontrado:", $('#imagen').length > 0);
+    
+    // Test simple del formulario
+    $('#formHabitacion').on('submit', function(e) {
+        console.log("=== FORM SUBMIT DETECTADO ===");
+        console.log("Evento submit capturado");
+        return guardarHabitacion(e);
+    });
+    
+    // Error handler global
+    window.addEventListener('error', function(e) {
+        console.error("=== ERROR JAVASCRIPT ===");
+        console.error("Mensaje:", e.message);
+        console.error("Archivo:", e.filename);
+        console.error("Línea:", e.lineno);
+        console.error("Columna:", e.colno);
+        console.error("Error:", e.error);
+    });
+    
+    // Error handler para promesas
+    window.addEventListener('unhandledrejection', function(e) {
+        console.error("=== ERROR PROMESA NO MANEJADA ===");
+        console.error("Razón:", e.reason);
+    });
+    
+    // Test del botón de guardar
+    $('button[type="submit"]').on('click', function() {
+        console.log("=== BOTÓN GUARDAR CLICKEADO ===");
+    });
+    
     cargarHabitaciones();
 });
 
@@ -146,6 +187,32 @@ function cargarHabitaciones() {
             grid.append(`
                 <div class="col-md-6 col-lg-4">
                     <div class="card h-100 shadow-sm border-0">
+                        ${habitacion.imagen_url ? `
+                            <div class="card-img-top position-relative overflow-hidden" style="height: 200px;">
+                                <img src="/Hotel_tame/${habitacion.imagen_url}" 
+                                     alt="Habitación ${habitacion.numero}" 
+                                     class="img-fluid w-100 h-100 object-fit-cover"
+                                     style="cursor: pointer;"
+                                     onclick="showImageModal('/Hotel_tame/${habitacion.imagen_url}')"
+                                     loading="lazy"
+                                     onerror="this.src='/Hotel_tame/assets/img/room-default.webp'; this.onerror=null;">
+                                <div class="position-absolute top-0 end-0 m-2">
+                                    <span class="badge bg-${estadoClass}">${estadoTexto}</span>
+                                </div>
+                            </div>
+                        ` : `
+                            <div class="card-img-top position-relative overflow-hidden" style="height: 200px;">
+                                <img src="/Hotel_tame/assets/img/room-default.webp" 
+                                     alt="Habitación ${habitacion.numero}" 
+                                     class="img-fluid w-100 h-100 object-fit-cover"
+                                     style="cursor: pointer;"
+                                     onclick="showImageModal('/Hotel_tame/assets/img/room-default.webp')"
+                                     loading="lazy">
+                                <div class="position-absolute top-0 end-0 m-2">
+                                    <span class="badge bg-${estadoClass}">${estadoTexto}</span>
+                                </div>
+                            </div>
+                        `}
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start mb-3">
                                 <div class="d-flex align-items-center">
@@ -157,7 +224,6 @@ function cargarHabitaciones() {
                                         <small class="text-muted">Piso ${habitacion.piso}</small>
                                     </div>
                                 </div>
-                                <span class="badge bg-${estadoClass}">${estadoTexto}</span>
                             </div>
                             
                             <div class="mb-3">
@@ -184,15 +250,121 @@ function cargarHabitaciones() {
                 </div>
             `);
         });
+habitaciones:222 === DOCUMENT READY ===
+habitaciones:223 jQuery cargado: true
+habitaciones:224 Formulario encontrado: true
+habitaciones:225 Input de imagen encontrado: true
+habitaciones:780  GET http://localhost/Hotel_tame/uploads/rooms/habitacion_2_171062590000_def456.webp 404 (Not Found)
+habitaciones:780  GET http://localhost/Hotel_tame/uploads/rooms/habitacion_3_171062600000_ghi789.webp 404 (Not Found)
+habitacion_2_171062590000_def456.webp:1  GET http://localhost/Hotel_tame/uploads/rooms/habitacion_2_171062590000_def456.webp 404 (Not Found)
+habitaciones:252 === BOTÓN GUARDAR CLICKEADO ===
+habitaciones:629 === INICIO guardarHabitacion ===
+habitaciones:639 ID de habitación: 2
+habitaciones:645 Datos del formulario:
+habitaciones:646 numero: 102
+habitaciones:647 tipo: doble
+habitaciones:648 piso: 1
+habitaciones:649 precio_noche: 250000.00
+habitaciones:650 capacidad: 2
+habitaciones:651 estado: mantenimiento
+habitaciones:652 descripcion: Habitación doble con dos camas, baño privado, TV y minibar
+habitaciones:673 Archivo encontrado: WhatsApp Image 2025-12-17 at 4.24.03 PM.jpeg
+habitaciones:674 Tamaño: 61698
+habitaciones:675 Tipo: image/jpeg
+habitaciones:682 FormData contents:
+habitaciones:684 numero: 102
+habitaciones:684 tipo: doble
+habitaciones:684 piso: 1
+habitaciones:684 precio_noche: 250000.00
+habitaciones:684 precio: 250000.00
+habitaciones:684 capacidad: 2
+habitaciones:684 estado: mantenimiento
+habitaciones:684 descripcion: Habitación doble con dos camas, baño privado, TV y minibar
+habitaciones:684 imagen_url: 
+habitaciones:684 id: 2
+habitaciones:684 _method: PUT
+habitaciones:684 imagen: File {name: 'WhatsApp Image 2025-12-17 at 4.24.03 PM.jpeg', lastModified: 1766006659922, lastModifiedDate: Wed Dec 17 2025 16:24:19 GMT-0500 (hora estándar de Colombia), webkitRelativePath: '', size: 61698, …}
+habitaciones:718 Enviando AJAX: {url: 'api/endpoints/habitaciones.php?id=2', type: 'POST', data: FormData, processData: false, contentType: false, …}
+habitaciones:229 === FORM SUBMIT DETECTADO ===
+habitaciones:230 Evento submit capturado
+habitaciones:629 === INICIO guardarHabitacion ===
+habitaciones:639 ID de habitación: 2
+habitaciones:645 Datos del formulario:
+habitaciones:646 numero: 102
+habitaciones:647 tipo: doble
+habitaciones:648 piso: 1
+habitaciones:649 precio_noche: 250000.00
+habitaciones:650 capacidad: 2
+habitaciones:651 estado: mantenimiento
+habitaciones:652 descripcion: Habitación doble con dos camas, baño privado, TV y minibar
+habitaciones:673 Archivo encontrado: WhatsApp Image 2025-12-17 at 4.24.03 PM.jpeg
+habitaciones:674 Tamaño: 61698
+habitaciones:675 Tipo: image/jpeg
+habitaciones:682 FormData contents:
+habitaciones:684 numero: 102
+habitaciones:684 tipo: doble
+habitaciones:684 piso: 1
+habitaciones:684 precio_noche: 250000.00
+habitaciones:684 precio: 250000.00
+habitaciones:684 capacidad: 2
+habitaciones:684 estado: mantenimiento
+habitaciones:684 descripcion: Habitación doble con dos camas, baño privado, TV y minibar
+habitaciones:684 imagen_url: 
+habitaciones:684 id: 2
+habitaciones:684 _method: PUT
+habitaciones:684 imagen: File {name: 'WhatsApp Image 2025-12-17 at 4.24.03 PM.jpeg', lastModified: 1766006659922, lastModifiedDate: Wed Dec 17 2025 16:24:19 GMT-0500 (hora estándar de Colombia), webkitRelativePath: '', size: 61698, …}
+habitaciones:718 Enviando AJAX: {url: 'api/endpoints/habitaciones.php?id=2', type: 'POST', data: FormData, processData: false, contentType: false, …}
+habitaciones:694 Respuesta del servidor: {message: 'Habitación actualizada exitosamente.', imagen_url: 'uploads/rooms/habitacion_1773762896_2529.jpg'}
+habitaciones:694 Respuesta del servidor: {message: 'Habitación actualizada exitosamente.', imagen_url: 'uploads/rooms/habitacion_1773762896_7881.jpg'}
+habitacion_2_171062590000_def456.webp:1  GET http://localhost/Hotel_tame/uploads/rooms/habitacion_2_171062590000_def456.webp 404 (Not Found)
+habitacion_3_171062600000_ghi789.webp:1  GET http://localhost/Hotel_tame/uploads/rooms/habitacion_3_171062600000_ghi789.webp 404 (Not Found)
+habitacion_2_171062590000_def456.webp:1  GET http://localhost/Hotel_tame/uploads/rooms/habitacion_2_171062590000_def456.webp 404 (Not Found)
+habitacion_3_171062600000_ghi789.webp:1  GET http://localhost/Hotel_tame/uploads/rooms/habitacion_3_171062600000_ghi789.webp 404 (Not Found)
     });
 }
 
+function testBootstrap() {
+    console.log("=== TEST BOOTSTRAP ===");
+    console.log("jQuery:", typeof $ !== 'undefined');
+    console.log("Bootstrap:", typeof bootstrap !== 'undefined');
+    console.log("Modal:", typeof bootstrap.Modal !== 'undefined');
+    
+    // Test básico de modal
+    try {
+        const modalElement = document.getElementById('modalHabitacion');
+        console.log("Modal element:", modalElement);
+        
+        if (modalElement) {
+            const modal = new bootstrap.Modal(modalElement);
+            console.log("Modal instance:", modal);
+            console.log("Modal methods:", Object.getOwnPropertyNames(modal));
+            
+            // Intentar mostrar
+            modal.show();
+            console.log("Modal show() ejecutado");
+            
+            // Ocultar después de 2 segundos
+            setTimeout(() => {
+                modal.hide();
+                console.log("Modal hide() ejecutado");
+            }, 2000);
+        } else {
+            console.error("Modal element no encontrado");
+        }
+    } catch (error) {
+        console.error("Error en test Bootstrap:", error);
+    }
+}
+
 function abrirModalNuevo() {
+    console.log('Abriendo modal de nueva habitación...');
     $('#modalTitle').text('Nueva Habitación');
     $('#formHabitacion')[0].reset();
     $('#habitacion_id').val('');
     $('#imagePreviewHabitacion').html('');
     $('#imagen_url').val('');
+    
+    $('#modalHabitacion').modal('show');
 }
 
 function previewImageHabitacion(input) {
@@ -394,6 +566,35 @@ function editarHabitacion(id) {
         $('#capacidad').val(habitacion.capacidad);
         $('#estado').val(habitacion.estado);
         $('#descripcion').val(habitacion.descripcion);
+        
+        // Cargar imagen existente si hay
+        if (habitacion.imagen_url) {
+            $('#imagePreviewHabitacion').html(`
+                <div class="position-relative">
+                    <img src="/Hotel_tame/${habitacion.imagen_url}" 
+                         alt="Imagen actual" 
+                         class="img-fluid rounded shadow"
+                         style="max-height: 200px; max-width: 100%; cursor: pointer;"
+                         onclick="showImageModal('/Hotel_tame/${habitacion.imagen_url}')"
+                         loading="lazy"
+                         onerror="this.src='/Hotel_tame/assets/img/room-default.webp'; this.onerror=null;">
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <i class="fas fa-image me-1"></i>
+                            Imagen actual
+                        </small>
+                        <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeImageHabitacion()">
+                            <i class="fas fa-times"></i> Quitar imagen
+                        </button>
+                    </div>
+                </div>
+            `);
+            $('#imagen_url').val(habitacion.imagen_url);
+        } else {
+            $('#imagePreviewHabitacion').html('');
+            $('#imagen_url').val('');
+        }
+        
         $('#modalHabitacion').modal('show');
     }).fail(function(xhr) {
         showNotification('Error al cargar los datos de la habitación', 'error');
@@ -401,26 +602,80 @@ function editarHabitacion(id) {
 }
 
 function guardarHabitacion(e) {
+    console.log("=== INICIO guardarHabitacion ===");
     e.preventDefault();
     
     // Evitar múltiples envíos
     if ($(this).data('submitting')) {
+        console.log("Formulario ya está siendo enviado, cancelando...");
         return false;
     }
     
     const id = $('#habitacion_id').val();
+    console.log("ID de habitación:", id);
     
-    // Si hay archivo, usar FormData; si no, usar form data normal
+    // SIEMPRE usar FormData como en productos
+    const formData = new FormData();
+    
+    // Debug: mostrar los valores que se están enviando
+    console.log('Datos del formulario:');
+    console.log('numero:', $('#numero').val());
+    console.log('tipo:', $('#tipo').val());
+    console.log('piso:', $('#piso').val());
+    console.log('precio_noche:', $('#precio_noche').val());
+    console.log('capacidad:', $('#capacidad').val());
+    console.log('estado:', $('#estado').val());
+    console.log('descripcion:', $('#descripcion').val());
+    
+    // Agregar todos los campos del formulario manualmente
+    formData.append('numero', $('#numero').val());
+    formData.append('tipo', $('#tipo').val());
+    formData.append('piso', $('#piso').val());
+    formData.append('precio_noche', $('#precio_noche').val());
+    formData.append('precio', $('#precio_noche').val()); // compatibilidad
+    formData.append('capacidad', $('#capacidad').val());
+    formData.append('estado', $('#estado').val());
+    formData.append('descripcion', $('#descripcion').val());
+    formData.append('imagen_url', $('#imagen_url').val());
+    
+    if (id) {
+        formData.append('id', id);
+        formData.append('_method', 'PUT'); // Método override para PUT con FormData
+    }
+    
+    // Agregar archivo si existe
     const fileInput = document.getElementById('imagen');
-    const hasFile = fileInput.files && fileInput.files[0];
+    if (fileInput.files && fileInput.files[0]) {
+        console.log('Archivo encontrado:', fileInput.files[0].name);
+        console.log('Tamaño:', fileInput.files[0].size);
+        console.log('Tipo:', fileInput.files[0].type);
+        formData.append('imagen', fileInput.files[0]);
+    } else {
+        console.log('No hay archivo para subir');
+    }
+    
+    // Debug: mostrar FormData contents
+    console.log('FormData contents:');
+    for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+    }
     
     let ajaxConfig = {
-        url: 'api/endpoints/habitaciones.php?estado_real=1',
-        type: id ? 'PUT' : 'POST',
+        url: id ? `api/endpoints/habitaciones.php?id=${id}` : 'api/endpoints/habitaciones.php',
+        type: 'POST', // Siempre POST, el método override se maneja con _method
+        data: formData,
+        processData: false,
+        contentType: false,
         success: function(response) {
             console.log('Respuesta del servidor:', response);
             $('#modalHabitacion').modal('hide');
             showNotification(response.message || 'Habitación guardada exitosamente', 'success');
+            
+            // Actualizar imagen_url si se devolvió una nueva URL
+            if (response.imagen_url) {
+                $('#imagen_url').val(response.imagen_url);
+            }
+            
             cargarHabitaciones();
         },
         error: function(xhr) {
@@ -436,87 +691,61 @@ function guardarHabitacion(e) {
         }
     };
     
-    if (hasFile) {
-        // Usar FormData para archivos
-        const formData = new FormData();
-        formData.append('numero', $('#numero').val());
-        formData.append('tipo', $('#tipo').val());
-        formData.append('piso', $('#piso').val());
-        formData.append('precio_noche', $('#precio_noche').val());
-        formData.append('precio', $('#precio_noche').val()); // compatibilidad
-        formData.append('capacidad', $('#capacidad').val());
-        formData.append('estado', $('#estado').val());
-        formData.append('descripcion', $('#descripcion').val());
-        formData.append('imagen_url', $('#imagen_url').val());
-        
-        if (id) {
-            formData.append('id', id);
-        }
-        
-        formData.append('imagen', fileInput.files[0]);
-        
-        ajaxConfig.data = formData;
-        ajaxConfig.processData = false;
-        ajaxConfig.contentType = false;
-        
-        console.log('Enviando con FormData:', {
-            id: id,
-            estado: $('#estado').val(),
-            hasFile: true
-        });
-    } else {
-        // Usar application/x-www-form-urlencoded para datos simples
-        const data = {
-            numero: $('#numero').val(),
-            tipo: $('#tipo').val(),
-            piso: $('#piso').val(),
-            precio_noche: $('#precio_noche').val(),
-            precio: $('#precio_noche').val(), // compatibilidad
-            capacidad: $('#capacidad').val(),
-            estado: $('#estado').val(),
-            descripcion: $('#descripcion').val(),
-            imagen_url: $('#imagen_url').val()
-        };
-        
-        if (id) {
-            data.id = id;
-        }
-        
-        ajaxConfig.data = data;
-        ajaxConfig.contentType = 'application/x-www-form-urlencoded';
-        
-        console.log('Enviando con form data:', {
-            id: id,
-            estado: $('#estado').val(),
-            hasFile: false,
-            data: data
-        });
-    }
-    
-    // Marcar formulario como enviando
-    $('#formHabitacion').data('submitting', true);
-    $('button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
-    
+    console.log('Enviando AJAX:', ajaxConfig);
     $.ajax(ajaxConfig);
 }
 
 function eliminarHabitacion(id) {
-    if (confirm('¿Está seguro de eliminar esta habitación?')) {
+    if (confirm('¿Estás seguro de que deseas eliminar esta habitación? Esta acción no se puede deshacer.')) {
         $.ajax({
-            url: 'api/endpoints/habitaciones.php?estado_real=1',
+            url: `api/endpoints/habitaciones.php?id=${id}`,
             type: 'DELETE',
-            contentType: 'application/json',
-            data: JSON.stringify({ id: id }),
-            success: function(response) {
-                showNotification(response.message || 'Habitación eliminada', 'success');
+            success: function() {
                 cargarHabitaciones();
+                showNotification('Habitación eliminada correctamente', 'success');
             },
-            error: function(xhr) {
-                showNotification(xhr.responseJSON?.message || 'Error al eliminar', 'error');
+            error: function() {
+                showNotification('Error al eliminar habitación', 'error');
             }
         });
     }
 }
+
+function showImageModal(imageSrc) {
+    // Crear modal dinámicamente para mostrar imagen ampliada
+    const modalHtml = `
+        <div class="modal fade" id="imageModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-xl">
+                <div class="modal-content bg-dark">
+                    <div class="modal-header border-0">
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-0 text-center">
+                        <img src="${imageSrc}" alt="Imagen ampliada" class="img-fluid">
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Eliminar modal existente si hay
+    const existingModal = document.getElementById('imageModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Agregar nuevo modal al body
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Mostrar modal
+    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    modal.show();
+    
+    // Limpiar modal cuando se cierre
+    document.getElementById('imageModal').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
+}
 </script>
 
-<?php include 'includes/footer.php'; ?>
+<?php include __DIR__ . '/../../../backend/includes/footer.php'; ?>

@@ -83,6 +83,36 @@ class RoomFileUpload {
     
     private function processAndOptimizeImage($sourcePath, $targetPath, $originalExtension) {
         try {
+            // Verificar si hay soporte para procesamiento de imágenes
+            if (!function_exists('imagecreatetruecolor')) {
+                error_log("GD no disponible, copiando archivo original");
+                // Sin GD, simplemente copiar el archivo
+                $finalFileName = basename($targetPath);
+                $finalPath = $this->uploadDir . '/' . $finalFileName;
+                
+                // Cambiar extensión a jpg si es webp y no hay soporte
+                if ($originalExtension === 'webp') {
+                    $finalFileName = preg_replace('/\.webp$/', '.jpg', $finalFileName);
+                    $finalPath = $this->uploadDir . '/' . $finalFileName;
+                }
+                
+                if (copy($sourcePath, $finalPath)) {
+                    $fileSize = filesize($finalPath);
+                    return [
+                        'success' => true,
+                        'filename' => $finalFileName,
+                        'path' => $finalPath,
+                        'format' => $originalExtension === 'webp' ? 'jpg' : $originalExtension,
+                        'final_size' => $fileSize,
+                        'compression_ratio' => 0,
+                        'final_dimensions' => ['width' => 0, 'height' => 0],
+                        'message' => 'Archivo copiado sin procesamiento (GD no disponible)'
+                    ];
+                } else {
+                    return ['success' => false, 'message' => 'No se pudo copiar el archivo'];
+                }
+            }
+            
             // Obtener dimensiones originales
             $imageInfo = getimagesize($sourcePath);
             if (!$imageInfo) {
@@ -118,13 +148,25 @@ class RoomFileUpload {
                     if (function_exists('imagecreatefromwebp')) {
                         $source = imagecreatefromwebp($sourcePath);
                     } else {
-                        error_log("WebP reading not supported, trying fallback");
-                        // Fallback: intentar con imagecreatefromstring
-                        $webpData = file_get_contents($sourcePath);
-                        if ($webpData !== false) {
-                            $source = imagecreatefromstring($webpData);
+                        error_log("WebP no soportado, copiando archivo sin procesar");
+                        // Sin soporte WebP, copiar archivo original con extensión cambiada
+                        $finalFileName = preg_replace('/\.webp$/', '.jpg', basename($targetPath));
+                        $finalPath = $this->uploadDir . '/' . $finalFileName;
+                        
+                        if (copy($sourcePath, $finalPath)) {
+                            $fileSize = filesize($finalPath);
+                            return [
+                                'success' => true,
+                                'filename' => $finalFileName,
+                                'path' => $finalPath,
+                                'format' => 'jpg',
+                                'final_size' => $fileSize,
+                                'compression_ratio' => 0,
+                                'final_dimensions' => ['width' => 0, 'height' => 0],
+                                'message' => 'Imagen WebP copiada como JPG (sin procesamiento)'
+                            ];
                         } else {
-                            return ['success' => false, 'message' => 'No se puede leer el archivo WebP'];
+                            return ['success' => false, 'message' => 'No se pudo copiar el archivo WebP'];
                         }
                     }
                     break;

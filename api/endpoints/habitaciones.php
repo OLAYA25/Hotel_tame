@@ -14,6 +14,11 @@ $habitacion = new Habitacion($db);
 
 $method = $_SERVER['REQUEST_METHOD'];
 
+// Soporte para method override (FormData con _method=PUT o _method=DELETE)
+if ($method === 'POST' && isset($_POST['_method'])) {
+    $method = strtoupper($_POST['_method']);
+}
+
 switch($method) {
     case 'GET':
         if(isset($_GET['id'])) {
