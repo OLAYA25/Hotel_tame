@@ -6,6 +6,10 @@ if (!isset($_SESSION['usuario'])) {
     header('Location: /Hotel_tame/login');
     exit;
 }
+
+// Definir título y descripción de la página
+$pageTitle = 'Reservas - Hotel Management System';
+$pageDescription = 'Gestiona las reservas de habitaciones';
 include __DIR__ . '/../../../backend/includes/header.php';
 include __DIR__ . '/../../../backend/includes/sidebar.php';
 ?>

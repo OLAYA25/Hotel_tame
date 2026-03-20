@@ -7,6 +7,10 @@ if (!isset($_SESSION['usuario'])) {
     exit;
 }
 
+// Definir título y descripción de la página
+$pageTitle = 'Productos - Hotel Management System';
+$pageDescription = 'Gestiona los productos disponibles para los clientes';
+
 // Obtener categorías desde la base de datos
 $categorias = [];
 try {

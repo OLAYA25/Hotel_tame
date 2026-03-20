@@ -7,6 +7,10 @@ if (!isset($_SESSION['usuario'])) {
     exit;
 }
 
+// Definir título y descripción de la página
+$pageTitle = 'Configuración - Hotel Management System';
+$pageDescription = 'Configuración general del sistema';
+
 // Solo admin puede acceder a configuración
 if ($_SESSION['usuario']['rol'] !== 'admin') {
     header('Location: index.php?error=access_denied&module=settings.php');

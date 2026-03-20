@@ -7,6 +7,10 @@ if (!isset($_SESSION['usuario'])) {
     exit;
 }
 
+// Definir título y descripción de la página
+$pageTitle = 'Dashboard - Hotel Management System';
+$pageDescription = 'Panel principal de control del sistema hotelero';
+
 // Incluir middleware de autenticación y permisos
 require_once __DIR__ . '/../../../backend/includes/auth_middleware.php';
 

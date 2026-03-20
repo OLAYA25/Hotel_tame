@@ -7,6 +7,10 @@ if (!isset($_SESSION['usuario'])) {
     exit;
 }
 
+// Definir título y descripción de la página
+$pageTitle = 'Habitaciones - Hotel Management System';
+$pageDescription = 'Gestiona las habitaciones del hotel';
+
 include __DIR__ . '/../../../backend/includes/header.php';
 include __DIR__ . '/../../../backend/includes/sidebar.php';
 ?>

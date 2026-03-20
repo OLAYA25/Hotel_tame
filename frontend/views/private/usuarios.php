@@ -7,6 +7,10 @@ if (!isset($_SESSION['usuario'])) {
     exit;
 }
 
+// Definir título y descripción de la página
+$pageTitle = 'Usuarios - Hotel Management System';
+$pageDescription = 'Gestiona los usuarios del sistema';
+
 // Solo admin puede gestionar usuarios
 if ($_SESSION['usuario']['rol'] !== 'admin') {
     header('Location: /Hotel_tame/dashboard');

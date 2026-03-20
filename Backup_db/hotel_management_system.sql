@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: localhost
--- Tiempo de generación: 16-03-2026 a las 20:57:15
+-- Tiempo de generación: 20-03-2026 a las 15:31:24
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -261,17 +261,17 @@ CREATE TABLE `habitaciones` (
 --
 
 INSERT INTO `habitaciones` (`id`, `numero`, `tipo`, `precio_noche`, `capacidad`, `estado`, `piso`, `descripcion`, `amenidades`, `imagen_url`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, '106', 'simple', 150000.00, 1, 'disponible', 1, 'Habitación simple con cama individual, baño privado y TV', '[\"WiFi\", \"TV\", \"Aire acondicionado\"]', '', '2025-11-18 15:24:33', '2026-02-16 22:11:10', NULL),
-(2, '102', 'doble', 250000.00, 2, 'mantenimiento', 1, 'Habitación doble con dos camas, baño privado, TV y minibar', '[\"WiFi\", \"TV\", \"Minibar\", \"Aire acondicionado\"]', '', '2025-11-18 15:24:33', '2026-01-28 22:32:34', NULL),
+(1, '106', 'simple', 150000.00, 1, 'disponible', 1, 'Habitación simple con cama individual, baño privado y TV', '[\"WiFi\", \"TV\", \"Aire acondicionado\"]', '', '2025-11-18 15:24:33', '2026-03-18 02:41:41', NULL),
+(2, '102', 'doble', 250000.00, 2, 'mantenimiento', 1, 'Habitación doble con dos camas, baño privado, TV y minibar', '[\"WiFi\", \"TV\", \"Minibar\", \"Aire acondicionado\"]', 'uploads/rooms/habitacion_1773838030_4911.jpg', '2025-11-18 15:24:33', '2026-03-18 12:47:10', NULL),
 (3, '', 'simple', 0.00, 1, 'disponible', 1, '', '[\"WiFi\", \"TV\", \"Minibar\", \"Jacuzzi\", \"Balcón\"]', NULL, '2025-11-18 15:24:33', '2025-12-29 23:50:53', '2025-12-26 14:53:19'),
 (4, '301', 'presidencial', 800000.00, 6, 'disponible', 3, 'Suite presidencial con 2 habitaciones, sala, comedor, cocina y terraza', '[\"WiFi\", \"TV\", \"Minibar\", \"Cocina\", \"Terraza\", \"Jacuzzi\"]', NULL, '2025-11-18 15:24:33', '2026-02-17 21:23:30', NULL),
-(5, '103', 'doble', 150000.00, 3, 'disponible', 1, 'Habitación simple económica', '[\"WiFi\", \"TV\"]', '', '2025-11-18 15:24:33', '2026-03-13 16:46:43', NULL),
+(5, '103', 'doble', 150000.00, 3, 'disponible', 1, 'Habitación simple económica', '[\"WiFi\", \"TV\"]', NULL, '2025-11-18 15:24:33', '2026-03-18 02:33:28', NULL),
 (6, '104', 'doble', 250000.00, 2, 'disponible', 1, 'Habitación disponible nuevamente', '[\"WiFi\", \"TV\", \"Aire acondicionado\"]', '', '2025-11-18 15:24:33', '2026-01-28 22:28:09', '2026-01-28 22:28:09'),
-(7, '202', 'suite', 250000.00, 4, 'disponible', 2, 'Suite elegante con cama king, sala pequeña, minibar, jacuzzi y vista a la ciudad.', NULL, NULL, '2025-11-18 21:44:58', '2026-01-30 20:50:28', NULL),
+(7, '202', 'suite', 250000.00, 4, 'disponible', 2, 'Suite elegante con cama king, sala pequeña, minibar, jacuzzi y vista a la ciudad.', NULL, '', '2025-11-18 21:44:58', '2026-03-16 21:55:51', NULL),
 (8, '101', 'simple', 50000.00, 2, 'disponible', 1, 'Habitación de prueba', NULL, NULL, '2025-12-26 19:12:16', '2026-01-29 22:43:04', '2026-01-29 22:42:51'),
-(9, '105', 'simple', 100000.00, 2, 'disponible', 1, '', NULL, NULL, '2025-12-26 19:13:13', '2026-02-16 22:11:10', NULL),
+(9, '105', 'simple', 100000.00, 2, 'disponible', 1, '', NULL, '', '2025-12-26 19:13:13', '2026-03-18 02:21:00', NULL),
 (10, '110', 'doble', 50000.00, 4, 'disponible', 2, 'PRUEBAAAA', NULL, '', '2026-01-14 16:46:14', '2026-02-17 21:08:55', NULL),
-(13, '107', 'doble', 250000.00, 2, 'disponible', 1, 'nueva', NULL, '', '2026-01-28 21:09:27', '2026-03-13 21:56:20', NULL),
+(13, '107', 'doble', 250000.00, 2, 'disponible', 1, 'nueva', NULL, '', '2026-01-28 21:09:27', '2026-03-16 21:55:40', NULL),
 (14, '305', 'simple', 50000.00, 1, 'disponible', 1, 'agua caliente ', NULL, '', '2026-01-28 21:32:24', '2026-01-28 22:27:11', '2026-01-28 22:27:11'),
 (17, '404', 'simple', 50000.00, 1, 'disponible', 1, '', NULL, '', '2026-01-29 22:48:52', '2026-01-29 22:48:52', NULL);
 
@@ -694,7 +694,7 @@ INSERT INTO `productos` (`id`, `nombre`, `descripcion`, `categoria`, `motivo_via
 (20, 'jabónPlus', 'SANDWICH', 'higiene', NULL, 5000.00, 'assets/images/products/producto_1766787972_7189.webp', 4, 1, '2025-12-26 22:57:23', '2025-12-26 23:07:59', '2025-12-26 23:07:59'),
 (21, 'PERRITO CALIENTE', 'CON QUESO, CHORIZO Y DEMÀS', 'comida', NULL, 23000.00, 'assets/images/products/producto_1766790017_1117.webp', 9, 1, '2025-12-26 23:00:17', '2026-03-13 16:23:54', '2026-03-13 16:23:54'),
 (29, 'CERVEZA AGUILA', '', 'bebida', NULL, 4000.00, '', 39, 1, '2026-01-14 16:42:54', '2026-03-13 16:23:59', '2026-03-13 16:23:59'),
-(30, 'JABÓN AROMAS', 'JABÓN PERSONAL PARA HABITACIÓN', 'higiene', NULL, 2500.00, 'uploads/products/producto_1773522926_5110.jpg', 20, 1, '2026-03-13 16:27:34', '2026-03-14 21:20:08', NULL),
+(30, 'JABÓN AROMAS', 'JABÓN PERSONAL PARA HABITACIÓN', 'higiene', NULL, 2500.00, 'uploads/products/producto_1773808071_7359.jpg', 20, 1, '2026-03-13 16:27:34', '2026-03-18 04:27:51', NULL),
 (31, '', '', 'otros', NULL, 0.00, '', 0, 1, '2026-03-13 16:34:45', '2026-03-14 21:13:04', '2026-03-14 21:13:04'),
 (32, 'AFDFJLASDF', 'fakdfjlaksdf', 'comida', NULL, 19000.00, 'assets/images/products/producto_1773419822_4221.jpg', 20, 1, '2026-03-13 16:37:02', '2026-03-13 16:37:14', '2026-03-13 16:37:14'),
 (33, '', '', 'otros', NULL, 0.00, '', 0, 1, '2026-03-13 20:36:53', '2026-03-14 21:13:06', '2026-03-14 21:13:06'),
@@ -702,7 +702,8 @@ INSERT INTO `productos` (`id`, `nombre`, `descripcion`, `categoria`, `motivo_via
 (35, 'JABÓN AROMA', 'JABÓN PERSONAL PARA HABITACIÓN', 'higiene', NULL, 2500.00, 'uploads/products/producto_1773455698_4407.jpg', 20, 1, '2026-03-14 02:34:58', '2026-03-14 03:17:23', '2026-03-14 03:17:23'),
 (36, 'Helado', 'Helado casero', 'otros', NULL, 50000.00, 'uploads/products/producto_1773675854_7853.jpg', 20, 1, '2026-03-16 15:25:04', '2026-03-16 15:44:37', NULL),
 (37, 'frgrdg', 'sdfgsdxfv', 'otros', NULL, 435435.00, 'uploads/products/producto_1773677796_7812.jpg', 43, 1, '2026-03-16 15:49:26', '2026-03-16 16:16:36', NULL),
-(38, 'rgdfg', 'fghbfgh 5ty45 ', 'otros', NULL, 456456.00, 'uploads/products/producto_1773678036_4364.jpg', 345646, 1, '2026-03-16 16:20:36', '2026-03-16 16:20:36', NULL);
+(38, 'rgdfg', 'fghbfgh 5ty45 ', 'otros', NULL, 456456.00, 'uploads/products/producto_1773678036_4364.jpg', 345646, 1, '2026-03-16 16:20:36', '2026-03-16 16:20:36', NULL),
+(39, 'linux', 'linux', 'otros', NULL, 200000.00, 'uploads/products/producto_1773806912_7314.jpg', 50, 1, '2026-03-18 04:08:32', '2026-03-18 04:08:32', NULL);
 
 -- --------------------------------------------------------
 
@@ -1474,7 +1475,7 @@ ALTER TABLE `permisos`
 -- AUTO_INCREMENT de la tabla `productos`
 --
 ALTER TABLE `productos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
 
 --
 -- AUTO_INCREMENT de la tabla `reservas`
