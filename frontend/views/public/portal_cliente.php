@@ -1,8 +1,14 @@
 <?php
 require_once __DIR__ . '/../../../backend/config/database.php';
 
-// Iniciar sesión para el cliente
-session_start();
+// Iniciar sesión para el cliente (solo si no está activa)
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Definir título y descripción de la página
+$pageTitle = 'Portal Cliente - Hotel Management System';
+$pageDescription = 'Accede a tus reservas y datos personales';
 
 // Inicializar variables para evitar warnings
 $error = '';
@@ -86,86 +92,53 @@ if (isset($_SESSION['cliente'])) {
         error_log("Error obteniendo reservas del cliente: " . $e->getMessage());
     }
 }
-?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Cliente - Hotel Tame</title>
-    <meta name="description" content="Accede a tu portal personal de Hotel Tame para gestionar tus reservas y ver tu historial.">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/Hotel_tame/assets/css/web.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-</head>
-<body class="client-portal">
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-web fixed-top">
-        <div class="container">
-            <a class="navbar-brand" href="home.php">
-                <i class="fas fa-hotel me-2"></i>Hotel Tame
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="home.php">Inicio</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="reservas_online.php">Reservar</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="portal_cliente.php">Mi Portal</a>
-                    </li>
-                    <?php if (isset($_SESSION['cliente'])): ?>
-                        <li class="nav-item">
-                            <a href="?action=logout" class="btn btn-outline-custom btn-sm ms-3">
-                                <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
-                            </a>
-                        </li>
-                    <?php endif; ?>
-                </ul>
-            </div>
-        </div>
-    </nav>
 
-    <!-- Hero Section -->
+include __DIR__ . '/../../../backend/includes/header_public.php';
+?>
+
+<style>
+body {
+    background-color: #f8f9fa !important;
+}
+.main-content {
+    background-color: white;
+    min-height: calc(100vh - 200px);
+    padding: 2rem 0;
+}
+</style>
+
+<div class="main-content">
+    <div class="container">
     <?php if (!isset($_SESSION['cliente'])): ?>
         <!-- Login Section -->
-        <section class="section">
-            <div class="container">
-                <div class="row justify-content-center">
-                    <div class="col-md-6 col-lg-5">
-                        <div class="client-login-card">
-                            <div class="text-center mb-4">
-                                <i class="fas fa-user-circle fa-4x text-primary mb-3"></i>
-                                <h2 class="fw-bold">Portal Cliente</h2>
-                                <p class="text-muted">Accede a tu área personal para gestionar tus reservas</p>
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="text-center mb-4">
+                            <i class="fas fa-user-circle fa-4x text-primary mb-3"></i>
+                            <h2 class="fw-bold">Portal Cliente</h2>
+                            <p class="text-muted">Accede a tu área personal para gestionar tus reservas</p>
+                        </div>
+                        
+                        <?php if ($error): ?>
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <?= htmlspecialchars($error) ?>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                             </div>
-                            
-                            <?php if ($error): ?>
-                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                    <?= htmlspecialchars($error) ?>
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                            <?php endif; ?>
-                            
-                            <?php if ($success): ?>
-                                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                    <i class="fas fa-check-circle me-2"></i>
-                                    <?= htmlspecialchars($success) ?>
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                            <?php endif; ?>
-                            
-                            <form method="POST">
-                                <input type="hidden" name="action" value="login">
+                        <?php endif; ?>
+                        
+                        <?php if ($success): ?>
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <?= htmlspecialchars($success) ?>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <form method="POST">
+                            <input type="hidden" name="action" value="login">
                                 
                                 <div class="mb-3">
                                     <label class="form-label-custom">Email</label>
@@ -273,7 +246,7 @@ if (isset($_SESSION['cliente'])) {
                                         <div class="row align-items-center">
                                             <div class="col-md-4">
                                                 <?php if ($reserva['habitacion_imagen']): ?>
-                                                    <img src="/Hotel_tame/assets/images/habitaciones/<?= $reserva["habitacion_imagen'] ?>" 
+                                                    <img src="/Hotel_tame/assets/images/habitaciones/<?= $reserva['habitacion_imagen'] ?>" 
                                                          class="img-fluid rounded" alt="Habitación">
                                                 <?php else: ?>
                                                     <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=300&h=200&fit=crop" 
@@ -406,21 +379,6 @@ if (isset($_SESSION['cliente'])) {
         </section>
     <?php endif; ?>
 
-    <!-- Footer -->
-    <footer class="bg-dark text-white py-4">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5>Hotel Tame</h5>
-                    <p class="text-muted">Tu experiencia hotelera de lujo</p>
-                </div>
-                <div class="col-md-6 text-end">
-                    <p class="text-muted small mb-0">© 2024 Hotel Tame. Todos los derechos reservados.</p>
-                </div>
-            </div>
-        </div>
-    </footer>
-
     <!-- Reservation Details Modal -->
     <div class="modal fade" id="detallesModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
@@ -442,7 +400,6 @@ if (isset($_SESSION['cliente'])) {
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function verDetalles(reservaId) {
             // Simulación - en producción esto haría una llamada AJAX
@@ -515,5 +472,7 @@ if (isset($_SESSION['cliente'])) {
             window.print();
         }
     </script>
-</body>
-</html>
+    </div>
+</div>
+
+<?php include __DIR__ . '/../../../backend/includes/footer_public.php'; ?>
