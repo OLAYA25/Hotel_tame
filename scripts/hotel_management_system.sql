@@ -446,3 +446,20 @@ CREATE INDEX idx_reservas_ingresos ON reservas(estado, created_at, total);
 -- =============================================
 -- FIN DEL SCRIPT
 -- =============================================
+-- Phase 1: Alineación de esquema con el código existente
+ALTER TABLE usuarios ADD COLUMN apellido VARCHAR(100) NULL AFTER nombre;
+ALTER TABLE usuarios ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL;
+ALTER TABLE clientes ADD COLUMN apellido VARCHAR(100) NULL AFTER nombre;
+ALTER TABLE clientes ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL;
+ALTER TABLE habitaciones ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL;
+ALTER TABLE habitaciones ADD COLUMN precio_noche DECIMAL(10, 2) NULL AFTER precio;
+UPDATE habitaciones SET precio_noche = precio;
+ALTER TABLE habitaciones ADD COLUMN imagen VARCHAR(255) AS (imagen_url) VIRTUAL;
+ALTER TABLE reservas ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL;
+ALTER TABLE reservas ADD COLUMN precio_total DECIMAL(10, 2) AS (total) VIRTUAL;
+ALTER TABLE reservas ADD COLUMN fecha_creacion TIMESTAMP AS (created_at) VIRTUAL;
+ALTER TABLE pagos ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL;
+ALTER TABLE servicios_adicionales ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL;
+ALTER TABLE reserva_servicios ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL;
+ALTER TABLE mantenimiento ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL;
+ALTER TABLE auditoria ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL;

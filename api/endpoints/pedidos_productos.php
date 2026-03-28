@@ -17,6 +17,14 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 switch($method) {
     case 'GET':
+        if(isset($_GET['action']) && $_GET['action'] === 'generar_referencia') {
+            // Generar nueva referencia para venta directa
+            $referencia = $pedido->generarReferenciaVenta();
+            http_response_code(200);
+            echo json_encode(array("referencia" => $referencia));
+            exit;
+        }
+        
         if(isset($_GET['reserva_id'])) {
             // Buscar pedidos por reserva_id
             $reserva_id = $_GET['reserva_id'];
@@ -113,14 +121,18 @@ switch($method) {
             $estado = isset($_GET['estado']) ? $_GET['estado'] : '';
             $fecha = isset($_GET['fecha']) ? $_GET['fecha'] : '';
             $busqueda = isset($_GET['busqueda']) ? trim($_GET['busqueda']) : '';
+            $tipo = isset($_GET['tipo']) ? $_GET['tipo'] : '';
             
-            $stmt = $pedido->getAllWithPagination($limit, $offset, $estado, $fecha, $busqueda);
+            $stmt = $pedido->getAllWithPagination($limit, $offset, $estado, $fecha, $busqueda, $tipo);
             $num = $stmt->rowCount();
             
             // Obtener total para paginación
-            $total_stmt = $pedido->getTotalCount($estado, $fecha, $busqueda);
+            $total_stmt = $pedido->getTotalCount($estado, $fecha, $busqueda, $tipo);
             $total_row = $total_stmt->fetch();
             $total = $total_row['total'];
+            
+            error_log("DEBUG: Num rows from query: " . $num);
+            error_log("DEBUG: Total count: " . $total);
             
             if($num > 0) {
                 $pedidos_arr = array();
@@ -144,6 +156,8 @@ switch($method) {
                         "usuario_id" => $row['usuario_id'],
                         "usuario_nombre" => $row['usuario_nombre'],
                         "estado" => $row['estado'],
+                        "tipo_pedido" => $row['tipo_pedido'],
+                        "referencia_venta" => $row['referencia_venta'],
                         "subtotal" => $row['subtotal'],
                         "total" => $row['total'],
                         "notas" => $row['notas'],
@@ -177,15 +191,30 @@ switch($method) {
         $data = json_decode(file_get_contents("php://input"));
         error_log("Data recibida: " . json_encode($data));
         
-        if(!empty($data->habitacion_id) && !empty($data->detalles) && count($data->detalles) > 0) {
+        if(!empty($data->detalles) && count($data->detalles) > 0) {
             error_log("Validación básica pasada");
-            $pedido->habitacion_id = $data->habitacion_id;
-            $pedido->cliente_id = $data->cliente_id ?? null;
+            
+            // Determinar tipo de pedido y configurar valores
+            $tipo_pedido = $data->tipo_pedido ?? 'habitacion';
+            $pedido->tipo_pedido = $tipo_pedido;
+            
+            if ($tipo_pedido === 'directa') {
+                // Venta directa: sin habitación, con referencia automática
+                $pedido->habitacion_id = null;
+                $pedido->cliente_id = null;
+                $pedido->referencia_venta = $pedido->generarReferenciaVenta();
+            } else {
+                // Pedido de habitación: con habitación y cliente
+                $pedido->habitacion_id = $data->habitacion_id;
+                $pedido->cliente_id = $data->cliente_id ?? null;
+                $pedido->referencia_venta = null;
+            }
+            
             $pedido->usuario_id = $data->usuario_id ?? 1; // Usuario actual (pasado desde frontend)
             $pedido->estado = 'pendiente';
             $pedido->notas = $data->notas ?? "";
             
-            error_log("Pedido configurado: habitacion_id={$pedido->habitacion_id}, cliente_id={$pedido->cliente_id}");
+            error_log("Pedido configurado: tipo={$pedido->tipo_pedido}, habitacion_id={$pedido->habitacion_id}, referencia={$pedido->referencia_venta}");
             
             // Calcular totales
             $subtotal = 0;

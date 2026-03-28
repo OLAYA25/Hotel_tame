@@ -8,6 +8,8 @@ class PedidoProducto {
     public $cliente_id;
     public $usuario_id;
     public $estado;
+    public $tipo_pedido;
+    public $referencia_venta;
     public $subtotal;
     public $total;
     public $notas;
@@ -24,8 +26,8 @@ class PedidoProducto {
     // Crear pedido
     public function create() {
         $query = "INSERT INTO " . $this->table_name . " 
-                  (habitacion_id, cliente_id, usuario_id, estado, subtotal, total, notas) 
-                  VALUES (:habitacion_id, :cliente_id, :usuario_id, :estado, :subtotal, :total, :notas)";
+                  (habitacion_id, cliente_id, usuario_id, estado, tipo_pedido, referencia_venta, subtotal, total, notas) 
+                  VALUES (:habitacion_id, :cliente_id, :usuario_id, :estado, :tipo_pedido, :referencia_venta, :subtotal, :total, :notas)";
         
         $stmt = $this->conn->prepare($query);
         
@@ -33,6 +35,8 @@ class PedidoProducto {
         $stmt->bindParam(":cliente_id", $this->cliente_id);
         $stmt->bindParam(":usuario_id", $this->usuario_id);
         $stmt->bindParam(":estado", $this->estado);
+        $stmt->bindParam(":tipo_pedido", $this->tipo_pedido);
+        $stmt->bindParam(":referencia_venta", $this->referencia_venta);
         $stmt->bindParam(":subtotal", $this->subtotal);
         $stmt->bindParam(":total", $this->total);
         $stmt->bindParam(":notas", $this->notas);
@@ -62,7 +66,7 @@ class PedidoProducto {
     }
 
     // Obtener pedidos con paginación y filtros
-    public function getAllWithPagination($limit = 10, $offset = 0, $estado = '', $fecha = '', $busqueda = '') {
+    public function getAllWithPagination($limit = 10, $offset = 0, $estado = '', $fecha = '', $busqueda = '', $tipo = '') {
         $query = "SELECT p.*, h.numero as habitacion_numero, 
                          CONCAT(c.nombre, ' ', c.apellido) as cliente_nombre,
                          CONCAT(u.nombre, ' ', u.apellido) as usuario_nombre
@@ -75,19 +79,25 @@ class PedidoProducto {
         $params = array();
         
         // Agregar filtros
+        if (!empty($tipo)) {
+            $query .= " AND tipo_pedido = ?";
+            $params[] = $tipo;
+        }
+        
         if (!empty($estado)) {
-            $query .= " AND p.estado = ?";
+            $query .= " AND estado = ?";
             $params[] = $estado;
         }
         
         if (!empty($fecha)) {
-            $query .= " AND DATE(p.fecha_pedido) = ?";
+            $query .= " AND DATE(fecha_pedido) = ?";
             $params[] = $fecha;
         }
         
         if (!empty($busqueda)) {
-            $query .= " AND (h.numero LIKE ? OR CONCAT(c.nombre, ' ', c.apellido) LIKE ? OR c.nombre LIKE ? OR c.apellido LIKE ?)";
+            $query .= " AND referencia_venta LIKE ?";
             $searchParam = "%{$busqueda}%";
+            $params[] = $searchParam;
             $params[] = $searchParam;
             $params[] = $searchParam;
             $params[] = $searchParam;
@@ -112,30 +122,31 @@ class PedidoProducto {
     }
 
     // Obtener conteo total para paginación
-    public function getTotalCount($estado = '', $fecha = '', $busqueda = '') {
-        $query = "SELECT COUNT(*) as total 
-                  FROM " . $this->table_name . " p
-                  LEFT JOIN habitaciones h ON p.habitacion_id = h.id
-                  LEFT JOIN clientes c ON p.cliente_id = c.id
-                  LEFT JOIN usuarios u ON p.usuario_id = u.id
-                  WHERE p.deleted_at IS NULL";
+    public function getTotalCount($estado = '', $fecha = '', $busqueda = '', $tipo = '') {
+        $query = "SELECT COUNT(*) as total FROM " . $this->table_name . " WHERE deleted_at IS NULL";
         
         $params = array();
         
         // Agregar filtros
+        if (!empty($tipo)) {
+            $query .= " AND tipo_pedido = ?";
+            $params[] = $tipo;
+        }
+        
         if (!empty($estado)) {
-            $query .= " AND p.estado = ?";
+            $query .= " AND estado = ?";
             $params[] = $estado;
         }
         
         if (!empty($fecha)) {
-            $query .= " AND DATE(p.fecha_pedido) = ?";
+            $query .= " AND DATE(fecha_pedido) = ?";
             $params[] = $fecha;
         }
         
         if (!empty($busqueda)) {
-            $query .= " AND (h.numero LIKE ? OR CONCAT(c.nombre, ' ', c.apellido) LIKE ? OR c.nombre LIKE ? OR c.apellido LIKE ?)";
+            $query .= " AND referencia_venta LIKE ?";
             $searchParam = "%{$busqueda}%";
+            $params[] = $searchParam;
             $params[] = $searchParam;
             $params[] = $searchParam;
             $params[] = $searchParam;
@@ -276,6 +287,27 @@ class PedidoProducto {
         $stmt->execute();
         
         return $stmt;
+    }
+
+    // Generar referencia para venta directa
+    public function generarReferenciaVenta() {
+        // Obtener el último número de venta directa
+        $query = "SELECT referencia_venta FROM " . $this->table_name . " 
+                  WHERE tipo_pedido = 'directa' AND referencia_venta IS NOT NULL 
+                  ORDER BY id DESC LIMIT 1";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        
+        $ultima_ref = $stmt->fetch(PDO::FETCH_COLUMN);
+        
+        if ($ultima_ref && preg_match('/VTA-(\d+)/', $ultima_ref, $matches)) {
+            $numero = (int)$matches[1] + 1;
+        } else {
+            $numero = 1;
+        }
+        
+        return 'VTA-' . str_pad($numero, 3, '0', STR_PAD_LEFT);
     }
 }
 ?>

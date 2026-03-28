@@ -19,8 +19,7 @@ try {
     $habitaciones_disponibles = $stmt->fetch()['disponibles'];
     
     // Obtener habitaciones destacadas para mostrar
-    $stmt = $db->query("SELECT id, numero, tipo, precio_noche as precio, capacidad, descripcion, imagen 
-                        FROM habitaciones 
+    $stmt = $db->query("SELECT id, numero, tipo, precio_noche as precio, capacidad, descripcion, imagen_url as imagen 
                         WHERE estado = 'disponible' AND deleted_at IS NULL 
                         ORDER BY precio_noche ASC LIMIT 6");
     $habitaciones_destacadas = $stmt->fetchAll();
@@ -286,8 +285,19 @@ try {
                     <?php foreach ($habitaciones_destacadas as $habitacion): ?>
                         <div class="col-md-4">
                             <div class="room-card">
-                                <?php if ($habitacion['imagen']): ?>
-                                    <img src="assets/images/habitaciones/<?= $habitacion['imagen'] ?>" 
+                                <?php 
+                                $imagenVal = $habitacion['imagen'] ?? '';
+                                $srcImg = '';
+                                if ($imagenVal) {
+                                    if (filter_var($imagenVal, FILTER_VALIDATE_URL)) {
+                                        $srcImg = $imagenVal;
+                                    } else {
+                                        $srcImg = 'assets/images/habitaciones/' . $imagenVal;
+                                    }
+                                }
+                                ?>
+                                <?php if ($srcImg): ?>
+                                    <img src="<?= htmlspecialchars($srcImg) ?>" 
                                          class="room-image" 
                                          alt="Habitación <?= htmlspecialchars($habitacion['tipo']) ?>">
                                 <?php else: ?>

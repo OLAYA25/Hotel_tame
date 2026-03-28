@@ -69,11 +69,11 @@ if (isset($_SESSION['cliente'])) {
         
         // Obtener todas las reservas del cliente
         $stmt = $db->prepare("SELECT r.*, h.numero, h.tipo, h.precio_noche as precio_habitacion,
-                                     h.imagen as habitacion_imagen
-                              FROM reservas r 
-                              JOIN habitaciones h ON r.habitacion_id = h.id 
-                              WHERE r.cliente_id = :cliente_id 
-                              ORDER BY r.fecha_creacion DESC");
+                                     h.imagen_url as habitacion_imagen
+                               FROM reservas r 
+                               JOIN habitaciones h ON r.habitacion_id = h.id 
+                               WHERE r.cliente_id = :cliente_id 
+                               ORDER BY r.fecha_creacion DESC");
         $stmt->bindParam(':cliente_id', $cliente_id);
         $stmt->execute();
         $reservas_cliente = $stmt->fetchAll();
