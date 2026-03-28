@@ -371,13 +371,27 @@ function cargarHabitaciones() {
     const select = $('#habitacion_id');
     select.html('<option value="">Cargando...</option>');
     
-    $.get('api/endpoints/habitaciones.php', function(habitacionesData) {
-        const habitaciones = Array.isArray(habitacionesData) ? habitacionesData : (habitacionesData.records || []);
+    $.get('api/endpoints/reservas.php?estado=confirmada', function(reservasData) {
+        const reservas = Array.isArray(reservasData) ? reservasData : (reservasData.records || []);
+        
+        // Extraer habitaciones únicas de las reservas
+        const habitacionesMap = {};
+        reservas.forEach(function(reserva) {
+            if (reserva.habitacion_id && !habitacionesMap[reserva.habitacion_id]) {
+                habitacionesMap[reserva.habitacion_id] = {
+                    id: reserva.habitacion_id,
+                    numero: reserva.habitacion_numero || ('Hab ' + reserva.habitacion_id),
+                    tipo: reserva.habitacion_tipo || 'Standard',
+                    reserva_id: reserva.id
+                };
+            }
+        });
         
         let html = '<option value="">Seleccione una habitación...</option>';
         
-        habitaciones.forEach(function(habitacion) {
-            html += '<option value="' + habitacion.id + '">' + habitacion.numero + ' - ' + habitacion.tipo + '</option>';
+        Object.values(habitacionesMap).forEach(function(habitacion) {
+            html += '<option value="' + habitacion.id + '" data-reserva-id="' + habitacion.reserva_id + '">' + 
+                habitacion.numero + ' - ' + habitacion.tipo + '</option>';
         });
         
         select.html(html);
@@ -388,21 +402,30 @@ function cargarHabitaciones() {
 // Manejar cambio de habitación para cargar clientes
 $(document).on('change', '#habitacion_id', function() {
     const habitacionId = $(this).val();
+    const reservaId = $(this).find(':selected').data('reserva-id');
     
-    if (habitacionId) {
+    console.log('DEBUG: reservaId:', reservaId);
+    
+    if (habitacionId && reservaId) {
+        console.log('DEBUG: Cargando huéspedes para reserva:', reservaId);
         // Buscar reserva activa para esta habitación
-        $.get('api/endpoints/reservas.php?habitacion_id=' + habitacionId + '&estado=confirmada&limit=1', function(reservaData) {
-            const reservas = Array.isArray(reservaData) ? reservaData : (reservaData.records || []);
+        $.get('api/endpoints/reserva_huespedes.php?reserva_id=' + reservaId, function(huespedesData) {
+            console.log('DEBUG: Respuesta huéspedes:', huespedesData);
+            console.log('DEBUG: Respuesta huéspedes:', huespedesData);
+            const huespedes = Array.isArray(huespedesData) ? huespedesData : (huespedesData.records || []);
             
             $('.cliente-select').each(function() {
                 const select = $(this);
                 select.empty().append('<option value="">Seleccione cliente...</option>');
+                select.prop('disabled', false).prop('required', true);
                 
-                if (reservas.length > 0) {
-                    const reserva = reservas[0];
-                    select.append('<option value="' + reserva.cliente_id + '">' + reserva.cliente_nombre + ' ' + (reserva.cliente_apellido || '') + '</option>');
-                }
+                huespedes.forEach(function(huesped) {
+                    const esTitular = huesped.es_titular ? ' (Titular)' : ' (Acompañante)';
+                    select.append('<option value="' + huesped.cliente_id + '">' + huesped.nombre + ' ' + (huesped.apellido || '') + esTitular + '</option>');
+                });
             });
+        }).fail(function(xhr, status, error) {
+            console.error('ERROR cargando huéspedes:', status, error);
         });
     } else {
         $('.cliente-select').each(function() {
@@ -772,7 +795,7 @@ $('#formPedido').on('submit', function(e) {
         error: function(xhr) {
             showNotification(xhr.responseJSON?.message || 'Error al guardar pedido', 'error');
         }
-    });
+    }).fail(function(xhr, status, error) { console.error('ERROR:', status, error); });
 });
 </script>
 

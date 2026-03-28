@@ -36,12 +36,35 @@ try {
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                     $huespedes[] = [
                         'id' => $row['persona_id'],
+                        'cliente_id' => $row['persona_id'],
                         'nombre' => $row['nombre'],
                         'apellido' => $row['apellido'],
                         'email' => $row['email'],
                         'telefono' => $row['telefono'],
-                        'documento' => $row['numero_documento']
+                        'documento' => $row['numero_documento'],
+                        'es_titular' => false
                     ];
+                }
+                
+                // Si no hay huéspedes, obtener cliente principal de la reserva
+                if (count($huespedes) === 0) {
+                    $queryCliente = "SELECT r.cliente_id, p.nombre, p.apellido 
+                                    FROM reservas r 
+                                    LEFT JOIN personas p ON r.cliente_id = p.id 
+                                    WHERE r.id = ?";
+                    $stmtCliente = $db->prepare($queryCliente);
+                    $stmtCliente->bindParam(1, $reserva_id);
+                    $stmtCliente->execute();
+                    
+                    if ($rowCliente = $stmtCliente->fetch(PDO::FETCH_ASSOC)) {
+                        $huespedes[] = [
+                            'id' => $rowCliente['cliente_id'],
+                            'cliente_id' => $rowCliente['cliente_id'],
+                            'nombre' => $rowCliente['nombre'],
+                            'apellido' => $rowCliente['apellido'],
+                            'es_titular' => true
+                        ];
+                    }
                 }
                 
                 http_response_code(200);
