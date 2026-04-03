@@ -658,6 +658,7 @@ let habitacionSeleccionada = null;
 let modoAcompanante = false; // Para saber si el modal cliente se usa para acompañante
 let esModoEdicion = false; // Para saber si estamos editando una reserva existente
 let valorOriginalHuespedes = 1; // Guardar el valor original de num_huespedes
+let acompanantesCargadosDesdeBD = false; // Bandera para evitar recargar acompañantes
 
 function verificarActualizacionesAutomaticas() {
     // 🚨 RECARGA AUTOMÁTICA DESACTIVADA TEMPORALMENTE
@@ -1634,6 +1635,12 @@ function abrirModalNuevo() {
     // 🎯 Limpiar acompañantes temporales
     acompanantesTemporales = [];
     
+    // Resetear bandera de carga desde BD
+    acompanantesCargadosDesdeBD = false;
+    
+    // Resetear bandera de carga desde BD
+    acompanantesCargadosDesdeBD = false;
+    
     $('#modalTitle').text('Nueva Reserva');
     $('#formReserva')[0].reset();
     $('#reserva_id').val('');
@@ -1698,6 +1705,9 @@ function abrirModalNuevo() {
 
 function editarReserva(id) {
     console.log('Editando reserva:', id);
+    
+    // Resetear bandera para permitir cargar acompañantes de esta reserva
+    acompanantesCargadosDesdeBD = false;
     
     $.get(`api/endpoints/reservas.php?id=${id}`, function(reserva) {
         console.log('Datos de reserva recibidos:', reserva);
@@ -1946,6 +1956,11 @@ function cargarAcompanantesReservaEnFormularioDesdeObservaciones(reserva) {
 }
 
 function cargarAcompanantesDesdeBD(reservaId) {
+    if (acompanantesCargadosDesdeBD) {
+        console.log('Acompañantes ya cargados, omitiendo recarga');
+        return;
+    }
+    acompanantesCargadosDesdeBD = true;
     console.log('Cargando acompañantes desde BD para reserva:', reservaId);
     
     $.ajax({
@@ -1973,6 +1988,11 @@ function cargarAcompanantesDesdeBD(reservaId) {
                 });
                 
                 console.log('Acompañantes cargados desde BD:', acompanantesTemporales);
+                
+                console.log('Acompañantes cargados desde BD:', acompanantesTemporales);
+                
+                // Marcar como cargados para no sobrescribir los del usuario
+                acompanantesCargadosDesdeBD = true;
                 
                 // Actualizar la lista visual
                 actualizarListaAcompanantes();
@@ -2167,19 +2187,26 @@ function guardarReserva(e) {
     }
     
     // 🎯 Guardar acompañantes en reserva_huespedes
+    console.log('🔍 DEBUG guardarReserva - acompanantes:', acompanantes);
+    console.log('🔍 DEBUG guardarReserva - acompanantes.length:', acompanantes.length);
+    console.log('🔍 DEBUG guardarReserva - reserva_id:', id);
         if (acompanantes.length > 0) {
-            const huespedesIds = acompanantes.map(a => a.id);
+            console.log('🔍 Enviando POST con acompanantes completos:', acompanantes);
+            const requestData = {
+                reserva_id: id,
+                huespedes: acompanantes
+            };
+            console.log('🔍 Datos exactos que se envían al backend:', JSON.stringify(requestData, null, 2));
             
             $.ajax({
                 url: 'api/endpoints/reserva_huespedes.php',
                 method: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify({
-                    reserva_id: id,
-                    huespedes: huespedesIds.map(id => ({ id: id }))
-                }),
+                data: JSON.stringify(requestData),
                 success: function(response) {
-                    console.log('Acompañantes guardados:', response);
+                    console.log('✅ Acompañantes guardados:', response);
+                    console.log('✅ Response success:', response.success);
+                    console.log('✅ Acompanantes guardados count:', response.acompanantes_guardados);
                     // Solo mostrar notificación si hay error o si es importante
                     if (!response.success) {
                         showNotification(response.message || 'Error al guardar acompañantes', 'error');
@@ -3049,6 +3076,25 @@ function abrirModalBusquedaPersonas() {
         // Inicializar Select2 si no está inicializado
         inicializarSelect2BusquedaPersonas();
     }
+}
+
+function inicializarSelect2BusquedaPersonas() {
+    const select = $('#busquedaPersonaSelect');
+    if (select.length === 0 || !window.personasDataList) return;
+    try {
+        if (select.data('select2')) {
+            select.select2('destroy');
+            select.removeData('select2');
+        }
+    } catch (e) {}
+    select.select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Buscar por nombre, apellido o documento...',
+        allowClear: true,
+        width: '100%',
+        dropdownParent: $('#modalBusquedaPersonas'),
+        minimumInputLength: 0
+    });
 }
 
 function cargarPersonasParaSelect2() {

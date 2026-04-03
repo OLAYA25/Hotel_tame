@@ -26,7 +26,7 @@ try {
                 $query = "SELECT rh.*, p.nombre, p.apellido, p.email, p.telefono, p.documento as numero_documento 
                          FROM reserva_huespedes rh 
                          LEFT JOIN personas p ON rh.persona_id = p.id 
-                         WHERE rh.reserva_id = ? AND rh.deleted_at IS NULL";
+                         WHERE rh.reserva_id = ? AND rh.rol_en_reserva = 'acompanante'";
                 
                 $stmt = $db->prepare($query);
                 $stmt->bindParam(1, $reserva_id);
@@ -44,27 +44,6 @@ try {
                         'documento' => $row['numero_documento'],
                         'es_titular' => false
                     ];
-                }
-                
-                // Si no hay huéspedes, obtener cliente principal de la reserva
-                if (count($huespedes) === 0) {
-                    $queryCliente = "SELECT r.cliente_id, p.nombre, p.apellido 
-                                    FROM reservas r 
-                                    LEFT JOIN personas p ON r.cliente_id = p.id 
-                                    WHERE r.id = ?";
-                    $stmtCliente = $db->prepare($queryCliente);
-                    $stmtCliente->bindParam(1, $reserva_id);
-                    $stmtCliente->execute();
-                    
-                    if ($rowCliente = $stmtCliente->fetch(PDO::FETCH_ASSOC)) {
-                        $huespedes[] = [
-                            'id' => $rowCliente['cliente_id'],
-                            'cliente_id' => $rowCliente['cliente_id'],
-                            'nombre' => $rowCliente['nombre'],
-                            'apellido' => $rowCliente['apellido'],
-                            'es_titular' => true
-                        ];
-                    }
                 }
                 
                 http_response_code(200);
@@ -113,17 +92,48 @@ try {
                     
                     // 2) Insertar los nuevos acompañantes
                     foreach ($huespedes as $huesped) {
-                        // Buscar si la persona existe por ID
-                        $persona_existente = new Persona($db);
-                        $persona_existente->id = $huesped->id;
+                        $persona_id = null;
                         
-                        if($persona_existente->getById()) {
-                            // La persona existe, agregar a reserva_huespedes
-                            $insertQuery = "INSERT INTO reserva_huespedes (reserva_id, persona_id, rol_en_reserva, es_menor, created_at) 
-                                           VALUES (?, ?, 'acompanante', 0, NOW())";
+                        // Si tiene ID, verificar que exista
+                        if(!empty($huesped->id)) {
+                            $persona_existente = new Persona($db);
+                            $persona_existente->id = $huesped->id;
+                            if($persona_existente->getById()) {
+                                $persona_id = $huesped->id;
+                            }
+                        }
+                        
+                        // Si no tiene ID o no existe, buscar por email o crear nueva persona
+                        if($persona_id === null && !empty($huesped->email)) {
+                            $queryBuscar = "SELECT id FROM personas WHERE email = ? LIMIT 1";
+                            $stmtBuscar = $db->prepare($queryBuscar);
+                            $stmtBuscar->bindParam(1, $huesped->email);
+                            $stmtBuscar->execute();
+                            if($row = $stmtBuscar->fetch(PDO::FETCH_ASSOC)) {
+                                $persona_id = $row['id'];
+                            }
+                        }
+                        
+                        // Si no se encontró, crear nueva persona
+                        if($persona_id === null && !empty($huesped->nombre)) {
+                            $queryInsertPersona = "INSERT INTO personas (nombre, apellido, email, telefono, tipo_persona, created_at) VALUES (?, ?, ?, ?, 'cliente', NOW())";
+                            $stmtInsert = $db->prepare($queryInsertPersona);
+                            $stmtInsert->bindParam(1, $huesped->nombre);
+                            $stmtInsert->bindParam(2, $huesped->apellido);
+                            $stmtInsert->bindParam(3, $huesped->email);
+                            $stmtInsert->bindParam(4, $huesped->telefono);
+                            
+                            if($stmtInsert->execute()) {
+                                $persona_id = $db->lastInsertId();
+                            }
+                        }
+                        
+                        // Insertar en reserva_huespedes si tenemos persona_id
+                        if($persona_id !== null) {
+                            $insertQuery = "INSERT INTO reserva_huespedes (reserva_id, persona_id, rol_en_reserva, es_menor, created_at) VALUES (?, ?, 'acompanante', 0, NOW())";
                             $insertStmt = $db->prepare($insertQuery);
                             $insertStmt->bindParam(1, $reserva_id);
-                            $insertStmt->bindParam(2, $huesped->id);
+                            $insertStmt->bindParam(2, $persona_id);
                             
                             if($insertStmt->execute()) {
                                 $guardados++;
