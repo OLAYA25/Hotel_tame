@@ -1,4 +1,8 @@
 <?php
+require_once dirname(__DIR__, 3) . '/config/env.php';
+hotel_tame_define_web_constants();
+$WB = HOTEL_TAME_WEB_BASE;
+
 require_once __DIR__ . '/../../../backend/config/database.php';
 
 // Definir título y descripción de la página
@@ -128,7 +132,7 @@ function searchRooms() {
     `);
     
     // Buscar habitaciones disponibles
-    $.get('/Hotel_tame/api/endpoints/habitaciones.php', function(data) {
+    $.get(<?php echo json_encode($WB . '/api/endpoints/habitaciones.php'); ?>, function(data) {
         const habitaciones = data.records || data || [];
         
         if (habitaciones.length === 0) {

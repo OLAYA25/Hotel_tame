@@ -3,7 +3,8 @@ require_once __DIR__ . '/../../../backend/config/database.php';
 
 // Verificar sesión de usuario
 if (!isset($_SESSION['usuario'])) {
-    header('Location: /Hotel_tame/login');
+    require_once dirname(__DIR__, 3) . '/config/env.php';
+    header('Location: ' . hotel_tame_url_path('login'));
     exit;
 }
 
@@ -13,7 +14,8 @@ $pageDescription = 'Gestiona los usuarios del sistema';
 
 // Solo admin puede gestionar usuarios
 if ($_SESSION['usuario']['rol'] !== 'admin') {
-    header('Location: /Hotel_tame/dashboard');
+    require_once dirname(__DIR__, 3) . '/config/env.php';
+    header('Location: ' . hotel_tame_url_path('dashboard'));
     exit;
 }
 include __DIR__ . '/../../../backend/includes/header.php';

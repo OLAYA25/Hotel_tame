@@ -1,3 +1,10 @@
+<?php
+if (!function_exists('hotel_tame_define_web_constants')) {
+    require_once __DIR__ . '/../../config/env.php';
+}
+hotel_tame_define_web_constants();
+$WB = HOTEL_TAME_WEB_BASE;
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -9,13 +16,13 @@
     <meta name="robots" content="noindex, nofollow">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/Hotel_tame/assets/css/style.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="<?php echo ASSETS_URL; ?>/css/style.css?v=<?php echo time(); ?>">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="/Hotel_tame/">
+            <a class="navbar-brand" href="<?php echo $WB === '' ? '/' : $WB . '/'; ?>">
                 <i class="fas fa-hotel me-2"></i>
                 Hotel Management System
             </a>
@@ -25,17 +32,17 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/Hotel_tame/">
+                        <a class="nav-link" href="<?php echo $WB === '' ? '/' : $WB . '/'; ?>">
                             <i class="fas fa-home me-1"></i> Inicio
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/Hotel_tame/reservas-online">
+                        <a class="nav-link" href="<?php echo $WB; ?>/reservas-online">
                             <i class="fas fa-calendar-check me-1"></i> Reservas
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/Hotel_tame/login">
+                        <a class="nav-link" href="<?php echo $WB; ?>/login">
                             <i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesión
                         </a>
                     </li>

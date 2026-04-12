@@ -1,9 +1,10 @@
 <?php
+require_once dirname(__DIR__, 3) . '/config/env.php';
+
 require_once __DIR__ . '/../../../backend/config/database.php';
 
-// Verificar sesión de usuario
 if (!isset($_SESSION['usuario'])) {
-    header('Location: /Hotel_tame/login');
+    header('Location: ' . hotel_tame_url_path('login'));
     exit;
 }
 
@@ -30,7 +31,7 @@ include __DIR__ . '/../../../backend/includes/sidebar.php';
                 <button class="btn btn-outline-info" onclick="generarReporte()">
                     <i class="fas fa-file-excel me-2"></i>Exportar Reporte
                 </button>
-                <button class="btn btn-outline-success" onclick="window.location.href='/Hotel_tame/informe-huespedes'">
+                <button class="btn btn-outline-success" onclick="window.location.href=<?= htmlspecialchars(json_encode(hotel_tame_url_path('informe-huespedes')), ENT_QUOTES, 'UTF-8') ?>">
                     <i class="fas fa-users me-2"></i>Informe Huéspedes
                 </button>
             </div>

@@ -1,12 +1,28 @@
 <?php
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'hotel_management_system'); // Nombre de la base de datos
+require_once __DIR__ . '/../../config/env.php';
 
-// Habilitar errores para depuración (desactivar en producción)
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// Compatibilidad: .env usa DB_DATABASE / DB_USERNAME / DB_PASSWORD; legado DB_NAME / DB_USER / DB_PASS
+if (!defined('DB_HOST')) {
+    define('DB_HOST', hotel_tame_env('DB_HOST', 'localhost'));
+}
+if (!defined('DB_USER')) {
+    define('DB_USER', hotel_tame_env('DB_USERNAME', hotel_tame_env('DB_USER', 'root')));
+}
+if (!defined('DB_PASS')) {
+    define('DB_PASS', hotel_tame_env('DB_PASSWORD', hotel_tame_env('DB_PASS', '')));
+}
+if (!defined('DB_NAME')) {
+    define('DB_NAME', hotel_tame_env('DB_DATABASE', hotel_tame_env('DB_NAME', 'hotel_management_system')));
+}
+
+$htDebug = filter_var(hotel_tame_env('APP_DEBUG', true), FILTER_VALIDATE_BOOLEAN);
+if ($htDebug) {
+    error_reporting(E_ALL);
+    ini_set('display_errors', '1');
+} else {
+    error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
+    ini_set('display_errors', '0');
+}
 
 class Database {
     private $host = DB_HOST;
@@ -15,7 +31,6 @@ class Database {
     private $password = DB_PASS;
     public $conn;
 
-    // Devuelve una conexión PDO
     public function getConnection() {
         $this->conn = null;
 
@@ -29,86 +44,79 @@ class Database {
 
             $this->conn = new PDO($dsn, $this->username, $this->password, $options);
         } catch (PDOException $e) {
-            // Mostrar mensaje amigable en desarrollo
+            error_log('Database connection failed: ' . $e->getMessage());
             http_response_code(500);
-            echo json_encode(array("message" => "Error de conexión a la base de datos: " . $e->getMessage()));
+            $show = filter_var(hotel_tame_env('APP_DEBUG', true), FILTER_VALIDATE_BOOLEAN);
+            $msg = $show
+                ? 'Error de conexión a la base de datos: ' . $e->getMessage()
+                : 'Error de conexión a la base de datos.';
+            echo json_encode(['message' => $msg]);
             exit;
         }
 
         return $this->conn;
     }
-    
-    // Método para crear backup de la base de datos
+
     public function backup($filepath) {
         try {
             $db_name = $this->db_name;
             $host = $this->host;
             $username = $this->username;
             $password = $this->password;
-            
-            // Usar mysqldump para crear el backup
+
             $command = "mysqldump --single-transaction --routines --triggers --host={$host} --user={$username} --password={$password} {$db_name} > {$filepath}";
-            
-            // Ejecutar el comando
+
             $output = [];
             $return_var = 0;
             exec($command, $output, $return_var);
-            
+
             if ($return_var === 0 && file_exists($filepath) && filesize($filepath) > 0) {
                 return true;
-            } else {
-                error_log("Error en backup: " . implode("\n", $output));
-                return false;
             }
-            
+            error_log('Error en backup: ' . implode("\n", $output));
+            return false;
         } catch (Exception $e) {
-            error_log("Error creando backup: " . $e->getMessage());
+            error_log('Error creando backup: ' . $e->getMessage());
             return false;
         }
     }
-    
-    // Método para restaurar backup de la base de datos
+
     public function restore($filepath) {
         try {
             $db_name = $this->db_name;
             $host = $this->host;
             $username = $this->username;
             $password = $this->password;
-            
+
             if (!file_exists($filepath)) {
-                throw new Exception("Archivo de backup no encontrado");
+                throw new Exception('Archivo de backup no encontrado');
             }
-            
-            // Usar mysql para restaurar el backup
+
             $command = "mysql --host={$host} --user={$username} --password={$password} {$db_name} < {$filepath}";
-            
-            // Ejecutar el comando
+
             $output = [];
             $return_var = 0;
             exec($command, $output, $return_var);
-            
+
             if ($return_var === 0) {
                 return true;
-            } else {
-                error_log("Error en restore: " . implode("\n", $output));
-                return false;
             }
-            
+            error_log('Error en restore: ' . implode("\n", $output));
+            return false;
         } catch (Exception $e) {
-            error_log("Error restaurando backup: " . $e->getMessage());
+            error_log('Error restaurando backup: ' . $e->getMessage());
             return false;
         }
     }
 }
 
-// Helper opcional para compatibilidad (usa PDO internamente)
 function executeQuery($sql, $params = []) {
     try {
         $database = new Database();
         $db = $database->getConnection();
         $stmt = $db->prepare($sql);
         if (!$stmt) {
-            throw new Exception("Error preparando la consulta");
+            throw new Exception('Error preparando la consulta');
         }
         $stmt->execute($params);
         return $stmt;
@@ -117,4 +125,3 @@ function executeQuery($sql, $params = []) {
         return false;
     }
 }
-?>

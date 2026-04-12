@@ -3,6 +3,8 @@
  * Controlador de Autenticación
  */
 
+require_once __DIR__ . '/../../config/env.php';
+
 class AuthController extends Controller {
     private $userModel;
     
@@ -57,7 +59,7 @@ class AuthController extends Controller {
                 $this->jsonResponse([
                     'message' => 'Login exitoso',
                     'user' => $_SESSION['usuario'],
-                    'redirect' => '/Hotel_tame/dashboard'
+                    'redirect' => hotel_tame_url_path('dashboard')
                 ]);
                 
             } else {
@@ -85,7 +87,7 @@ class AuthController extends Controller {
         
         $this->jsonResponse([
             'message' => 'Logout exitoso',
-            'redirect' => '/Hotel_tame/login'
+            'redirect' => hotel_tame_url_path('login')
         ]);
     }
     

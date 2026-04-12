@@ -1,9 +1,12 @@
 <?php
+require_once dirname(__DIR__, 3) . '/config/env.php';
+hotel_tame_define_web_constants();
+$WB = HOTEL_TAME_WEB_BASE;
+
 require_once __DIR__ . '/../../../backend/config/database.php';
 
-// Verificar sesión de usuario
 if (!isset($_SESSION['usuario'])) {
-    header('Location: /Hotel_tame/login');
+    header('Location: ' . hotel_tame_url_path('login'));
     exit;
 }
 
@@ -14,6 +17,7 @@ $pageDescription = 'Gestiona las habitaciones del hotel';
 include __DIR__ . '/../../../backend/includes/header.php';
 include __DIR__ . '/../../../backend/includes/sidebar.php';
 ?>
+<script>const HT_BASE = <?php echo json_encode($WB); ?>;</script>
 
 <div class="main-content">
     <div id="notification-container"></div>
@@ -238,7 +242,7 @@ function cargarHabitaciones() {
                             ${habitacion.imagen_url ? `
                                 <div class="mb-3">
                                     <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f8f9fa'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='14' fill='%236c757d'%3ECargando...%3C/text%3E%3C/svg%3E" 
-                                         data-src="/Hotel_tame/${habitacion.imagen_url}" 
+                                         data-src="${HT_BASE}/${habitacion.imagen_url}" 
                                          alt="Habitación ${habitacion.numero}" 
                                          class="img-fluid rounded lazy-image" 
                                          style="max-height: 150px; width: 100%; object-fit: cover; transition: opacity 0.3s ease-in-out;"
@@ -336,7 +340,7 @@ function removeImage() {
             preview.innerHTML = `
                 <div class="mt-3">
                     <p class="text-muted small mb-2">Imagen actual:</p>
-                    <img src="/Hotel_tame/${currentImageUrl}" alt="Imagen actual" 
+                    <img src="${HT_BASE}/${currentImageUrl}" alt="Imagen actual" 
                          class="img-fluid rounded border" 
                          style="max-height: 200px; width: 100%; object-fit: cover;">
                 </div>
@@ -465,7 +469,7 @@ function editarHabitacion(id) {
             preview.innerHTML = `
                 <div class="mt-3">
                     <p class="text-muted small mb-2">Imagen actual:</p>
-                    <img src="/Hotel_tame/${habitacion.imagen_url}" alt="Imagen actual" 
+                    <img src="${HT_BASE}/${habitacion.imagen_url}" alt="Imagen actual" 
                          class="img-fluid rounded border" 
                          style="max-height: 200px; width: 100%; object-fit: cover;">
                     <div class="mt-2">

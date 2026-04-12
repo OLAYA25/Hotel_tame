@@ -72,7 +72,7 @@ class AuthMiddleware {
             exit;
         } else {
             // Para requests web, redirigir al login
-            header('Location: /Hotel_tame/login');
+            header('Location: ' . hotel_tame_url_path('login'));
             exit;
         }
     }
@@ -81,8 +81,12 @@ class AuthMiddleware {
      * Verificar si es una request API
      */
     private static function isApiRequest() {
-        $uri = $_SERVER['REQUEST_URI'] ?? '';
-        return strpos($uri, '/api/') === 0;
+        $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?? '';
+        $base = hotel_tame_base_path();
+        if ($base !== '' && str_starts_with($path, $base)) {
+            $path = substr($path, strlen($base)) ?: '/';
+        }
+        return str_starts_with($path, '/api/');
     }
     
     /**

@@ -4,7 +4,8 @@ require_once __DIR__ . '/../../../lib/RoleBasedDashboard.php';
 
 // Verificar sesión de usuario
 if (!isset($_SESSION['usuario'])) {
-    header('Location: /Hotel_tame/login');
+    require_once dirname(__DIR__, 3) . '/config/env.php';
+    header('Location: ' . hotel_tame_url_path('login'));
     exit;
 }
 

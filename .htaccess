@@ -1,4 +1,5 @@
-# .htaccess en la raíz
+# Raíz del proyecto Hotel Tame
+# RewriteBase debe coincidir con APP_BASE_PATH en .env (ej. /Hotel_tame/ o / si está en la raíz del dominio).
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /Hotel_tame/

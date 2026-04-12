@@ -1,6 +1,11 @@
 <?php
 session_start();
 
+if (!function_exists('hotel_tame_base_path')) {
+    require_once __DIR__ . '/../../../config/env.php';
+    hotel_tame_define_web_constants();
+}
+
 // Procesar login
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = $_POST['email'];
@@ -33,8 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 'telefono' => $usuario['telefono']
             ];
             
-            // Redirección simple
-            echo "<script>window.location.href='/Hotel_tame/dashboard';</script>";
+            $dash = HOTEL_TAME_WEB_BASE . '/dashboard';
+            echo '<script>window.location.href=' . json_encode($dash) . ';</script>';
             exit;
         } else {
             $error = "Credenciales incorrectas o usuario inactivo";

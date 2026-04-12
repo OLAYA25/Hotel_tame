@@ -1,7 +1,10 @@
 <?php
+require_once dirname(__DIR__, 3) . '/config/env.php';
+hotel_tame_define_web_constants();
+$WB = HOTEL_TAME_WEB_BASE;
+
 require_once __DIR__ . '/../../../backend/config/database.php';
 
-// Iniciar sesión para el cliente (solo si no está activa)
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -246,7 +249,7 @@ body {
                                         <div class="row align-items-center">
                                             <div class="col-md-4">
                                                 <?php if ($reserva['habitacion_imagen']): ?>
-                                                    <img src="/Hotel_tame/assets/images/habitaciones/<?= $reserva['habitacion_imagen'] ?>" 
+                                                    <img src="<?= htmlspecialchars($WB) ?>/assets/images/habitaciones/<?= htmlspecialchars($reserva['habitacion_imagen']) ?>" 
                                                          class="img-fluid rounded" alt="Habitación">
                                                 <?php else: ?>
                                                     <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=300&h=200&fit=crop" 

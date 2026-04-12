@@ -16,7 +16,7 @@ abstract class Controller {
      */
     protected function authenticate() {
         if (!SecurityHelper::validateSession()) {
-            header('Location: /Hotel_tame/login');
+            header('Location: ' . hotel_tame_url_path('login'));
             exit;
         }
     }

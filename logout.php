@@ -1,14 +1,13 @@
 <?php
-// Iniciar sesión
+require_once __DIR__ . '/config/env.php';
+
 session_start();
 
-// Destruir todas las variables de sesión
-$_SESSION = array();
+$_SESSION = [];
 
-// Destruir la sesión
 session_destroy();
 
-// Redirigir al login
-header('Location: /Hotel_tame/login');
+$base = hotel_tame_base_path();
+$target = ($base === '' ? '' : $base) . '/login';
+header('Location: ' . $target);
 exit;
-?>

@@ -1,20 +1,23 @@
 <?php
-// Iniciar sesión si no está activa (para acceso directo)
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+require_once dirname(__DIR__, 3) . '/config/env.php';
+hotel_tame_define_web_constants();
+$WB = HOTEL_TAME_WEB_BASE;
+
 require_once __DIR__ . '/../../../backend/config/database.php';
 
-// Verificar sesión de usuario
 if (!isset($_SESSION['usuario'])) {
-    header('Location: /Hotel_tame/login');
+    header('Location: ' . hotel_tame_url_path('login'));
     exit;
 }
 
 include __DIR__ . '/../../../backend/includes/header.php';
 include __DIR__ . '/../../../backend/includes/sidebar.php';
 ?>
+<script>const HT_BASE = <?php echo json_encode($WB); ?>;</script>
 
 <div class="main-content">
     <div id="notification-container"></div>
@@ -189,24 +192,24 @@ function cargarHabitaciones() {
                     <div class="card h-100 shadow-sm border-0">
                         ${habitacion.imagen_url ? `
                             <div class="card-img-top position-relative overflow-hidden" style="height: 200px;">
-                                <img src="/Hotel_tame/${habitacion.imagen_url}" 
+                                <img src="${HT_BASE}/${habitacion.imagen_url}" 
                                      alt="Habitación ${habitacion.numero}" 
                                      class="img-fluid w-100 h-100 object-fit-cover"
                                      style="cursor: pointer;"
-                                     onclick="showImageModal('/Hotel_tame/${habitacion.imagen_url}')"
+                                     onclick="showImageModal('${HT_BASE}/${habitacion.imagen_url}')"
                                      loading="lazy"
-                                     onerror="this.src='/Hotel_tame/assets/img/room-default.webp'; this.onerror=null;">
+                                     onerror="this.src='${HT_BASE}/assets/img/room-default.webp'; this.onerror=null;">
                                 <div class="position-absolute top-0 end-0 m-2">
                                     <span class="badge bg-${estadoClass}">${estadoTexto}</span>
                                 </div>
                             </div>
                         ` : `
                             <div class="card-img-top position-relative overflow-hidden" style="height: 200px;">
-                                <img src="/Hotel_tame/assets/img/room-default.webp" 
+                                <img src="${HT_BASE}/assets/img/room-default.webp" 
                                      alt="Habitación ${habitacion.numero}" 
                                      class="img-fluid w-100 h-100 object-fit-cover"
                                      style="cursor: pointer;"
-                                     onclick="showImageModal('/Hotel_tame/assets/img/room-default.webp')"
+                                     onclick="showImageModal('${HT_BASE}/assets/img/room-default.webp')"
                                      loading="lazy">
                                 <div class="position-absolute top-0 end-0 m-2">
                                     <span class="badge bg-${estadoClass}">${estadoTexto}</span>
@@ -250,76 +253,6 @@ function cargarHabitaciones() {
                 </div>
             `);
         });
-habitaciones:222 === DOCUMENT READY ===
-habitaciones:223 jQuery cargado: true
-habitaciones:224 Formulario encontrado: true
-habitaciones:225 Input de imagen encontrado: true
-habitaciones:780  GET http://localhost/Hotel_tame/uploads/rooms/habitacion_2_171062590000_def456.webp 404 (Not Found)
-habitaciones:780  GET http://localhost/Hotel_tame/uploads/rooms/habitacion_3_171062600000_ghi789.webp 404 (Not Found)
-habitacion_2_171062590000_def456.webp:1  GET http://localhost/Hotel_tame/uploads/rooms/habitacion_2_171062590000_def456.webp 404 (Not Found)
-habitaciones:252 === BOTÓN GUARDAR CLICKEADO ===
-habitaciones:629 === INICIO guardarHabitacion ===
-habitaciones:639 ID de habitación: 2
-habitaciones:645 Datos del formulario:
-habitaciones:646 numero: 102
-habitaciones:647 tipo: doble
-habitaciones:648 piso: 1
-habitaciones:649 precio_noche: 250000.00
-habitaciones:650 capacidad: 2
-habitaciones:651 estado: mantenimiento
-habitaciones:652 descripcion: Habitación doble con dos camas, baño privado, TV y minibar
-habitaciones:673 Archivo encontrado: WhatsApp Image 2025-12-17 at 4.24.03 PM.jpeg
-habitaciones:674 Tamaño: 61698
-habitaciones:675 Tipo: image/jpeg
-habitaciones:682 FormData contents:
-habitaciones:684 numero: 102
-habitaciones:684 tipo: doble
-habitaciones:684 piso: 1
-habitaciones:684 precio_noche: 250000.00
-habitaciones:684 precio: 250000.00
-habitaciones:684 capacidad: 2
-habitaciones:684 estado: mantenimiento
-habitaciones:684 descripcion: Habitación doble con dos camas, baño privado, TV y minibar
-habitaciones:684 imagen_url: 
-habitaciones:684 id: 2
-habitaciones:684 _method: PUT
-habitaciones:684 imagen: File {name: 'WhatsApp Image 2025-12-17 at 4.24.03 PM.jpeg', lastModified: 1766006659922, lastModifiedDate: Wed Dec 17 2025 16:24:19 GMT-0500 (hora estándar de Colombia), webkitRelativePath: '', size: 61698, …}
-habitaciones:718 Enviando AJAX: {url: 'api/endpoints/habitaciones.php?id=2', type: 'POST', data: FormData, processData: false, contentType: false, …}
-habitaciones:229 === FORM SUBMIT DETECTADO ===
-habitaciones:230 Evento submit capturado
-habitaciones:629 === INICIO guardarHabitacion ===
-habitaciones:639 ID de habitación: 2
-habitaciones:645 Datos del formulario:
-habitaciones:646 numero: 102
-habitaciones:647 tipo: doble
-habitaciones:648 piso: 1
-habitaciones:649 precio_noche: 250000.00
-habitaciones:650 capacidad: 2
-habitaciones:651 estado: mantenimiento
-habitaciones:652 descripcion: Habitación doble con dos camas, baño privado, TV y minibar
-habitaciones:673 Archivo encontrado: WhatsApp Image 2025-12-17 at 4.24.03 PM.jpeg
-habitaciones:674 Tamaño: 61698
-habitaciones:675 Tipo: image/jpeg
-habitaciones:682 FormData contents:
-habitaciones:684 numero: 102
-habitaciones:684 tipo: doble
-habitaciones:684 piso: 1
-habitaciones:684 precio_noche: 250000.00
-habitaciones:684 precio: 250000.00
-habitaciones:684 capacidad: 2
-habitaciones:684 estado: mantenimiento
-habitaciones:684 descripcion: Habitación doble con dos camas, baño privado, TV y minibar
-habitaciones:684 imagen_url: 
-habitaciones:684 id: 2
-habitaciones:684 _method: PUT
-habitaciones:684 imagen: File {name: 'WhatsApp Image 2025-12-17 at 4.24.03 PM.jpeg', lastModified: 1766006659922, lastModifiedDate: Wed Dec 17 2025 16:24:19 GMT-0500 (hora estándar de Colombia), webkitRelativePath: '', size: 61698, …}
-habitaciones:718 Enviando AJAX: {url: 'api/endpoints/habitaciones.php?id=2', type: 'POST', data: FormData, processData: false, contentType: false, …}
-habitaciones:694 Respuesta del servidor: {message: 'Habitación actualizada exitosamente.', imagen_url: 'uploads/rooms/habitacion_1773762896_2529.jpg'}
-habitaciones:694 Respuesta del servidor: {message: 'Habitación actualizada exitosamente.', imagen_url: 'uploads/rooms/habitacion_1773762896_7881.jpg'}
-habitacion_2_171062590000_def456.webp:1  GET http://localhost/Hotel_tame/uploads/rooms/habitacion_2_171062590000_def456.webp 404 (Not Found)
-habitacion_3_171062600000_ghi789.webp:1  GET http://localhost/Hotel_tame/uploads/rooms/habitacion_3_171062600000_ghi789.webp 404 (Not Found)
-habitacion_2_171062590000_def456.webp:1  GET http://localhost/Hotel_tame/uploads/rooms/habitacion_2_171062590000_def456.webp 404 (Not Found)
-habitacion_3_171062600000_ghi789.webp:1  GET http://localhost/Hotel_tame/uploads/rooms/habitacion_3_171062600000_ghi789.webp 404 (Not Found)
     });
 }
 
@@ -571,13 +504,13 @@ function editarHabitacion(id) {
         if (habitacion.imagen_url) {
             $('#imagePreviewHabitacion').html(`
                 <div class="position-relative">
-                    <img src="/Hotel_tame/${habitacion.imagen_url}" 
+                    <img src="${HT_BASE}/${habitacion.imagen_url}" 
                          alt="Imagen actual" 
                          class="img-fluid rounded shadow"
                          style="max-height: 200px; max-width: 100%; cursor: pointer;"
-                         onclick="showImageModal('/Hotel_tame/${habitacion.imagen_url}')"
+                         onclick="showImageModal('${HT_BASE}/${habitacion.imagen_url}')"
                          loading="lazy"
-                         onerror="this.src='/Hotel_tame/assets/img/room-default.webp'; this.onerror=null;">
+                         onerror="this.src='${HT_BASE}/assets/img/room-default.webp'; this.onerror=null;">
                     <div class="mt-2">
                         <small class="text-muted">
                             <i class="fas fa-image me-1"></i>

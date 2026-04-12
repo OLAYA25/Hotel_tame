@@ -3,8 +3,8 @@
  * Router principal API REST
  */
 
-require_once __DIR__ . '/../config/app.php';
-require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../../config/app.php';
+require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 require_once __DIR__ . '/../middleware/LoggingMiddleware.php';
 
@@ -270,12 +270,14 @@ class ApiRouter {
      * Obtener URI de la solicitud
      */
     private function getRequestUri() {
+        require_once __DIR__ . '/../../config/env.php';
         $uri = $_SERVER['REQUEST_URI'] ?? '';
-        $basePath = '/Hotel_tame';
-        
-        // Remover base path y query string
-        $uri = str_replace($basePath, '', $uri);
-        $uri = parse_url($uri, PHP_URL_PATH);
+        $basePath = hotel_tame_base_path();
+        $path = parse_url($uri, PHP_URL_PATH) ?? '/';
+        if ($basePath !== '' && str_starts_with($path, $basePath)) {
+            $path = substr($path, strlen($basePath)) ?: '/';
+        }
+        $uri = $path;
         $uri = rtrim($uri, '/') ?: '/';
         
         return $uri;

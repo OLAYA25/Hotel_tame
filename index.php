@@ -2,8 +2,14 @@
 // index.php - Router principal mejorado
 session_start();
 
+require_once __DIR__ . '/config/env.php';
+hotel_tame_define_web_constants();
+
 // Definir constante base para el proyecto
 define('HOTEL_TAME_ROOT', __DIR__);
+if (!defined('BACKEND_ROOT')) {
+    define('BACKEND_ROOT', HOTEL_TAME_ROOT . '/backend');
+}
 
 // Mapeo de URLs a archivos PHP ORIGINALES
 $routeMap = [
@@ -53,20 +59,21 @@ $apiMap = [
 
 // Función para obtener la ruta actual
 function getRequestPath() {
-    $requestUri = $_SERVER['REQUEST_URI'] ?? '';
-    $basePath = '/Hotel_tame';
-    $path = str_replace($basePath, '', $requestUri);
-    $path = parse_url($path, PHP_URL_PATH);
+    $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
+    $basePath = hotel_tame_base_path();
+    $path = parse_url($requestUri, PHP_URL_PATH) ?? '/';
+    if ($basePath !== '' && str_starts_with($path, $basePath)) {
+        $path = substr($path, strlen($basePath)) ?: '/';
+    }
     return rtrim($path, '/') ?: '/';
 }
 
 // Función para incluir archivo con configuración previa
 function includeWithConfig($filepath) {
-    // Establecer constantes para que las vistas encuentren sus dependencias
-    define('BACKEND_ROOT', HOTEL_TAME_ROOT . '/backend');
-    define('ASSETS_URL', '/Hotel_tame/assets');
-    
-    // Incluir el archivo
+    hotel_tame_define_web_constants();
+    if (!defined('BACKEND_ROOT')) {
+        define('BACKEND_ROOT', HOTEL_TAME_ROOT . '/backend');
+    }
     require_once $filepath;
 }
 

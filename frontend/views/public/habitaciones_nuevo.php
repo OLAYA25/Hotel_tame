@@ -1,9 +1,12 @@
 <?php
+require_once dirname(__DIR__, 3) . '/config/env.php';
+hotel_tame_define_web_constants();
+$WB = HOTEL_TAME_WEB_BASE;
+
 require_once __DIR__ . '/../../../backend/config/database.php';
 
-// Verificar sesión de usuario
 if (!isset($_SESSION['usuario'])) {
-    header('Location: /Hotel_tame/login');
+    header('Location: ' . hotel_tame_url_path('login'));
     exit;
 }
 
@@ -947,7 +950,7 @@ function guardarCategoria(e) {
     console.log('Enviando categoría:', categoria);
     
     $.ajax({
-        url: '/Hotel_tame/api/endpoints/categorias.php',
+        url: <?php echo json_encode($WB . '/api/endpoints/categorias.php'); ?>,
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(categoria),
@@ -983,7 +986,7 @@ function guardarCategoria(e) {
 
 function actualizarCategoriasYSeleccionar(nuevaCategoria = null) {
     // Cargar categorías actualizadas desde la API
-    $.get('/Hotel_tame/api/endpoints/categorias.php', function(response) {
+    $.get(<?php echo json_encode($WB . '/api/endpoints/categorias.php'); ?>, function(response) {
         if (response.success && response.data) {
             // Actualizar el select del filtro
             const filtroSelect = $('#filtroCategoria');

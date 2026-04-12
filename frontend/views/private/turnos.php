@@ -3,13 +3,15 @@ require_once __DIR__ . '/../../../backend/config/database.php';
 
 // Verificar sesión de usuario
 if (!isset($_SESSION['usuario'])) {
-    header('Location: /Hotel_tame/login');
+    require_once dirname(__DIR__, 3) . '/config/env.php';
+    header('Location: ' . hotel_tame_url_path('login'));
     exit;
 }
 
 // Solo admin puede gestionar turnos
 if ($_SESSION['usuario']['rol'] !== 'admin') {
-    header('Location: /Hotel_tame/dashboard');
+    require_once dirname(__DIR__, 3) . '/config/env.php';
+    header('Location: ' . hotel_tame_url_path('dashboard'));
     exit;
 }
 

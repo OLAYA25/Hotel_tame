@@ -1,4 +1,8 @@
 <?php
+require_once __DIR__ . '/../../../config/env.php';
+hotel_tame_define_web_constants();
+$WB = HOTEL_TAME_WEB_BASE;
+
 require_once __DIR__ . '/../../../backend/config/database.php';
 
 // Obtener datos del hotel para mostrar en la página
@@ -125,10 +129,10 @@ try {
                         <a class="nav-link" href="#contacto">Contacto</a>
                     </li>
                     <li class="nav-item ms-3">
-                        <a href="/Hotel_tame/reservas-online" class="btn btn-primary-custom btn-sm">Reservar Ahora</a>
+                        <a href="<?php echo $WB; ?>/reservas-online" class="btn btn-primary-custom btn-sm">Reservar Ahora</a>
                     </li>
                     <li class="nav-item ms-2">
-                        <a href="/Hotel_tame/portal-cliente" class="btn btn-outline-custom btn-sm">Mi Portal</a>
+                        <a href="<?php echo $WB; ?>/portal-cliente" class="btn btn-outline-custom btn-sm">Mi Portal</a>
                     </li>
                 </ul>
             </div>
@@ -142,7 +146,7 @@ try {
                 <h1 class="hero-title">Bienvenidos a Hotel Tame</h1>
                 <p class="hero-subtitle">Experimenta el lujo, la comodidad y el servicio excepcional en nuestro hotel de primera categoría</p>
                 <div class="d-flex gap-3 justify-content-center flex-wrap">
-                    <a href="/Hotel_tame/reservas-online" class="btn btn-light btn-lg px-4">
+                    <a href="<?php echo $WB; ?>/reservas-online" class="btn btn-light btn-lg px-4">
                         <i class="fas fa-calendar-check me-2"></i>Reservar Ahora
                     </a>
                     <a href="#habitaciones" class="btn btn-outline-light btn-lg px-4">
@@ -180,7 +184,7 @@ try {
         <div class="container">
             <div class="booking-form">
                 <h3 class="text-center mb-4 fw-bold">Reserva Rápida</h3>
-                <form action="/Hotel_tame/reservas-online" method="GET" class="row g-3">
+                <form action="<?php echo $WB; ?>/reservas-online" method="GET" class="row g-3">
                     <div class="col-md-3">
                         <label class="form-label-custom">Check-in</label>
                         <input type="date" name="checkin" class="form-control form-control-custom" required>
@@ -322,7 +326,7 @@ try {
                                         </div>
                                     </div>
                                     
-                                    <a href="/Hotel_tame/reservas-online?room_id=<?= $habitacion['id'] ?>" 
+                                    <a href="<?php echo $WB; ?>/reservas-online?room_id=<?= $habitacion['id'] ?>" 
                                        class="btn btn-primary-custom w-100">
                                         <i class="fas fa-calendar-check me-2"></i>Reservar Ahora
                                     </a>
@@ -339,7 +343,7 @@ try {
             <?php endif; ?>
             
             <div class="text-center mt-5">
-                <a href="/Hotel_tame/reservas-online" class="btn btn-outline-custom btn-lg">
+                <a href="<?php echo $WB; ?>/reservas-online" class="btn btn-outline-custom btn-lg">
                     <i class="fas fa-th-large me-2"></i>Ver Todas las Habitaciones
                 </a>
             </div>
