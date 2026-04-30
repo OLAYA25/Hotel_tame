@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpcs>
+    <file name="PSR-12">
+        <rule ref="PSR1.Classes.ClassDeclaration"/>
+        <rule ref="PSR1.Files.SideEffects"/>
+        <rule ref="PSR1.Methods.Casing"/>
+        <rule ref="PSR2.Namespaces.NamespaceDeclaration"/>
+        <rule ref="PSR2.Files.EndFileNewline"/>
+        <rule ref="PSR12.Files.FileHeader"/>
+        <rule ref="PSR12.Classes.OpeningBraceSameLine"/>
+        <rule ref="Squiz.Functions.MultiLineFunctionDeclaration"/>
+    </file>
+    
+    <file name="Generic">
+        <rule ref="Generic.Files.LineLength">
+            <properties>
+                <property name="lineLimit" value="120"/>
+                <property name="absoluteLineLimit" value="0"/>
+            </properties>
+        </rule>
+        <rule ref="Generic.PHP.DisallowShortOpenTag"/>
+        <rule ref="Generic.PHP.DisallowAlternativeSyntax"/>
+        <rule ref="Generic.PHP.NoSilencedErrors"/>
+        <rule ref="Generic.Formatting.DisallowMultipleStatements"/>
+        <rule ref="Generic.Metrics.CyclomaticComplexity">
+            <properties>
+                <property name="complexity" value="10"/>
+                <property name="absoluteComplexity" value="0"/>
+            </properties>
+        </rule>
+    </file>
+    
+    <file name="Squiz">
+        <rule ref="Squiz.WhiteSpace.SemicolonSpacing"/>
+        <rule ref="Squiz.WhiteSpace.OperatorSpacing"/>
+        <rule ref="Squiz.WhiteSpace.CastSpacing"/>
+        <rule ref="Squiz.ControlStructures.ControlSignature"/>
+        <rule ref="Squiz.Commenting.DocCommentAlignment"/>
+    </file>
+    
+    <file name="Security">
+        <rule ref="Security.CSRF"/>
+        <rule ref="Security.XSS"/>
+        <rule ref="Security.SQLInjection"/>
+    </file>
+</phpcs>
