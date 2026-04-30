@@ -164,8 +164,18 @@ class Habitacion {
         $stmt->bindParam(":descripcion", $this->descripcion);
         $stmt->bindParam(":imagen_url", $this->imagen_url);
         
-        if($stmt->execute()) {
-            return true;
+        try {
+            if($stmt->execute()) {
+                return true;
+            }
+        } catch (PDOException $e) {
+            // Si es error de duplicación, devolver false para que el controller maneje el mensaje
+            if ($e->getCode() == 23000) {
+                error_log("Duplicate room number: " . $this->numero);
+                return false;
+            }
+            // Para otros errores, relanzar
+            throw $e;
         }
         return false;
     }

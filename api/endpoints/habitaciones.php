@@ -194,14 +194,14 @@ switch($method) {
                     "imagen_url" => $imagen_url
                 ));
             } else {
-                // Verificar si fue por duplicación
+                // Verificar si fue por duplicación (solo habitaciones activas, no eliminadas)
                 $check_query = "SELECT id FROM habitaciones WHERE numero = ? AND deleted_at IS NULL";
                 $check_stmt = $db->prepare($check_query);
                 $check_stmt->execute([$data->numero]);
                 
                 if($check_stmt->rowCount() > 0) {
                     http_response_code(409); // Conflict
-                    echo json_encode(array("message" => "Ya existe una habitación con el número '{$data->numero}'."));
+                    echo json_encode(array("message" => "Ya existe una habitación activa con el número '{$data->numero}'."));
                 } else {
                     http_response_code(503);
                     echo json_encode(array("message" => "No se pudo crear la habitación."));
